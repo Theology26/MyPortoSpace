@@ -2,6 +2,8 @@
 .agents/
 .agents
 .clinerules
+.kilo/
+.kilo
 
 # Dependencies
 node_modules/
@@ -30,3 +32,8 @@ build/
 .DS_Store
 Thumbs.db
 *.log
+
+# Large Backup 3D Models
+*.original.glb
+*.backup.*
+

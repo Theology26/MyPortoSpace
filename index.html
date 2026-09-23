@@ -2,9 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Theology26 — Full-Stack Developer & Systems Builder | theo.dev</title>
-  <meta name="description" content="Portfolio of Yosia Grace Theo — Full-Stack Developer & Systems Builder specializing in scalable web architectures, Laravel 11, Next.js, and micro-precision responsive frontends." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  
+  <!-- Primary SEO Meta Tags -->
+  <title>Theology26 — Full-Stack Developer, Video Editor & Systems Architect | theo.dev</title>
+  <meta name="title" content="Theology26 — Full-Stack Developer, Video Editor & Systems Architect | theo.dev" />
+  <meta name="description" content="Official portfolio of Yosia Grace Theo (Theology26) — Full-Stack Developer & Systems Builder specializing in scalable web architectures, Laravel 11, React, Three.js, commercial video editing, and live visual staging." />
+  <meta name="keywords" content="Yosia Grace Theo, Theology26, theo.dev, Full-Stack Developer, Software Engineer, Laravel 11, React, Next.js, Three.js WebGL, Python, Computer Vision, OCR, Video Editor, Virtual Jockey, VJ, Malang, Portfolio" />
+  <meta name="author" content="Yosia Gracetheo Boimau" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="theme-color" content="#08080a" />
+  <link rel="canonical" href="https://theo.dev/" />
+
+  <!-- Favicons and App Icons -->
+  <link rel="icon" type="image/png" href="/Assets/avatar_animated.png" />
+  <link rel="apple-touch-icon" href="/Assets/avatar_animated.png" />
+
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://theo.dev/" />
+  <meta property="og:site_name" content="Theology26 // Systems Portfolio" />
+  <meta property="og:title" content="Theology26 — Full-Stack Developer & Systems Architect" />
+  <meta property="og:description" content="Engineering enterprise-grade full-stack architectures, Laravel 11 CMS engines, automated GitHub telemetry, and interactive 3D frontends." />
+  <meta property="og:image" content="https://theo.dev/Assets/avatar_animated.png" />
+  <meta property="og:image:alt" content="Theology26 Developer Identity" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://theo.dev/" />
+  <meta name="twitter:site" content="@Theology26" />
+  <meta name="twitter:creator" content="@theoxcyro" />
+  <meta name="twitter:title" content="Theology26 — Full-Stack Developer & Systems Architect" />
+  <meta name="twitter:description" content="Engineering enterprise-grade full-stack architectures, Laravel 11 CMS engines, automated GitHub telemetry, and interactive 3D frontends." />
+  <meta name="twitter:image" content="https://theo.dev/Assets/avatar_animated.png" />
+
+  <!-- Structured Data (Schema.org JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://theo.dev/#person",
+        "name": "Yosia Gracetheo Boimau",
+        "alternateName": "Theology26",
+        "url": "https://theo.dev/",
+        "image": "https://theo.dev/Assets/avatar_animated.png",
+        "jobTitle": ["Full-Stack Developer", "Video Editor", "Virtual Jockey"],
+        "description": "Full-Stack Developer & Systems Builder specializing in scalable web architectures, Laravel 11, Next.js, and interactive 3D frontends.",
+        "alumniOf": {
+          "@type": "EducationalOrganization",
+          "name": "BINUS University"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Malang",
+          "addressRegion": "East Java",
+          "addressCountry": "ID"
+        },
+        "sameAs": [
+          "https://github.com/Theology26",
+          "https://instagram.com/theoxcyro",
+          "https://linktr.ee/TheHighTee",
+          "https://linkedin.com/in/yosia-gracetheo-boimau-919340211/"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://theo.dev/#website",
+        "url": "https://theo.dev/",
+        "name": "Theology26 Portfolio",
+        "publisher": {
+          "@id": "https://theo.dev/#person"
+        }
+      }
+    ]
+  }
+  </script>
 
   <!-- Vercel Web Analytics -->
   <script>
@@ -69,19 +144,28 @@
 
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
     body {
       font-family: 'Geist', system-ui, sans-serif;
       background: #08080a;
       color: #e5e1e4;
       overflow-x: hidden;
+      width: 100%;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
-    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #08080a; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* Hide scrollbar utility */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     /* Glassmorphism Utility */
     .glass-card {
@@ -105,6 +189,33 @@
       box-shadow: inset 0 1px 1px 1px rgba(255,255,255,0.3);
     }
 
+    /* Eco / Kentang Mode Styling (Ultra-Lightweight for Budget Devices) */
+    body.eco-mode .glass-card,
+    body.eco-mode .glass-card-strong,
+    body.eco-mode .glass-pill {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(14, 18, 26, 0.94) !important;
+      box-shadow: none !important;
+    }
+    body.eco-mode .ambient-glow {
+      display: none !important;
+    }
+    .eco-starfield {
+      background-image: 
+        radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 120px 80px, #38bdf8, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 240px 190px, #ffffff, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 320px 140px, #fde047, rgba(0,0,0,0)),
+        radial-gradient(1px 1px at 450px 220px, #ffffff, rgba(0,0,0,0));
+      background-repeat: repeat;
+      background-size: 500px 350px;
+      opacity: 0.45;
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
     /* Ambient glow */
     .ambient-glow {
       position: absolute;
@@ -120,6 +231,16 @@
       background: white;
     }
 
+    /* Watermark background icon */
+    .watermark-icon {
+      position: absolute;
+      right: -8px;
+      bottom: -8px;
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 1;
+    }
+
     /* Lanyard spring animation */
     @keyframes springBounce {
       0% { transform: translateY(0); }
@@ -133,12 +254,12 @@
 
     /* Fade-in animation */
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .fade-in-up {
       opacity: 0;
-      animation: fadeInUp 0.8s ease-out forwards;
+      animation: fadeInUp 0.7s ease-out forwards;
     }
     .delay-100 { animation-delay: 0.1s; }
     .delay-200 { animation-delay: 0.2s; }
@@ -147,57 +268,15 @@
     .delay-500 { animation-delay: 0.5s; }
     .delay-600 { animation-delay: 0.6s; }
 
-    /* Pulse for active dot */
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 4px 1px rgba(74,222,128,0.5); }
-      50% { box-shadow: 0 0 10px 3px rgba(74,222,128,0.8); }
-    }
-    .pulse-dot { animation: pulse-glow 2s infinite; }
-
-    /* Holographic shimmer */
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    .holo-strip {
-      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.7) 50%, transparent 100%);
-      background-size: 200% 100%;
-      animation: shimmer 4s linear infinite;
-    }
-
-    /* Terminal blink */
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-    .cursor-blink { animation: blink 1.2s step-end infinite; }
-
-    /* Progress bar fill */
-    @keyframes fillBar {
-      from { width: 0%; }
-    }
-    .progress-fill {
-      animation: fillBar 1.5s ease-out forwards;
-    }
-
-    /* Float animation for 3D hint */
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
-    }
-    .float-anim { animation: float 3s ease-in-out infinite; }
-
-    /* Subtle rotate for watermark */
-    .watermark-icon {
-      opacity: 0.06;
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
+    /* Content visibility for performance on long pages */
+    .cv-auto {
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 700px;
     }
 
     /* Navbar blur on scroll */
     .nav-scrolled {
-      background: rgba(8, 8, 10, 0.85) !important;
+      background: rgba(8, 8, 10, 0.88) !important;
       backdrop-filter: blur(24px) !important;
       border-color: rgba(255,255,255,0.08) !important;
     }
@@ -212,21 +291,24 @@
     // ═══════════════════════════════════════════
     // THREE.JS BACKGROUND CANVAS (Deep Space, Earth, Satellites & Star Flares)
     // ═══════════════════════════════════════════
-    const ThreeBackground = ({ spaceConfig }) => {
+    const ThreeBackground = ({ spaceConfig, ecoMode }) => {
       const canvasRef = useRef(null);
 
       useEffect(() => {
-        if (!canvasRef.current) return;
+        if (ecoMode || !canvasRef.current) return;
         const canvas = canvasRef.current;
+
+        const isMobile = window.innerWidth < 768;
+        const isLowSpec = isMobile || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
 
         // Scene setup
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 0, 5);
 
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isLowSpec, alpha: true, powerPreference: 'low-power' });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(isLowSpec ? 1 : Math.min(window.devicePixelRatio, 1.5));
         renderer.setClearColor(0x000000, 0);
 
         // Lights - vivid solar illumination and atmospheric backfill
@@ -246,9 +328,9 @@
         scene.add(horizonGlow);
 
         // ═══════════════════════════════════════════
-        // 1. DENSE MULTI-TIER STARFIELD (3,200 Stars)
+        // 1. DENSE MULTI-TIER STARFIELD (Adaptive Count)
         // ═══════════════════════════════════════════
-        const starCount = 3200;
+        const starCount = isLowSpec ? 500 : 2600;
         const starGeo = new THREE.BufferGeometry();
         const starPositions = new Float32Array(starCount * 3);
         const starColors = new Float32Array(starCount * 3);
@@ -470,64 +552,13 @@
         const earthSpinGroup = new THREE.Group();
         earthMasterGroup.add(earthSpinGroup);
 
-        // Procedural High-Detail Earth Globe (Immediate visual)
-        const createProceduralEarthTexture = () => {
-          const cvs = document.createElement('canvas');
-          cvs.width = 1024;
-          cvs.height = 512;
-          const ctx = cvs.getContext('2d');
-
-          const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
-          oceanGrad.addColorStop(0, '#0a2244');
-          oceanGrad.addColorStop(0.5, '#071830');
-          oceanGrad.addColorStop(1, '#051224');
-          ctx.fillStyle = oceanGrad;
-          ctx.fillRect(0, 0, 1024, 512);
-
-          ctx.fillStyle = '#1e3f28';
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 1.5;
-
-          const continents = [
-            [[160, 90], [280, 70], [330, 130], [290, 190], [230, 230], [170, 200], [140, 130]],
-            [[270, 250], [340, 280], [360, 360], [310, 440], [280, 410], [260, 310]],
-            [[490, 90], [560, 80], [590, 120], [540, 160], [470, 150]],
-            [[480, 180], [580, 190], [610, 270], [580, 370], [520, 390], [470, 300], [460, 210]],
-            [[600, 70], [800, 80], [870, 150], [840, 240], [720, 260], [660, 190], [590, 140]],
-            [[790, 320], [870, 310], [890, 380], [820, 400], [770, 360]],
-          ];
-
-          continents.forEach(poly => {
-            ctx.beginPath();
-            ctx.moveTo(poly[0][0], poly[0][1]);
-            for (let k = 1; k < poly.length; k++) {
-              ctx.lineTo(poly[k][0], poly[k][1]);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-          });
-
-          ctx.fillStyle = 'rgba(253, 224, 71, 0.75)';
-          for (let p = 0; p < 250; p++) {
-            const rx = Math.random() * 1024;
-            const ry = Math.random() * 512;
-            ctx.fillRect(rx, ry, 1.5, 1.5);
-          }
-
-          const tex = new THREE.CanvasTexture(cvs);
-          tex.wrapS = THREE.RepeatWrapping;
-          tex.wrapT = THREE.ClampToEdgeWrapping;
-          return tex;
-        };
-
-        const earthTex = createProceduralEarthTexture();
+        // Placeholder dark sphere while authentic 3D NASA Earth GLB loads
         const baseEarthMat = new THREE.MeshStandardMaterial({
-          map: earthTex,
-          roughness: 0.65,
-          metalness: 0.15,
+          color: 0x071526,
+          roughness: 0.75,
+          metalness: 0.25,
         });
-        const baseEarthMesh = new THREE.Mesh(new THREE.SphereGeometry(1.85, 64, 64), baseEarthMat);
+        const baseEarthMesh = new THREE.Mesh(new THREE.SphereGeometry(1.85, 32, 32), baseEarthMat);
         earthSpinGroup.add(baseEarthMesh);
 
         // ═══════════════════════════════════════════
@@ -635,7 +666,7 @@
         const SATELLITE_CONFIGS = [
           {
             name: 'Space Systems Loral',
-            file: './Assets/Space Systems Loral (SSL-1300).glb',
+            file: '/Assets/Space Systems Loral (SSL-1300).glb',
             targetSize: 0.36,
             radiusX: 3.10,
             radiusZ: 2.85,
@@ -647,7 +678,7 @@
           },
           {
             name: 'Lunar Laser Communication',
-            file: './Assets/Lunar Laser Communications Demonstration (LLCD).glb',
+            file: '/Assets/Lunar Laser Communications Demonstration (LLCD).glb',
             targetSize: 0.32,
             radiusX: 2.80,
             radiusZ: 2.65,
@@ -659,7 +690,7 @@
           },
           {
             name: 'Cloud-Aerosol Lidar (CALIPSO)',
-            file: './Assets/Cloud-Aerosol Lidar and Infrared Pathfinder Satellite (CALIPSO).glb',
+            file: '/Assets/Cloud-Aerosol Lidar and Infrared Pathfinder Satellite (CALIPSO).glb',
             targetSize: 0.28,
             radiusX: 2.55,
             radiusZ: 2.45,
@@ -671,7 +702,7 @@
           },
           {
             name: 'IBEX',
-            file: './Assets/Interstellar Boundary Explorer (IBEX).glb',
+            file: '/Assets/Interstellar Boundary Explorer (IBEX).glb',
             targetSize: 0.24,
             radiusX: 3.40,
             radiusZ: 3.15,
@@ -754,21 +785,20 @@
 
         let loadedEarthGlb = null;
 
+        // Load authentic 3D Earth Globe and Satellite GLB models
         try {
           const loader = new THREE.GLTFLoader();
 
-          // Enable Draco mesh decompression for downloaded NASA satellite models
           if (typeof THREE.DRACOLoader !== 'undefined') {
             const dracoLoader = new THREE.DRACOLoader();
             dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.3/');
             dracoLoader.preload();
             loader.setDRACOLoader(dracoLoader);
-            console.log('DRACOLoader attached to GLTFLoader for satellite models');
           }
 
-          // Load 66MB Earth Globe model
+          // Load authentic 3D NASA Earth Globe (optimized 4.2 MB)
           loader.load(
-            './Assets/earth_globe.glb',
+            '/Assets/earth_globe.glb',
             (gltf) => {
               loadedEarthGlb = gltf.scene;
               const box = new THREE.Box3().setFromObject(loadedEarthGlb);
@@ -784,15 +814,22 @@
               loadedEarthGlb.position.y = -center.y * scaleFactor;
               loadedEarthGlb.position.z = -center.z * scaleFactor;
 
+              loadedEarthGlb.traverse((child) => {
+                if (child.isMesh && child.material) {
+                  child.castShadow = true;
+                  child.receiveShadow = true;
+                  child.material.needsUpdate = true;
+                }
+              });
+
               earthSpinGroup.add(loadedEarthGlb);
               baseEarthMesh.visible = false;
-              console.log('Earth 3D GLB model loaded and centered successfully!');
             },
             undefined,
-            (err) => console.log('Earth model fallback active:', err)
+            (err) => console.warn('Earth GLB load info:', err)
           );
 
-          // Load all 4 requested satellite models
+          // Load authentic satellite models
           activeSatellites.forEach((satObj) => {
             loader.load(
               encodeURI(satObj.cfg.file),
@@ -808,27 +845,22 @@
                 model.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
 
                 model.traverse((child) => {
-                  if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                    if (child.material) {
-                      child.material.side = THREE.DoubleSide;
-                      child.material.needsUpdate = true;
-                    }
+                  if (child.isMesh && child.material) {
+                    child.material.side = THREE.DoubleSide;
+                    child.material.needsUpdate = true;
                   }
                 });
 
                 satObj.group.remove(satObj.placeholder);
                 satObj.group.add(model);
                 satObj.model = model;
-                console.log(`Loaded satellite model: ${satObj.cfg.name}`);
               },
               undefined,
-              (err) => console.log(`Load error for ${satObj.cfg.name}:`, err)
+              () => {}
             );
           });
         } catch (e) {
-          console.log('GLTFLoader initialization:', e);
+          console.warn('3D space models init:', e);
         }
 
         // Mouse tracking for parallax
@@ -837,13 +869,28 @@
           mouseX = (e.clientX / window.innerWidth) * 2 - 1;
           mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
         };
-        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
 
-        // Animation loop
+        // Intersection Observer: Pause WebGL rendering loop when user scrolls away from hero
+        let isHeroVisible = true;
+        let heroObserver = null;
+        const heroSection = document.getElementById('hero');
+        if (heroSection && 'IntersectionObserver' in window) {
+          heroObserver = new IntersectionObserver(([entry]) => {
+            isHeroVisible = entry.isIntersecting;
+          }, { threshold: 0.05 });
+          heroObserver.observe(heroSection);
+        }
+
+        // Animation loop (Smart throttled for low-end device battery & GPU efficiency)
         let frameId;
         const clock = new THREE.Clock();
         const animate = () => {
           frameId = requestAnimationFrame(animate);
+          
+          // If hero section has been scrolled out of view, sleep the render loop!
+          if (!isHeroVisible) return;
+
           const elapsed = clock.getElapsedTime();
 
           // 1. Earth rotation & clouds drift
@@ -904,7 +951,7 @@
             }
           }
 
-          // 5. Update All 4 Realistic Satellites in Orbit
+          // 5. Update All 4 Satellites in Orbit
           activeSatellites.forEach((satObj) => {
             const t = elapsed * satObj.cfg.speed + satObj.cfg.phase;
             const x = satObj.cfg.radiusX * Math.cos(t);
@@ -916,8 +963,6 @@
             satObj.group.position.copy(pos);
 
             satObj.group.rotation.y = elapsed * 0.22;
-            satObj.group.rotation.x = Math.sin(elapsed * 0.16) * 0.15;
-            satObj.group.rotation.z = Math.cos(elapsed * 0.14) * 0.10;
           });
 
           // Atmosphere scattering illumination sync
@@ -931,7 +976,6 @@
 
           // 7. Starfield gentle celestial rotation
           starField.rotation.y = elapsed * 0.005;
-          starField.rotation.x = Math.sin(elapsed * 0.003) * 0.005;
 
           renderer.render(scene, camera);
         };
@@ -947,18 +991,28 @@
 
         return () => {
           cancelAnimationFrame(frameId);
+          if (heroObserver) heroObserver.disconnect();
           window.removeEventListener('mousemove', onMouseMove);
           window.removeEventListener('resize', onResize);
           renderer.dispose();
         };
-      }, []);
+      }, [ecoMode]);
 
       return (
-        <canvas
-          ref={canvasRef}
-          className="fixed inset-0 w-full h-full pointer-events-none"
-          style={{ zIndex: 0 }}
-        />
+        <>
+          {ecoMode ? (
+            <div className="fixed inset-0 pointer-events-none overflow-hidden bg-[#08080a]" style={{ zIndex: 0 }}>
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.12),rgba(0,0,0,0))]" />
+              <div className="eco-starfield" />
+            </div>
+          ) : (
+            <canvas
+              ref={canvasRef}
+              className="fixed inset-0 w-full h-full pointer-events-none"
+              style={{ zIndex: 0 }}
+            />
+          )}
+        </>
       );
     };
 
@@ -991,7 +1045,7 @@
     // ═══════════════════════════════════════════
     // NAVBAR (Immaculate Precision Header)
     // ═══════════════════════════════════════════
-    const Navbar = ({ generalData }) => {
+    const Navbar = ({ generalData, ecoMode, toggleEcoMode }) => {
       const [scrolled, setScrolled] = useState(false);
       const [activeNav, setActiveNav] = useState('Overview');
       const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1005,10 +1059,10 @@
           setScrolled(window.scrollY > 40);
           const sections = [
             { id: 'hero', name: 'Overview' },
+            { id: 'certificates', name: 'Certificates' },
             { id: 'projects', name: 'Projects' },
             { id: 'techstack', name: 'Stack' },
             { id: 'education', name: 'Experience' },
-            { id: 'gallery', name: 'VJ Gallery' },
             { id: 'contact', name: 'Contact' },
           ];
           const scrollPos = window.scrollY + 220;
@@ -1026,17 +1080,17 @@
 
       const navItems = [
         { label: 'Overview', id: 'hero' },
-        { label: 'Projects & Certs', id: 'projects' },
+        { label: 'Certificates', id: 'certificates' },
+        { label: 'Projects', id: 'projects' },
         { label: 'Stack', id: 'techstack' },
         { label: 'Experience', id: 'education' },
-        { label: 'VJ Gallery', id: 'gallery' },
         { label: 'Contact', id: 'contact' },
       ];
 
       return (
-        <header className="fixed top-3.5 left-0 right-0 z-50 flex flex-col items-center px-3 sm:px-6 pointer-events-none">
+        <header className="fixed top-2.5 sm:top-3.5 left-0 right-0 z-50 flex flex-col items-center px-2.5 sm:px-6 pointer-events-none">
           <nav
-            className={`pointer-events-auto flex items-center justify-between gap-2.5 sm:gap-4 px-3 sm:px-4 py-2 rounded-full transition-all duration-300 max-w-[1180px] w-full ${
+            className={`pointer-events-auto flex items-center justify-between gap-1.5 sm:gap-4 px-2.5 sm:px-4 py-2 rounded-full transition-all duration-300 max-w-[1180px] w-full ${
               scrolled ? 'nav-scrolled shadow-[0_16px_40px_rgba(0,0,0,0.7)]' : 'shadow-[0_8px_28px_rgba(0,0,0,0.4)]'
             }`}
             style={{
@@ -1048,7 +1102,7 @@
             {/* Brand Identity */}
             <div 
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2.5 pr-2.5 sm:pr-3.5 border-r border-white/10 shrink-0 cursor-pointer group select-none"
+              className="flex items-center gap-2 pr-2 sm:pr-3.5 border-r border-white/10 shrink-0 cursor-pointer group select-none"
             >
               <div className="w-7 h-7 rounded-full bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center overflow-hidden group-hover:border-cyan-300 transition-all shadow-[0_0_10px_rgba(6,182,212,0.35)] shrink-0">
                 <img
@@ -1057,9 +1111,9 @@
                   className="w-full h-full object-cover object-center"
                 />
               </div>
-              <div className="flex items-center gap-1.5 font-mono text-xs">
-                <span className="font-semibold text-white tracking-wider group-hover:text-cyan-300 transition-colors">{brandTitle}</span>
-                <span className="text-white/25">/</span>
+              <div className="flex items-center gap-1 font-mono text-xs">
+                <span className="font-semibold text-white tracking-wider group-hover:text-cyan-300 transition-colors text-[11px] sm:text-xs">{brandTitle}</span>
+                <span className="text-white/25 hidden xs:inline">/</span>
                 <span className="text-sky-400/90 font-medium hidden sm:inline">{brandDomain}</span>
               </div>
               <span className="hidden xl:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-mono font-medium tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
@@ -1092,19 +1146,32 @@
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              {/* Eco / Kentang Mode Button */}
+              <button
+                onClick={toggleEcoMode}
+                className={`glass-pill px-2 sm:px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-mono transition-all flex items-center gap-1 border shrink-0 ${
+                  ecoMode
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.25)]'
+                    : 'text-zinc-400 hover:text-white border-white/15'
+                }`}
+                title={ecoMode ? 'Eco Mode Active: Lightweight 2D starfield, zero WebGL overhead' : 'Switch to Eco Mode for potato devices (saves GPU & battery)'}
+              >
+                <span>{ecoMode ? '⚡ ECO' : '🚀 3D'}</span>
+              </button>
+
               {/* ATS CV PDF Generator Link */}
               <a
                 href="/api/cv/download"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="glass-pill px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-mono font-medium text-cyan-300 hover:text-white hover:bg-cyan-500/20 transition-all flex items-center gap-1.5 border border-cyan-500/35 whitespace-nowrap shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+                className="glass-pill px-2 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-mono font-medium text-cyan-300 hover:text-white hover:bg-cyan-500/20 transition-all flex items-center gap-1 border border-cyan-500/35 whitespace-nowrap shadow-[0_0_10px_rgba(6,182,212,0.15)]"
                 title="Preview & Download ATS CV (PDF)"
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                 </svg>
-                <span>CV (PDF)</span>
+                <span>CV</span>
               </a>
 
               <a
@@ -1121,7 +1188,7 @@
                 href="https://github.com/theology26"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden sm:flex px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-mono font-semibold bg-white text-zinc-950 hover:bg-zinc-200 transition-all items-center gap-1.5 shadow-[0_0_16px_rgba(255,255,255,0.2)] whitespace-nowrap"
+                className="hidden sm:flex px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-mono font-semibold bg-white text-zinc-950 hover:bg-zinc-200 transition-all items-center gap-1.5 shadow-[0_0_16px_rgba(255,255,255,0.2)] whitespace-nowrap"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
@@ -1134,10 +1201,10 @@
                 href="/admin"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="glass-pill w-8 h-8 rounded-full text-xs font-mono text-zinc-400 hover:text-white hover:bg-white/15 transition-all flex items-center justify-center border border-white/15 shrink-0"
-                title="Admin Dashboard (Login: theology26)"
+                className="glass-pill w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-mono text-zinc-400 hover:text-white hover:bg-white/15 transition-all flex items-center justify-center border border-white/15 shrink-0"
+                title="Admin Console"
               >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0110 0v4"/>
                 </svg>
@@ -1146,16 +1213,16 @@
               {/* Mobile menu toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden glass-pill w-8 h-8 rounded-full text-zinc-300 hover:text-white flex items-center justify-center border border-white/15 shrink-0"
+                className="lg:hidden glass-pill w-7 h-7 sm:w-8 sm:h-8 rounded-full text-zinc-300 hover:text-white flex items-center justify-center border border-white/15 shrink-0"
                 aria-label="Toggle navigation menu"
               >
                 {mobileMenuOpen ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -1168,9 +1235,20 @@
           {/* Mobile Drawer Dropdown */}
           {mobileMenuOpen && (
             <div 
-              className="pointer-events-auto mt-2 w-full max-w-[480px] rounded-2xl p-4 border border-white/15 shadow-2xl flex flex-col gap-2 transition-all"
-              style={{ backdropFilter: 'blur(28px)', background: 'rgba(10,12,20,0.95)' }}
+              className="pointer-events-auto mt-2 w-full max-w-[480px] rounded-2xl p-4 border border-white/15 shadow-2xl flex flex-col gap-2.5 transition-all"
+              style={{ backdropFilter: 'blur(28px)', background: 'rgba(10,12,20,0.96)' }}
             >
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider">// NAVIGATION MENU</span>
+                <button
+                  onClick={toggleEcoMode}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-mono border transition-all ${
+                    ecoMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-white/5 text-zinc-300 border-white/10'
+                  }`}
+                >
+                  {ecoMode ? '⚡ Eco Mode ON' : '🚀 3D Mode ON'}
+                </button>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {navItems.map(item => (
                   <button
@@ -1228,7 +1306,9 @@
         isDragging: false,
       });
 
-      // 60FPS Physics Animation Loop
+      const animRunningRef = useRef(true);
+
+      // 60FPS Physics Animation Loop with Idle Sleep Guard
       useEffect(() => {
         let animId;
         let lastTime = performance.now();
@@ -1244,7 +1324,7 @@
           const restLength = 145;
 
           if (isDrag) {
-            // Elastic rubber stretch tracking toward mouse target
+            // Elastic rubber stretch tracking toward pointer target
             const followSpeed = 22;
             pos.x += (target.x - pos.x) * followSpeed * dt;
             pos.y += (target.y - pos.y) * followSpeed * dt;
@@ -1278,11 +1358,18 @@
             angleVelRef.current += torque * dt;
             angleRef.current += angleVelRef.current * dt;
 
-            // Subtle resting air current breathing when idle
-            if (Math.abs(pos.x) < 0.5 && Math.abs(pos.y) < 0.5 && Math.abs(vel.x) < 1) {
-              const idleTime = currentTime * 0.0015;
-              pos.x += Math.sin(idleTime * 1.6) * 0.15;
-              angleRef.current += Math.sin(idleTime * 1.2) * 0.002;
+            // Check if card has settled to rest
+            const isSettled = Math.abs(pos.x) < 0.25 && Math.abs(pos.y) < 0.25 && Math.abs(vel.x) < 0.6 && Math.abs(vel.y) < 0.6 && Math.abs(angleRef.current) < 0.005;
+            if (isSettled) {
+              pos.x = 0;
+              pos.y = 0;
+              vel.x = 0;
+              vel.y = 0;
+              angleRef.current = 0;
+              angleVelRef.current = 0;
+              setVisualState({ x: 0, y: 0, angle: 0, tiltX: 0, tiltY: 0, isDragging: false });
+              animRunningRef.current = false;
+              return; // Sleep animation loop!
             }
           }
 
@@ -1317,6 +1404,57 @@
           posX: posRef.current.x,
           posY: posRef.current.y,
         };
+
+        // Wake up physics loop if sleeping
+        if (!animRunningRef.current) {
+          animRunningRef.current = true;
+          animId = requestAnimationFrame(() => {
+            let lastTime = performance.now();
+            const updatePhysics = (currentTime) => {
+              const dt = Math.min((currentTime - lastTime) / 1000, 0.033);
+              lastTime = currentTime;
+              const isDrag = isDraggingRef.current;
+              const pos = posRef.current;
+              const vel = velRef.current;
+              const target = targetPosRef.current;
+              const restLength = 145;
+
+              if (isDrag) {
+                pos.x += (target.x - pos.x) * 22 * dt;
+                pos.y += (target.y - pos.y) * 22 * dt;
+                vel.x = (target.x - pos.x) * 12;
+                vel.y = (target.y - pos.y) * 12;
+                const targetAngle = Math.atan2(pos.x, restLength + pos.y) * 0.82;
+                angleRef.current += (targetAngle - angleRef.current) * 14 * dt;
+                angleVelRef.current = 0;
+              } else {
+                const kSpring = 42;
+                const cDamping = 6.8;
+                vel.x += (-kSpring * pos.x - cDamping * vel.x) * dt;
+                vel.y += (-kSpring * pos.y - cDamping * vel.y) * dt;
+                pos.x += vel.x * dt;
+                pos.y += vel.y * dt;
+                const torque = -36 * angleRef.current - 5.2 * angleVelRef.current + (vel.x * 0.04);
+                angleVelRef.current += torque * dt;
+                angleRef.current += angleVelRef.current * dt;
+
+                const isSettled = Math.abs(pos.x) < 0.25 && Math.abs(pos.y) < 0.25 && Math.abs(vel.x) < 0.6 && Math.abs(vel.y) < 0.6 && Math.abs(angleRef.current) < 0.005;
+                if (isSettled) {
+                  pos.x = 0; pos.y = 0; vel.x = 0; vel.y = 0; angleRef.current = 0; angleVelRef.current = 0;
+                  setVisualState({ x: 0, y: 0, angle: 0, tiltX: 0, tiltY: 0, isDragging: false });
+                  animRunningRef.current = false;
+                  return;
+                }
+              }
+
+              const tiltY = Math.max(-28, Math.min(28, -pos.x * 0.12 - vel.x * 0.04));
+              const tiltX = Math.max(-20, Math.min(22, pos.y * 0.08 - vel.y * 0.03));
+              setVisualState({ x: pos.x, y: pos.y, angle: angleRef.current, tiltX, tiltY, isDragging: isDrag });
+              requestAnimationFrame(updatePhysics);
+            };
+            requestAnimationFrame(updatePhysics);
+          });
+        }
       };
 
       const handlePointerMove = (e) => {
@@ -1455,8 +1593,8 @@
       return (
         <div
           ref={containerRef}
-          className="relative flex flex-col items-center select-none"
-          style={{ width: 340, minHeight: 620, touchAction: 'none' }}
+          className="relative flex flex-col items-center select-none max-w-full overflow-visible"
+          style={{ width: '100%', maxWidth: 340, minHeight: 580, touchAction: 'none' }}
         >
           {/* Dynamic Flexible Rubber & Fabric Ribbon SVG */}
           <div className="absolute top-0 left-0 w-full pointer-events-none" style={{ height: Math.max(220, endY + 80), zIndex: 10 }}>
@@ -1529,10 +1667,13 @@
             </svg>
           </div>
 
-          {/* Main Card (Reacting with full 2D position, pendulum rotation & 3D tilt) */}
+          {/* Main Card (Strictly Square 'Kotak' Pass with 2D displacement, pendulum oscillation & 3D tilt) */}
           <div
-            className={`relative w-[340px] select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            className={`relative select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{
+              width: 330,
+              height: 330,
+              maxWidth: '100%',
               transform: `translate3d(${curX}px, ${curY}px, 0px) rotate(${(curAngle * 180) / Math.PI}deg) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
               transformOrigin: 'top center',
               transformStyle: 'preserve-3d',
@@ -1546,18 +1687,21 @@
           >
             {/* Badge slot hole */}
             <div className="flex justify-center mb-1">
-              <div className="w-16 h-3.5 rounded-full flex items-center justify-center"
+              <div className="w-16 h-3 rounded-full flex items-center justify-center"
                 style={{
                   background: 'rgba(0,0,0,0.7)',
                   border: '1px solid rgba(255,255,255,0.28)',
                   boxShadow: 'inset 0 2px 4px 1px rgba(0,0,0,0.4)',
                 }}>
-                <div className="w-10 h-1.5 rounded-full bg-white/30" />
+                <div className="w-10 h-1 rounded-full bg-white/30" />
               </div>
             </div>
 
-            {/* Card body */}
-            <div className="glass-card-strong rounded-[30px] p-5 relative overflow-hidden transition-shadow duration-300">
+            {/* Card body - strictly square aspect ratio with balanced layout */}
+            <div
+              className="glass-card-strong rounded-[26px] p-4 sm:p-5 relative overflow-hidden transition-shadow duration-300 w-full flex flex-col justify-between"
+              style={{ width: '100%', height: 'calc(100% - 16px)' }}
+            >
               {/* Holographic strip */}
               <div className="absolute top-0 left-0 right-0 h-1 holo-strip opacity-90" />
 
@@ -1578,19 +1722,19 @@
 
               {/* Watermark background */}
               <div className="watermark-icon">
-                <svg width="100" height="100" viewBox="0 0 24 24" fill="white" opacity="0.8">
+                <svg width="90" height="90" viewBox="0 0 24 24" fill="white" opacity="0.8">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="0.5" fill="none" />
                 </svg>
               </div>
 
               {/* Badge Header */}
-              <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.08] relative z-10">
+              <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08] relative z-10">
                 <div>
                   <div className="flex items-center gap-1.5 mb-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-white" style={{
                       boxShadow: '0 0 6px rgba(255,255,255,0.9)'
                     }} />
-                    <span className="font-mono text-[10px] font-medium text-muted tracking-[1px] uppercase">
+                    <span className="font-mono text-[9px] font-medium text-muted tracking-[1px] uppercase">
                       SYS.ID // ACCESS PASS
                     </span>
                   </div>
@@ -1598,16 +1742,16 @@
                     VERIFIED DEVELOPER
                   </span>
                 </div>
-                <span className="glass-pill px-3 py-1 rounded-full font-mono text-[10px] font-semibold text-white tracking-[0.5px] uppercase">
+                <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[9px] font-semibold text-white tracking-[0.5px] uppercase">
                   ACTIVE
                 </span>
               </div>
 
               {/* Profile Identity */}
-              <div className="flex items-center gap-3.5 py-4 relative z-10">
+              <div className="flex items-center gap-3 py-1 relative z-10">
                 {/* Monogram / Avatar Image */}
-                <div className="relative">
-                  <div className="w-14 h-14 rounded-[20px] flex items-center justify-center overflow-hidden"
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-[16px] flex items-center justify-center overflow-hidden"
                     style={{
                       background: 'rgba(255,255,255,0.1)',
                       border: '1px solid rgba(255,255,255,0.35)',
@@ -1628,66 +1772,54 @@
                   {/* Verified badge */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
                     style={{ background: '#101015', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="white">
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="white">
                       <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" strokeWidth="2.5" fill="none" />
                     </svg>
                   </div>
                 </div>
                 {/* Info */}
-                <div className="flex-1">
-                  <h3 className="font-geist text-lg font-semibold text-white leading-snug">{lanyard?.userName || lanyard?.name || 'Yosia Grace Theo'}</h3>
-                  <p className="font-geist text-xs text-muted">{lanyard?.userTitle || lanyard?.title || 'Full-Stack Developer & Systems Builder'}</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <svg width="12" height="10" viewBox="0 0 24 24" fill="white" opacity="0.8">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-geist text-base sm:text-[17px] font-semibold text-white leading-tight truncate">{lanyard?.userName || lanyard?.name || 'Yosia Grace Theo'}</h3>
+                  <p className="font-geist text-xs text-muted truncate">{lanyard?.userTitle || lanyard?.title || 'Full-Stack Developer & Systems Builder'}</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <svg width="11" height="9" viewBox="0 0 24 24" fill="white" opacity="0.8">
                       <path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                     </svg>
-                    <span className="font-mono text-[11px] text-muted/90">{lanyard?.userAlumnus || lanyard?.alumnus || 'BINUS University CS Alumnus'}</span>
+                    <span className="font-mono text-[10px] text-muted/90 truncate">{lanyard?.userAlumnus || lanyard?.alumnus || 'BINUS University CS Alumnus'}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Telemetry Matrix */}
-              <div className="rounded-[20px] p-3 relative z-10"
-                style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)' }}>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+              {/* Telemetry Matrix (Compact) */}
+              <div className="rounded-[16px] p-2.5 relative z-10"
+                style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)' }}>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1">
                   <div>
-                    <span className="font-mono text-[9px] text-muted/70 uppercase tracking-[0.45px] block mb-0.5">ID NUMBER</span>
-                    <span className="font-mono text-[11px] font-medium text-white tracking-[0.275px]">{lanyard?.idNumber || '#THEO-2609-SYS'}</span>
+                    <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.45px] block">ID NUMBER</span>
+                    <span className="font-mono text-[10px] font-medium text-white tracking-[0.275px]">{lanyard?.idNumber || '#THEO-2609-SYS'}</span>
                   </div>
                   <div>
-                    <span className="font-mono text-[9px] text-muted/70 uppercase tracking-[0.45px] block mb-0.5">ISSUANCE / NODE</span>
-                    <span className="font-mono text-[11px] font-medium text-white tracking-[0.275px]">{lanyard?.issuanceNode || '2025 // NODE-JKTA'}</span>
+                    <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.45px] block">ISSUANCE / NODE</span>
+                    <span className="font-mono text-[10px] font-medium text-white tracking-[0.275px]">{lanyard?.issuanceNode || '2025 // NODE-JKTA'}</span>
                   </div>
-                  <div className="col-span-2 pt-1.5 border-t border-white/[0.08]">
-                    <span className="font-mono text-[9px] text-muted/70 uppercase tracking-[0.45px] block mb-0.5">CORE ARCHITECTURE</span>
-                    <span className="font-mono text-[11px] font-medium text-subtle">{lanyard?.coreArch || 'Laravel 11 • Next.js • Systems Architecture'}</span>
+                  <div className="col-span-2 pt-1 border-t border-white/[0.08]">
+                    <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.45px] block">CORE ARCHITECTURE</span>
+                    <span className="font-mono text-[10px] font-medium text-subtle truncate block">{lanyard?.coreArch || 'Laravel 11 • Next.js • Systems Architecture'}</span>
                   </div>
                 </div>
               </div>
 
               {/* Barcode Footer */}
-              <div className="flex items-center justify-between pt-3.5 mt-3 relative z-10">
-                <div className="flex items-center gap-[2.5px] opacity-85">
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.08] relative z-10">
+                <div className="flex items-center gap-[2px] opacity-85">
                   {barcodeWidths.map((w, i) => (
-                    <span key={i} className="barcode-line" style={{ width: w, height: 24 }} />
+                    <span key={i} className="barcode-line" style={{ width: w, height: 18 }} />
                   ))}
                 </div>
                 <div className="text-right">
-                  <span className="font-mono text-[9px] text-muted/70 uppercase tracking-[0.9px] block">SECURITY PROTOCOL</span>
-                  <span className="font-mono text-[10px] font-semibold text-white mt-0.5 block">{lanyard?.securityProtocol || '256-BIT // AUTHORIZED'}</span>
+                  <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.8px] block">SECURITY PROTOCOL</span>
+                  <span className="font-mono text-[9px] font-semibold text-emerald-400 tracking-[0.3px]">{lanyard?.securityProtocol || '256-BIT // AUTHORIZED'}</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Interaction hint */}
-            <div className="text-center mt-4 float-anim">
-              <span className="font-mono text-[10px] text-white/40 uppercase tracking-[0.5px]">
-                {lanyard?.hintText || 'DRAG & FLING PASS IN ANY DIRECTION // REALISTIC ELASTIC PHYSICS'}
-              </span>
-              <div className="flex justify-center mt-1">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2" strokeLinecap="round">
-                  <path d="M12 5v14M19 12l-7 7-7-7" />
-                </svg>
               </div>
             </div>
           </div>
@@ -1696,7 +1828,7 @@
     };
 
     // ═══════════════════════════════════════════
-    // HERO SECTION
+    // HERO SECTION (1:1 with Theo's Architecture)
     // ═══════════════════════════════════════════
     const HeroSection = ({ heroData, techTagsData, lanyardData }) => {
       const h = heroData || {
@@ -1705,7 +1837,7 @@
         eyebrow: "Hi, I'm Yosia Grace Theo",
         titleLine1: 'Full-Stack Developer',
         titleLine2: '& Systems Builder',
-        description: 'Engineering enterprise-grade full-stack architectures, high-throughput Laravel 11 CMS engines, automated GitHub telemetry sync, and precision interactive 3D frontends.',
+        description: 'Architecting resilient full-stack systems with Laravel 11, high-performance APIs, and interactive 3D WebGL interfaces. Focused on software design patterns, database optimization, and high-performance interfaces.',
         ctaPrimaryText: 'Explore Repositories',
         ctaPrimaryLink: '#projects',
         ctaSecondaryText: 'Download ATS CV (PDF)',
@@ -1713,36 +1845,39 @@
         ctaTertiaryText: 'Linktree (@TheHighTee)',
         ctaTertiaryLink: 'https://linktr.ee/TheHighTee',
       };
-      const techTags = techTagsData && techTagsData.length > 0 ? techTagsData : ['Laravel 11', 'PHP 8.3', 'MySQL', 'Next.js / React', 'Tailwind CSS', 'TypeScript', 'Three.js', 'DomPDF Engine'];
+
+      const techTags = techTagsData || [
+        'Laravel 11', 'Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Three.js', 'MySQL / SQLite', 'Git'
+      ];
 
       return (
         <section id="hero" className="relative min-h-screen flex items-center" style={{ zIndex: 2 }}>
-          <div className="max-w-[1280px] mx-auto px-12 pt-24 pb-16 w-full">
-            <div className="grid grid-cols-12 gap-8 items-start">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-8 md:px-12 pt-28 sm:pt-32 pb-16 w-full">
+            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-12 items-center lg:items-start">
               {/* Left Column */}
-              <div className="col-span-7 flex flex-col gap-6">
+              <div className="w-full lg:col-span-7 flex flex-col gap-5 sm:gap-6 text-center lg:text-left items-center lg:items-start">
                 {/* Architecture Badge */}
                 <div className="fade-in-up">
-                  <div className="glass-pill rounded-full px-4 py-1.5 inline-flex items-center gap-2 border border-white/15">
+                  <div className="glass-pill rounded-full px-3.5 sm:px-4 py-1.5 inline-flex items-center gap-2 border border-white/15">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" style={{
                       boxShadow: '0 0 10px rgba(52,211,153,0.9)'
                     }} />
-                    <span className="font-mono text-[11px] font-semibold text-white tracking-[0.6px] uppercase">
+                    <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-white tracking-[0.6px] uppercase">
                       {h.badgeText || 'FULL-STACK SYSTEMS ARCHITECT'}
                     </span>
-                    <span className="font-mono text-[11px] text-white/30 tracking-[0.55px]">/</span>
-                    <span className="font-mono text-[11px] text-muted tracking-[0.3px] uppercase">
+                    <span className="font-mono text-[10px] sm:text-[11px] text-white/30 tracking-[0.55px]">/</span>
+                    <span className="font-mono text-[10px] sm:text-[11px] text-muted tracking-[0.3px] uppercase">
                       {h.badgeSubtext || 'LARAVEL 11 & NEXT.JS'}
                     </span>
                   </div>
                 </div>
 
                 {/* Typography Cluster */}
-                <div className="flex flex-col gap-2.5 fade-in-up delay-100">
+                <div className="flex flex-col gap-2 fade-in-up delay-100 w-full">
                   <span className="font-mono text-xs text-muted/80 tracking-[0.5px] uppercase">
                     {h.eyebrow || h.greeting || "Hi, I'm Yosia Grace Theo"}
                   </span>
-                  <h1 className="font-geist text-[52px] font-bold text-white leading-[1.12] tracking-[-1.5px]">
+                  <h1 className="font-geist text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-bold text-white leading-[1.18] lg:leading-[1.12] tracking-tight lg:tracking-[-1.5px]">
                     {h.titleLine1 || 'Full-Stack Developer'} <br />
                     <span className="bg-gradient-to-r from-white via-subtle to-muted/60 bg-clip-text text-transparent">
                       {h.titleLine2 || '& Systems Builder'}
@@ -1752,45 +1887,47 @@
 
                 {/* Description */}
                 <div className="fade-in-up delay-200 max-w-[620px]">
-                  <p className="font-geist text-[15px] text-muted leading-[26px] tracking-[-0.05px]">
+                  <p className="font-geist text-sm sm:text-[15px] text-muted leading-relaxed sm:leading-[26px]">
                     {h.description}
                   </p>
                 </div>
 
                 {/* CTA Group - Unified Clean Row */}
-                <div className="flex flex-wrap items-center gap-3 fade-in-up delay-300 pt-1">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3 fade-in-up delay-300 pt-1 w-full sm:w-auto">
                   {/* Primary White Button */}
-                  <a href={h.ctaPrimaryLink || '#projects'} className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-space-black font-geist text-sm font-semibold hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                    style={{ boxShadow: '0 4px 22px rgba(255,255,255,0.24)' }}>
+                  <a href={h.ctaPrimaryLink || '#projects'} className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-space-black font-geist text-xs sm:text-sm font-semibold hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]"
+                    style={{ minHeight: '44px' }}>
                     {h.ctaPrimaryText || 'Explore Repositories'}
                     <svg width="10" height="15" viewBox="0 0 10 15" fill="#101014">
                       <path d="M5 0v12M0 7l5 5 5-5" stroke="#101014" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </a>
                   {/* Glass Pill - ATS CV PDF Download */}
-                  <a href="/api/cv/download" target="_blank" rel="noopener noreferrer" className="glass-pill inline-flex items-center gap-2 px-5 py-3 rounded-full font-geist text-sm text-cyan-300 hover:text-white hover:bg-cyan-500/20 hover:border-cyan-400/40 border border-cyan-500/25 transition-all">
+                  <a href="/api/cv/download" target="_blank" rel="noopener noreferrer" className="glass-pill inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-geist text-xs sm:text-sm text-cyan-300 hover:text-white hover:bg-cyan-500/20 hover:border-cyan-400/40 border border-cyan-500/25 transition-all"
+                    style={{ minHeight: '44px' }}>
                     <svg width="13" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                     </svg>
                     {h.ctaSecondaryText || h.ctaCvText || 'Download ATS CV (PDF)'}
                   </a>
                   {/* Glass Pill - Linktree */}
-                  <a href={h.ctaTertiaryLink || h.ctaSecondaryLink || 'https://linktr.ee/TheHighTee'} target="_blank" rel="noopener noreferrer" className="glass-pill inline-flex items-center gap-2 px-5 py-3 rounded-full font-geist text-sm text-muted hover:text-white hover:bg-white/10 hover:border-white/30 transition-all">
+                  <a href={h.ctaTertiaryLink || h.ctaSecondaryLink || 'https://linktr.ee/TheHighTee'} target="_blank" rel="noopener noreferrer" className="glass-pill inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-geist text-xs sm:text-sm text-muted hover:text-white hover:bg-white/10 hover:border-white/30 transition-all"
+                    style={{ minHeight: '44px' }}>
                     {h.ctaTertiaryText || 'Linktree (@TheHighTee)'}
                     <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M1 11L11 1M11 1H4M11 1v7" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M1 11L11 1H4M11 1v7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </a>
                 </div>
 
                 {/* Tech Stack Ribbon */}
-                <div className="fade-in-up delay-400 pt-4">
-                  <span className="font-mono text-[11px] font-medium text-muted uppercase tracking-[0.55px] block mb-3">
+                <div className="fade-in-up delay-400 pt-3 sm:pt-4 w-full">
+                  <span className="font-mono text-[10px] sm:text-[11px] font-medium text-muted uppercase tracking-[0.55px] block mb-2.5">
                     CORE TECHNICAL SUBSTRATES
                   </span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-1.5 sm:gap-2">
                     {techTags.map((tag) => (
-                      <span key={tag} className="glass-pill px-3.5 py-1.5 rounded-full font-mono text-xs text-subtle tracking-[0.24px]">
+                      <span key={tag} className="glass-pill px-3 py-1 rounded-full font-mono text-[11px] text-subtle tracking-[0.2px]">
                         {tag}
                       </span>
                     ))}
@@ -1799,7 +1936,7 @@
               </div>
 
               {/* Right Column — Lanyard Card */}
-              <div className="col-span-5 flex justify-center fade-in-up delay-200">
+              <div className="w-full lg:col-span-5 flex justify-center fade-in-up delay-200 pt-4 lg:pt-0">
                 <LanyardCard lanyard={lanyardData || { avatarUrl: 'https://avatars.githubusercontent.com/u/180420712?v=4', monogram: 'TG', userName: 'Yosia Grace Theo', userTitle: 'Full-Stack Developer & Systems Builder', userAlumnus: 'BINUS University CS Alumnus' }} />
               </div>
             </div>
@@ -1827,7 +1964,7 @@
         category: 'Go Application',
         issuer: 'GitHub Repository // @Theology26',
         tags: 'Go, Backend, Microservices, 2 ★',
-        description: 'Arsitektur logistik cerdas terdistribusi performa tinggi dibangun dengan bahasa pemrograman Go.',
+        description: 'High-performance distributed intelligent logistics architecture built with the Go programming language.',
         linkUrl: 'https://github.com/Theology26/MBG-Smart-Logistics-FullDev',
         badge: '★ 2 STARS',
         featured: true,
@@ -1841,7 +1978,7 @@
         category: 'Python Application',
         issuer: 'GitHub Repository // @Theology26',
         tags: 'Python, EasyOCR, YOLO, Computer Vision',
-        description: 'Sistem komputasi visi & otomasi pengenalan teks Korea berbasis machine learning dan pipeline deep learning.',
+        description: 'Computer vision & Korean text recognition automation system based on machine learning and deep learning pipelines.',
         linkUrl: 'https://github.com/Theology26/Logieat-OS',
         badge: 'AI / OCR ENGINE',
         featured: true,
@@ -1855,7 +1992,7 @@
         category: 'Blade Application',
         issuer: 'GitHub Repository // @Theology26',
         tags: 'Blade, Laravel 11, Tailwind CSS, 1 ★',
-        description: 'Portofolio interaktif full-stack dengan ekosistem Laravel 11, blade templating engine, dan dynamic components.',
+        description: 'Full-stack interactive portfolio powered by the Laravel 11 ecosystem, Blade templating engine, and dynamic components.',
         linkUrl: 'https://github.com/Theology26/webportofoliotheo',
         badge: '★ 1 STAR',
         featured: true,
@@ -1869,7 +2006,7 @@
         category: 'TypeScript Application',
         issuer: 'GitHub Repository // @Theology26',
         tags: 'TypeScript, React Native, Expo, 1 ★',
-        description: 'Aplikasi portofolio mobile cross-platform responsif dan native didukung React Native dan Expo ecosystem.',
+        description: 'Responsive cross-platform native mobile portfolio application built on React Native and the Expo ecosystem.',
         linkUrl: 'https://github.com/Theology26/webportofolioexpotheo',
         badge: '★ 1 STAR',
         featured: true,
@@ -1883,7 +2020,7 @@
         category: 'Go Application',
         issuer: 'GitHub Repository // @Theology26',
         tags: 'Go, REST API, Logistics, 1 ★',
-        description: 'Core microservice engine untuk optimalisasi rute dan sinkronisasi status pengiriman logistik secara real-time.',
+        description: 'Core microservice engine for route optimization and real-time logistics dispatch synchronization.',
         linkUrl: 'https://github.com/Theology26/mbg-smart-logistics',
         badge: '★ 1 STAR',
         featured: true,
@@ -1897,7 +2034,7 @@
         category: 'TypeScript Application',
         issuer: 'GitHub Repository // @Theology26',
         tags: 'TypeScript, Next.js, Modern UI, 1 ★',
-        description: 'Platform web manajemen booking dan operasional layanan kebersihan untuk segmen komersial dan residensial.',
+        description: 'Commercial and residential cleaning service booking and operational web management platform.',
         linkUrl: 'https://github.com/Theology26/sparkling-clean-studio',
         badge: '★ 1 STAR',
         featured: false,
@@ -1911,7 +2048,7 @@
         category: 'Vue Application',
         issuer: 'GitHub Repository // @Theology26',
         tags: 'Vue, JavaScript, State Management, Agent',
-        description: 'Sistem pemesanan dan pengantaran makanan dengan integrasi rekomendasi nutrisi cerdas bagi pengguna.',
+        description: 'Food delivery and ordering system with integrated intelligent nutritional recommendation engine.',
         linkUrl: 'https://github.com/Theology26/NutriSafeFoodDeliveryAgent',
         badge: 'VUE CLIENT',
         featured: false,
@@ -1925,56 +2062,171 @@
         category: 'JavaScript Application',
         issuer: 'Client Project Malang',
         tags: 'JavaScript, HTML5, CSS3, Responsive UI',
-        description: 'Website promosi dan pemesanan layanan kebersihan untuk UMKM Kota Malang dengan alur pemesanan mudah dan efisien.',
+        description: 'Promotional and online booking website for local Malang commercial cleaning services with streamlined ordering.',
         linkUrl: 'https://github.com/Theology26/portofolio-sparklingcleaners',
         badge: 'CLIENT UMKM',
         featured: false,
         stats: 'Malang UMKM Client',
         date: '2025'
-      },
+      }
+    ];
+
+    const DEFAULT_CERTIFICATES = [
       {
         id: 'cert-laravel-11',
-        type: 'certificate',
-        title: 'Sertifikasi Laravel 11 Advanced Architecture & TDD',
-        category: 'Backend Architecture',
+        title: 'Laravel 11 Advanced Architecture & TDD Certification',
         issuer: 'Laravel / PHP Specialist',
-        tags: 'Laravel 11, Eloquent ORM, REST API, PHP 8.3, TDD',
-        description: 'Penguasaan arsitektur backend enterprise Laravel 11, optimasi database query Eloquent, unit testing, dan integrasi reporting engine.',
+        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
         linkUrl: 'https://github.com/Theology26',
+        aspectRatio: 'aspect-[4/5]',
         badge: 'OFFICIAL CERTIFICATE',
-        featured: true,
-        stats: 'Score: 96%',
         date: '2024'
       },
       {
         id: 'cert-meta-frontend',
-        type: 'certificate',
         title: 'Meta Front-End Developer Professional Certificate',
-        category: 'Frontend Engineering',
         issuer: 'Meta (Coursera)',
-        tags: 'React, JavaScript ES6+, UI/UX Systems, Responsive Design',
-        description: 'Spesialisasi rekayasa antarmuka web modern, arsitektur komponen React, state management, dan optimasi performa web responsif.',
+        imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
         linkUrl: 'https://github.com/Theology26',
+        aspectRatio: 'aspect-square',
         badge: 'PROFESSIONAL CERTIFICATE',
-        featured: false,
-        stats: 'Verified Credential',
         date: '2024'
       },
       {
         id: 'cert-binus-cs',
-        type: 'certificate',
         title: 'Bachelor of Computer Science Degree',
-        category: 'Academic Foundation',
         issuer: 'BINUS University',
-        tags: 'Computer Science, Software Architecture, GPA 3.5+',
-        description: 'Fondasi akademik ilmu komputer dengan fokus rekayasa perangkat lunak, sistem cerdas, dan arsitektur komputasi awan skala besar.',
+        imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
         linkUrl: 'https://github.com/Theology26',
+        aspectRatio: 'aspect-[16/10]',
         badge: 'ACADEMIC DEGREE',
-        featured: true,
-        stats: 'BINUS University',
         date: '2024'
+      },
+      {
+        id: 'cert-python-ai',
+        title: 'Python Deep Learning & Computer Vision (YOLO & OCR)',
+        issuer: 'Deep Learning Institute',
+        imageUrl: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=800&q=80',
+        linkUrl: 'https://github.com/Theology26/Logieat-OS',
+        aspectRatio: 'aspect-[3/4]',
+        badge: 'AI SPECIALIST',
+        date: '2025'
       }
     ];
+
+    // ═══════════════════════════════════════════
+    // CERTIFICATES & CREDENTIALS (Instagram Feed / Masonry Dynamic Grid)
+    // ═══════════════════════════════════════════
+    const CertificatesSection = ({ certificatesData }) => {
+      const certificates = Array.isArray(certificatesData) && certificatesData.length > 0 
+        ? certificatesData 
+        : DEFAULT_CERTIFICATES;
+
+      return (
+        <section id="certificates" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
+            <SectionHeader
+              label="02 // CREDENTIALS & LICENSES"
+              title="Certificates & Qualifications"
+              subtitle="Verified professional certifications, technical credentials, and academic milestones shown in an dynamic Instagram feed layout."
+            />
+
+            {/* Instagram / Pinterest Masonry Grid */}
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+              {certificates.map((cert, idx) => {
+                const ratioClass = cert.aspectRatio || (
+                  idx % 4 === 0 ? 'aspect-[4/5]' :
+                  idx % 4 === 1 ? 'aspect-square' :
+                  idx % 4 === 2 ? 'aspect-[16/10]' : 'aspect-[3/4]'
+                );
+
+                const cardInner = (
+                  <div className="break-inside-avoid group relative rounded-3xl overflow-hidden glass-card transition-all duration-300 hover:shadow-[0_0_35px_rgba(6,182,212,0.30)] border border-white/15 hover:border-cyan-400/50 flex flex-col justify-end cursor-pointer">
+                    {/* Media Container with Dynamic Aspect Ratio */}
+                    <div className={`w-full ${ratioClass} relative overflow-hidden bg-gradient-to-br from-cyan-950/30 via-slate-900/60 to-black`}>
+                      {cert.imageUrl ? (
+                        <img
+                          src={cert.imageUrl}
+                          alt={cert.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-white/[0.03]">
+                          <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="8" r="6"/>
+                              <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                            </svg>
+                          </div>
+                          <span className="font-mono text-xs text-white font-semibold">{cert.issuer || 'Verified Credential'}</span>
+                          <span className="font-mono text-[10px] text-muted mt-1">{cert.date || '2024'}</span>
+                        </div>
+                      )}
+
+                      {/* Top Specular Rim */}
+                      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent pointer-events-none" />
+
+                      {/* Top Badge Overlay */}
+                      <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none z-10">
+                        <span className="px-2.5 py-1 rounded-full text-[9px] font-mono font-medium tracking-wide bg-black/60 backdrop-blur-md text-cyan-300 border border-cyan-500/40 shadow-lg">
+                          {cert.badge || 'VERIFIED'}
+                        </span>
+                        {cert.linkUrl && (
+                          <span className="w-7 h-7 rounded-full bg-black/60 backdrop-blur-md text-white group-hover:text-cyan-300 border border-white/20 group-hover:border-cyan-400/60 flex items-center justify-center text-xs transition-all shadow-lg group-hover:scale-110">
+                            ↗
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Gradient Vignette over photo for readable typography */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-space-black/95 via-space-black/40 to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Card Meta Content (Title + Issuer + Date) */}
+                    <div className="p-4 sm:p-5 relative z-10 -mt-8 pt-6 backdrop-blur-md bg-space-black/60 border-t border-white/10 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-muted">
+                        <span className="text-cyan-400/90 font-medium truncate max-w-[200px]">
+                          {cert.issuer || 'Official Issuer'}
+                        </span>
+                        <span className="text-white/40">{cert.date || '2024'}</span>
+                      </div>
+                      
+                      <h3 className="font-geist text-sm sm:text-base font-semibold text-white group-hover:text-cyan-200 transition-colors leading-snug">
+                        {cert.title}
+                      </h3>
+
+                      {cert.linkUrl && (
+                        <div className="pt-2 mt-1 border-t border-white/[0.08] flex items-center gap-1.5 text-[11px] font-mono text-cyan-300 group-hover:text-cyan-200 transition-colors">
+                          <span>View Credential / Verify</span>
+                          <span className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-[10px]">↗</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+
+                return cert.linkUrl ? (
+                  <a
+                    key={cert.id || idx}
+                    href={cert.linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block outline-none"
+                  >
+                    {cardInner}
+                  </a>
+                ) : (
+                  <div key={cert.id || idx} className="block">
+                    {cardInner}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      );
+    };
 
     // ═══════════════════════════════════════════
     // PROJECTS & REPOSITORY MATRIX (Matches Expo App & User Screenshots)
@@ -1982,9 +2234,9 @@
     const ProjectSpotlight = ({ spotlightData, projectsList, githubStats }) => {
       const p = spotlightData || {
         badge: 'ENTERPRISE ARCHITECTURE',
-        title: 'Integrasi Visi Komputer & Logistik Cerdas',
-        projectName: 'Integrasi Visi Komputer & Logistik Cerdas',
-        description: 'Sistem manajemen rantai pasok (supply chain) modern yang dirancang untuk melacak pergerakan armada dan inventaris secara presisi. Fondasi backend Laravel dengan dasbor analitik real-time dan minimasi kesalahan input logistik.',
+        title: 'Computer Vision & Smart Logistics Integration',
+        projectName: 'Computer Vision & Smart Logistics Integration',
+        description: 'Modern supply chain management system designed to track fleet movement and inventory with high precision. Built on Laravel backend with real-time analytics dashboards and minimized dispatch errors.',
         linkText: 'View Project Repo ↗',
         linkUrl: 'https://github.com/Theology26',
         metrics: [
@@ -2051,17 +2303,12 @@
 
       const allProjects = Array.isArray(projectsList) && projectsList.length > 0 ? projectsList : DEFAULT_PROJECTS;
 
-      const ownRepos = allProjects.filter(item => item.type !== 'certificate');
-      const certificates = allProjects.filter(item => item.type === 'certificate');
-
-      const reposCount = githubStats?.reposCount || ownRepos.length || 9;
+      const reposCount = githubStats?.reposCount || allProjects.length || 9;
       const starsCount = githubStats?.starsCount || 7;
       const languagesCount = githubStats?.languagesCount || 6;
 
       const filteredProjects = allProjects.filter(item => {
         if (activeFilter === 'all') return true;
-        if (activeFilter === 'certificate') return item.type === 'certificate';
-        if (activeFilter === 'project') return item.type !== 'certificate';
         
         // Match specific language
         const langLower = activeFilter.toLowerCase();
@@ -2072,17 +2319,17 @@
       });
 
       return (
-        <section id="projects" className="relative py-24" style={{ zIndex: 2 }}>
-          <div className="max-w-[1280px] mx-auto px-6 sm:px-12">
+        <section id="projects" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
             
             <SectionHeader
-              label="02 // SELECTED WORKS & REPOSITORIES"
+              label="03 // SELECTED WORKS & REPOSITORIES"
               title="Projects & Repositories"
-              subtitle="Koleksi repository open-source GitHub @Theology26 serta sertifikasi kompetensi arsitektur rekayasa perangkat lunak."
+              subtitle="Open-source GitHub repositories, full-stack microservices, and interactive web architectures by @Theology26."
             />
 
             {/* Summary Telemetry Bar (Styled in Glass Card matching Experience & Education) */}
-            <div className="glass-card rounded-3xl p-6 mb-8 flex items-center justify-around hover:bg-white/[0.08] transition-all duration-300">
+            <div className="glass-card rounded-3xl p-5 sm:p-6 mb-8 flex items-center justify-around hover:bg-white/[0.08] transition-all duration-300">
               <div className="flex flex-col items-center">
                 <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -2116,23 +2363,22 @@
               </div>
             </div>
 
-            {/* Filter Pills */}
-            <div className="flex flex-wrap items-center gap-2 mb-8">
-              {['All', 'JavaScript', 'Python', 'Vue', 'Go', 'TypeScript', 'Blade', 'Sertifikat'].map(tab => {
+            {/* Filter Pills with Horizontal Scroll on Mobile */}
+            <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap pb-2 sm:pb-0">
+              {['All', 'JavaScript', 'Python', 'Vue', 'Go', 'TypeScript', 'Blade'].map(tab => {
                 const isActive = activeFilter === tab.toLowerCase();
                 const color = LANG_COLOR_MAP[tab];
                 return (
                   <button
                     key={tab}
                     onClick={() => setActiveFilter(tab.toLowerCase())}
-                    className={`px-4 py-1.5 rounded-full font-mono text-xs transition-all flex items-center gap-2 border cursor-pointer ${
+                    className={`px-4 py-1.5 rounded-full font-mono text-xs transition-all flex items-center gap-2 border cursor-pointer shrink-0 ${
                       isActive
                         ? 'bg-white/15 text-white font-semibold border-white/30 shadow-[0_0_16px_rgba(255,255,255,0.15)]'
                         : 'glass-pill text-muted hover:text-white hover:bg-white/10 border-white/10'
                     }`}
                   >
                     {color && <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />}
-                    {tab === 'Sertifikat' && <span>📜</span>}
                     <span>{tab}</span>
                   </button>
                 );
@@ -2145,13 +2391,13 @@
                 onClick={() => setShowTerminal(!showTerminal)}
                 className="glass-pill font-mono text-xs text-cyan-300 hover:text-white flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <span>{showTerminal ? 'Tutup Terminal Simulator' : '⚡ Buka Terminal Logistics & OCR'}</span>
+                <span>{showTerminal ? 'Close Terminal Simulator' : '⚡ Open Logistics & OCR Terminal'}</span>
                 <span className="text-[10px]">{showTerminal ? '▲' : '▼'}</span>
               </button>
             </div>
 
             {showTerminal && (
-              <div className="glass-card-strong rounded-3xl p-6 relative overflow-hidden mb-10 border border-white/20">
+              <div className="glass-card-strong rounded-3xl p-5 sm:p-6 relative overflow-hidden mb-10 border border-white/20">
                 <div className="grid grid-cols-12 gap-6">
                   <div className="col-span-12 lg:col-span-5 flex flex-col justify-between">
                     <div>
@@ -2164,8 +2410,8 @@
                           ACTIVE DEPLOY
                         </span>
                       </div>
-                      <h3 className="font-geist text-2xl font-semibold text-white mb-2 tracking-tight">
-                        {p.projectName || p.title || 'Integrasi Visi Komputer & Logistik Cerdas'}
+                      <h3 className="font-geist text-xl sm:text-2xl font-semibold text-white mb-2 tracking-tight">
+                        {p.projectName || p.title || 'Computer Vision & Smart Logistics Integration'}
                       </h3>
                       <p className="font-geist text-sm text-muted leading-relaxed mb-4">
                         {p.description}
@@ -2218,7 +2464,7 @@
                 return (
                   <div
                     key={item.id || item.title}
-                    className="glass-card rounded-3xl p-6 sm:p-7 hover:bg-white/[0.08] transition-all duration-300 flex flex-col justify-between group"
+                    className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300 flex flex-col justify-between group"
                   >
                     <div>
                       {/* Optional Uploaded Image / Document */}
@@ -2236,7 +2482,7 @@
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
                           <span className="absolute bottom-2.5 right-2.5 font-mono text-[10px] text-white glass-pill px-2.5 py-0.5 rounded-full">
-                            {isCert ? 'Dokumen Kredensial ↗' : 'Lihat Screenshot ↗'}
+                            {isCert ? 'Credential Document ↗' : 'View Screenshot ↗'}
                           </span>
                         </a>
                       )}
@@ -2265,7 +2511,7 @@
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-muted/70 hover:text-white p-1 transition-colors"
-                            title="Buka link"
+                            title="Open repository"
                           >
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -2281,7 +2527,7 @@
                         {item.description || "No description provided."}
                       </p>
 
-                      {/* Tags (identical to Education & Experience style) */}
+                      {/* Tags */}
                       {tagList && tagList.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-4">
                           {tagList.slice(0, 4).map((tag) => (
@@ -2395,18 +2641,18 @@
       const languages = (stats?.languages && stats.languages.length > 0) ? stats.languages : defaultLanguages;
 
       return (
-        <section id="techstack" className="relative py-24" style={{ zIndex: 2 }}>
-          <div className="max-w-[1280px] mx-auto px-6 sm:px-12">
+        <section id="techstack" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
             <SectionHeader
-              label="03 // TECHNICAL ARSENAL"
+              label="04 // TECHNICAL ARSENAL"
               title="Stack & Code Telemetry"
-              subtitle="Analisis persentase bahasa pemrograman repositori GitHub @Theology26 secara live beserta arsitektur sistem produksi."
+              subtitle="Real-time telemetry analysis of GitHub repositories by @Theology26 and production system architecture."
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
               {/* Left Column: Tech Stack Card in Clean Glass Card */}
-              <div className="lg:col-span-6 glass-card rounded-3xl p-6 sm:p-8 hover:bg-white/[0.08] transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
+              <div className="lg:col-span-6 glass-card rounded-3xl p-5 sm:p-8 hover:bg-white/[0.08] transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
                 
                 {/* Header with Title, Subtitle, and Refresh Icon Button */}
                 <div className="flex items-start justify-between gap-4 mb-6">
@@ -2418,7 +2664,7 @@
                       </h3>
                     </div>
                     <p className="font-geist text-xs text-muted">
-                      Based on GitHub repository analysis
+                      Based on live GitHub repository analysis
                     </p>
                   </div>
                   <button
@@ -2485,7 +2731,7 @@
 
               {/* Right Column: Frameworks & Engineering Arsenal (Clean Glass Cards) */}
               <div className="lg:col-span-6 flex flex-col gap-5">
-                <div className="glass-card rounded-3xl p-6 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
+                <div className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300 uppercase tracking-wider border border-cyan-500/20">
                       ENTERPRISE BACKEND ARCHITECTURE
@@ -2495,7 +2741,7 @@
                     Laravel 11 • PHP 8.3 • Relational Systems
                   </h3>
                   <p className="font-geist text-sm text-muted leading-relaxed mb-4">
-                    Arsitektur backend berkemampuan throughput tinggi dengan Test-Driven Development (TDD), pipeline autentikasi multi-guard, dynamic ORM relationships, dan automated headless PDF generation.
+                    High-throughput backend architecture featuring Test-Driven Development (TDD), multi-guard authentication pipelines, dynamic ORM relationships, and automated headless PDF generation.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {['Laravel 11', 'PHP 8.3', 'MySQL / SQLite', 'REST API', 'DomPDF Engine'].map(tag => (
@@ -2507,7 +2753,7 @@
                   </div>
                 </div>
 
-                <div className="glass-card rounded-3xl p-6 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
+                <div className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-purple-300 uppercase tracking-wider border border-purple-500/20">
                       3D WEBGL & INTERACTIVE VISUAL COMPUTING
@@ -2517,7 +2763,7 @@
                     Three.js • React 18 • Computer Vision YOLO
                   </h3>
                   <p className="font-geist text-sm text-muted leading-relaxed mb-4">
-                    Visualisasi 3D atmosfer bumi dan orbital satelit fotorealistik, simulasi fisika lanyard pass elastis, model inferensi EasyOCR, serta projection mapping Resolume Arena untuk panggung live event.
+                    Photorealistic 3D Earth atmosphere and orbital satellite simulations, interactive elastic lanyard physics, EasyOCR deep learning inference, and Resolume Arena projection mapping for live stages.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {['Three.js WebGL', 'React 18', 'Tailwind CSS', 'EasyOCR & YOLO', 'Resolume Arena'].map(tag => (
@@ -2542,67 +2788,67 @@
     const Education = ({ experiencesData }) => {
       const expList = experiencesData && experiencesData.length > 0 ? experiencesData : [
         {
-          year: '2025 — Sekarang',
+          year: '2025 — Present',
           title: 'Video Editor',
           company: 'Independent Creative Specialist',
-          desc: 'Spesialis pasca-produksi untuk meracik raw footage menjadi narasi visual premium.',
+          desc: 'Post-production specialist transforming raw footage into high-impact visual storytelling and commercial brand narratives.',
           tags: ['Video Editing', 'Premiere Pro', 'DaVinci Resolve', 'Visual Storytelling'],
         },
         {
-          year: '2025 — Sekarang',
+          year: '2025 — Present',
           title: 'Content Strategist',
           company: 'Digital Media Strategy',
-          desc: 'Menganalisis tren dan merancang arsitektur konten digital beserta jadwal distribusinya.',
+          desc: 'Analyzing digital trends, structuring content architecture, and orchestrating multi-channel distribution pipelines.',
           tags: ['Content Strategy', 'Trend Analytics', 'Distribution Architecture'],
         },
         {
           year: '2025',
-          title: 'Director Iklan',
-          company: 'Commercial Project',
-          desc: 'Memimpin produksi visual dan penyutradaraan kampanye iklan komersial dari pra-produksi hingga rilis final.',
+          title: 'Commercial Director',
+          company: 'Commercial Advertising',
+          desc: 'Directing visual production and commercial advertising campaigns from pre-production to master release.',
           tags: ['Creative Direction', 'Commercial Ads', 'Visual Campaign'],
         },
         {
-          year: '2024 — Sekarang',
+          year: '2024 — Present',
           title: 'Virtual Jockey (VJ)',
-          company: 'Live Staging',
-          desc: 'Mengendalikan tata visual dan projection mapping secara live untuk berbagai event dan pertunjukan.',
+          company: 'Live Stage Visuals',
+          desc: 'Controlling live stage visual projection mapping, MIDI timing sync, and generative visuals for concerts and events.',
           tags: ['Virtual Jockey', 'Projection Mapping', 'Resolume Arena', 'Live Staging'],
         },
         {
           year: '2021 — 2025',
           title: 'BINUS University',
           company: 'Bachelor of Computer Science',
-          desc: 'Fokus pada rekayasa perangkat lunak, sistem basis data, arsitektur web modern, dan sistem cerdas.',
+          desc: 'Academic focus on software engineering, distributed database systems, modern web architecture, and intelligent systems.',
           tags: ['Computer Science', 'Laravel 11', 'Database Systems', 'GPA 3.5+'],
         },
       ];
 
       return (
-        <section id="education" className="relative py-24" style={{ zIndex: 2 }}>
-          <div className="max-w-[1280px] mx-auto px-12">
+        <section id="education" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
             <SectionHeader
-              label="04 // CAREER & CREDENTIALS"
+              label="05 // CAREER & EDUCATION"
               title="Experience & Education"
-              subtitle="Riwayat pengalaman kerja profesional di bidang video editing, creative direction, VJ live event, dan fondasi akademik ilmu komputer."
+              subtitle="Professional career background in software engineering, video editing, creative direction, and academic milestones."
             />
 
             <div className="flex flex-col gap-4">
               {expList.map((item, i) => (
-                <div key={i} className="glass-card rounded-3xl p-6 hover:bg-white/[0.08] transition-all duration-300">
-                  <div className="flex items-start gap-6">
-                    <span className="font-mono text-xs text-muted/60 tracking-wider whitespace-nowrap pt-1 w-36 flex-shrink-0">
+                <div key={i} className="glass-card rounded-3xl p-5 sm:p-6 hover:bg-white/[0.08] transition-all duration-300">
+                  <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-6">
+                    <span className="font-mono text-xs text-cyan-400/80 sm:text-muted/60 tracking-wider whitespace-nowrap pt-1 sm:w-36 shrink-0">
                       {item.year}
                     </span>
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-geist text-lg font-semibold text-white">{item.title}</h3>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1.5">
+                        <h3 className="font-geist text-base sm:text-lg font-semibold text-white">{item.title}</h3>
                         <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300 uppercase tracking-wider border border-cyan-500/20">
                           {item.company || item.role}
                         </span>
                       </div>
                       <p className="font-geist text-sm text-muted leading-relaxed mb-3">{item.desc || item.description}</p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {item.tags && item.tags.map((tag) => (
                           <span key={tag} className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
                             style={{ background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.2)' }}>
@@ -2614,104 +2860,6 @@
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </section>
-      );
-    };
-
-    // ═══════════════════════════════════════════
-    // CREATIVE & VJ GALLERY (Dokumentasi YouTube)
-    // ═══════════════════════════════════════════
-    const CreativeGallery = ({ galleryData }) => {
-      const items = galleryData && galleryData.length > 0 ? galleryData : [
-        {
-          title: 'Visual Projection Mapping & VJ Live Performance',
-          subtitle: 'Event Visual Stage Control — Pengendalian live visual tata panggung dan projection mapping secara interaktif.',
-          tags: 'VJing, Resolume, Projection Mapping',
-          icon: 'VJ'
-        },
-        {
-          title: 'Video Editing & Visual Storytelling Post-Production',
-          subtitle: 'Spesialis pasca-produksi untuk meracik raw footage menjadi narasi visual premium dan kampanye iklan komersial.',
-          tags: 'Premiere Pro, After Effects, DaVinci',
-          icon: 'EDIT'
-        },
-        {
-          title: 'OCR Webtoon Korea & AI Translation Pipeline',
-          subtitle: 'EasyOCR & YOLO Machine Learning Engine untuk mendeteksi balon teks komik Korea dan terjemahan otomatis.',
-          tags: 'Python, YOLO, Computer Vision',
-          icon: 'AI'
-        },
-        {
-          title: 'Full-Stack Architecture & Modern CMS Console',
-          subtitle: 'Laravel 11, Three.js WebGL & React Systems dengan dynamic content management and automated PDF ATS export.',
-          tags: 'Laravel, Node, SQLite, Three.js',
-          icon: 'DEV'
-        }
-      ];
-
-      return (
-        <section id="gallery" className="relative py-24" style={{ zIndex: 2 }}>
-          <div className="max-w-[1280px] mx-auto px-12">
-            <SectionHeader
-              label="05 // CREATIVE & VJ GALLERY"
-              title="Visual & Production Highlights"
-              subtitle="Dokumentasi karya visual, projection mapping VJ live, serta pipeline kecerdasan buatan seperti terekam dalam video dokumentasi."
-            />
-
-            <div className="grid grid-cols-2 gap-6">
-              {items.map((item, idx) => (
-                <div key={idx} className="glass-card-strong rounded-3xl p-6 border border-white/15 relative overflow-hidden group hover:border-cyan-400/40 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center font-mono text-xs font-bold text-cyan-300">
-                      {item.icon || `0${idx + 1}`}
-                    </div>
-                    <span className="glass-pill px-3 py-1 rounded-full font-mono text-[10px] text-white/50 tracking-wider">
-                      PRODUCTION 0{idx + 1}
-                    </span>
-                  </div>
-
-                  <h3 className="font-geist text-xl font-semibold text-white group-hover:text-cyan-300 transition-colors mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="font-geist text-sm text-muted leading-relaxed mb-4">
-                    {item.subtitle}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-white/[0.08]">
-                    {item.tags.split(',').map((t, i) => (
-                      <span key={i} className="font-mono text-[10px] text-cyan-200/80 bg-cyan-950/40 px-2.5 py-1 rounded-lg border border-cyan-800/40">
-                        {t.trim()}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* YouTube Documentation Banner Callout */}
-            <div className="mt-8 glass-card rounded-2xl p-5 border border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-red-400">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-geist text-sm font-semibold text-white">Dokumentasi Web Portofolio Theo (YouTube)</h4>
-                  <p className="font-geist text-xs text-muted">Rekaman dokumentasi lengkap fitur, arsitektur, dan aset visual proyek sebelumnya.</p>
-                </div>
-              </div>
-              <a
-                href="https://youtu.be/w6R5lMDLhBE"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20 font-mono text-xs transition-all"
-              >
-                <span>Tonton di YouTube</span>
-                <span className="text-[10px]">↗</span>
-              </a>
             </div>
           </div>
         </section>
@@ -2731,7 +2879,7 @@
         setTimeout(() => {
           setSending(false);
           setFormState({ name: '', email: '', subject: '', message: '' });
-          alert('Pesan terkirim ke sistem! (Notifikasi simulasi demo)');
+          alert('Message transmitted to system! (Demo notification)');
         }, 1500);
       };
 
@@ -2743,19 +2891,19 @@
       const github = generalData?.githubUrl || 'https://github.com/Theology26';
 
       return (
-        <section id="contact" className="relative py-24" style={{ zIndex: 2 }}>
-          <div className="max-w-[1280px] mx-auto px-12">
+        <section id="contact" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
             <SectionHeader
               label="06 // COMMUNICATION CHANNEL"
-              title="Get in Touch // Hubungi Langsung"
-              subtitle="Solusi Digital Setiap Permasalahan Anda. Siap berkolaborasi untuk proyek full-stack web, video editing, dan live visual VJ."
+              title="Get in Touch // Direct Channel"
+              subtitle="Digital Solutions for Every Challenge. Available for full-stack web engineering, visual post-production, and live VJ performances."
             />
 
-            <div className="grid grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
               {/* Direct Contact Cards */}
-              <div className="col-span-5 flex flex-col gap-4">
-                <div className="glass-card-strong rounded-3xl p-6 border border-white/15">
-                  <span className="font-mono text-[10px] text-cyan-300 uppercase tracking-wider block mb-3">INFORMASI KONTAK</span>
+              <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
+                <div className="glass-card-strong rounded-3xl p-5 sm:p-6 border border-white/15">
+                  <span className="font-mono text-[10px] text-cyan-300 uppercase tracking-wider block mb-3">CONTACT INFORMATION</span>
 
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3">
@@ -2766,7 +2914,7 @@
                         </svg>
                       </div>
                       <div>
-                        <span className="font-mono text-[9px] text-muted block">EMAIL RESMI</span>
+                        <span className="font-mono text-[9px] text-muted block">OFFICIAL EMAIL</span>
                         <a href={`mailto:${email}`} className="font-geist text-sm text-white hover:text-cyan-300 transition-colors">
                           {email}
                         </a>
@@ -2781,7 +2929,7 @@
                         </svg>
                       </div>
                       <div>
-                        <span className="font-mono text-[9px] text-muted block">LOKASI / KOTA</span>
+                        <span className="font-mono text-[9px] text-muted block">LOCATION / REGION</span>
                         <span className="font-geist text-sm text-white">{address}</span>
                       </div>
                     </div>
@@ -2834,17 +2982,17 @@
               </div>
 
               {/* Consultation / Message Form */}
-              <div className="col-span-7 glass-card-strong rounded-3xl p-8 border border-white/15">
+              <div className="col-span-12 lg:col-span-7 glass-card-strong rounded-3xl p-5 sm:p-8 border border-white/15">
                 <div className="flex items-center gap-2 mb-6">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="font-mono text-xs text-muted uppercase tracking-wider">KIRIM PESAN LANGSUNG / KONSULTASI</span>
+                  <span className="font-mono text-xs text-muted uppercase tracking-wider">SEND A MESSAGE / INQUIRY</span>
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <input
                       type="text"
-                      placeholder="Nama Lengkap"
+                      placeholder="Full Name"
                       value={formState.name}
                       onChange={(e) => setFormState(s => ({ ...s, name: e.target.value }))}
                       className={inputClass}
@@ -2852,7 +3000,7 @@
                     />
                     <input
                       type="email"
-                      placeholder="Alamat Email"
+                      placeholder="Email Address"
                       value={formState.email}
                       onChange={(e) => setFormState(s => ({ ...s, email: e.target.value }))}
                       className={inputClass}
@@ -2861,14 +3009,14 @@
                   </div>
                   <input
                     type="text"
-                    placeholder="Topik / Keperluan (Web, Video Editing, VJ)"
+                    placeholder="Subject / Project Scope (Web, Video Editing, VJ)"
                     value={formState.subject}
                     onChange={(e) => setFormState(s => ({ ...s, subject: e.target.value }))}
                     className={inputClass}
                     required
                   />
                   <textarea
-                    placeholder="Tulis pesan atau detail kebutuhan proyek Anda..."
+                    placeholder="Write your message or project requirements here..."
                     rows={5}
                     value={formState.message}
                     onChange={(e) => setFormState(s => ({ ...s, message: e.target.value }))}
@@ -2886,11 +3034,11 @@
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Mengirimkan Pesan...
+                        Sending Message...
                       </>
                     ) : (
                       <>
-                        Kirim Pesan Sekarang
+                        Send Message Now
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                           <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
                         </svg>
@@ -2906,7 +3054,7 @@
     };
 
     // ═══════════════════════════════════════════
-    // FOOTER (Aerospace Command & Telemetry Grid)
+    // FOOTER (Premium Glassmorphism Aerospace Grid)
     // ═══════════════════════════════════════════
     const Footer = ({ generalData }) => {
       const brandTitle = generalData?.siteTitle || 'Yosia Gracetheo Boimau';
@@ -2918,24 +3066,34 @@
 
       return (
         <footer 
-          className="relative pt-16 pb-12 border-t border-white/10 mt-20"
-          style={{ 
-            zIndex: 10,
-            background: 'linear-gradient(180deg, rgba(8, 10, 16, 0.85) 0%, rgba(4, 5, 8, 0.98) 100%)',
-            backdropFilter: 'blur(30px)'
-          }}
+          className="relative mt-20 sm:mt-28 mb-10 sm:mb-14 px-3 sm:px-6 select-none flex flex-col items-center"
+          style={{ zIndex: 10 }}
         >
-          {/* Top glowing hairline accent */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-4xl h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent pointer-events-none" />
+          {/* Floating Transparent Glassmorphic Capsule matching Top Navbar */}
+          <div
+            className="w-full max-w-[1180px] rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 relative overflow-hidden transition-all duration-300"
+            style={{
+              background: 'rgba(15, 18, 26, 0.65)',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              boxShadow: '0 20px 40px -15px rgba(0,0,0,0.7), inset 0 1px 1px 0 rgba(255,255,255,0.2)'
+            }}
+          >
+            {/* Top Specular Edge Glow */}
+            <div className="absolute top-0 left-10 right-10 h-[1px] bg-gradient-to-r from-transparent via-cyan-300/40 via-white/30 to-transparent pointer-events-none" />
+            
+            {/* Ambient subtle backlight glow */}
+            <div className="absolute -top-24 -left-24 w-80 h-80 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-sky-500/10 rounded-full blur-[90px] pointer-events-none" />
 
-          <div className="max-w-[1240px] mx-auto px-6 sm:px-10">
             {/* Top Multi-Column Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-12 border-b border-white/[0.08]">
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-8 border-b border-white/[0.10]">
               
               {/* Col 1: Brand & Profile (5 cols) */}
               <div className="lg:col-span-5 flex flex-col gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center overflow-hidden shadow-[0_0_12px_rgba(6,182,212,0.3)] shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center overflow-hidden shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0 backdrop-blur-md">
                     <img
                       src={generalData?.logoUrl || '/Assets/avatar_animated.png'}
                       alt="THEOLOGY26"
@@ -2944,26 +3102,30 @@
                   </div>
                   <div>
                     <div className="font-mono text-sm font-bold text-white tracking-wider flex items-center gap-2">
-                      <span>THEOLOGY26</span>
-                      <span className="text-white/25">•</span>
-                      <span className="text-cyan-400 font-normal">{brandDomain}</span>
+                      <span className="text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">THEOLOGY26</span>
+                      <span className="text-white/30">•</span>
+                      <span className="text-cyan-300 font-semibold drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">{brandDomain}</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        AVAILABLE
+                      </span>
                     </div>
-                    <div className="text-xs text-zinc-400 font-mono">
+                    <div className="text-xs text-zinc-300 font-mono mt-0.5">
                       Yosia Gracetheo Boimau
                     </div>
                   </div>
                 </div>
 
-                <p className="text-xs text-zinc-300/80 leading-relaxed max-w-md font-sans">
-                  Solusi Digital Setiap Permasalahan Anda. Mengembangkan arsitektur web full-stack tangguh, pipeline visual computing, kecerdasan buatan, dan simulasi 3D interaktif kelas enterprise.
+                <p className="text-xs text-zinc-300 leading-relaxed max-w-md font-sans">
+                  Digital Solutions for Every Challenge. Developing resilient full-stack web architectures, visual computing pipelines, artificial intelligence, and enterprise-grade interactive 3D simulations.
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[10px]">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 backdrop-blur-md shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     SQLITE CMS SYNCED
                   </span>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 text-zinc-300 border border-white/10">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] text-zinc-200 border border-white/20 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
                     📍 MALANG, EAST JAVA, ID
                   </span>
                 </div>
@@ -2971,147 +3133,147 @@
 
               {/* Col 2: Navigation Index (2 cols) */}
               <div className="lg:col-span-2 flex flex-col gap-3">
-                <span className="font-mono text-[11px] font-bold text-cyan-400 tracking-wider uppercase">
+                <span className="font-mono text-[11px] font-bold text-cyan-300 tracking-wider uppercase drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
                   // NAVIGATION
                 </span>
-                <div className="flex flex-col gap-2 font-mono text-xs text-zinc-400">
+                <div className="flex flex-col gap-2 font-mono text-xs text-zinc-300">
                   <a href="#hero" className="hover:text-white transition-colors flex items-center gap-1.5 group">
-                    <span className="text-cyan-500/60 group-hover:text-cyan-400 text-[10px]">01</span>
-                    <span>Overview</span>
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">01</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Overview</span>
+                  </a>
+                  <a href="#certificates" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">02</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Certificates</span>
                   </a>
                   <a href="#projects" className="hover:text-white transition-colors flex items-center gap-1.5 group">
-                    <span className="text-cyan-500/60 group-hover:text-cyan-400 text-[10px]">02</span>
-                    <span>Projects & Certs</span>
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">03</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Projects & Repos</span>
                   </a>
                   <a href="#techstack" className="hover:text-white transition-colors flex items-center gap-1.5 group">
-                    <span className="text-cyan-500/60 group-hover:text-cyan-400 text-[10px]">03</span>
-                    <span>Tech Stack</span>
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">04</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Tech Stack</span>
                   </a>
                   <a href="#education" className="hover:text-white transition-colors flex items-center gap-1.5 group">
-                    <span className="text-cyan-500/60 group-hover:text-cyan-400 text-[10px]">04</span>
-                    <span>Experience</span>
-                  </a>
-                  <a href="#gallery" className="hover:text-white transition-colors flex items-center gap-1.5 group">
-                    <span className="text-cyan-500/60 group-hover:text-cyan-400 text-[10px]">05</span>
-                    <span>VJ Gallery</span>
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">05</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Experience</span>
                   </a>
                   <a href="#contact" className="hover:text-white transition-colors flex items-center gap-1.5 group">
-                    <span className="text-cyan-500/60 group-hover:text-cyan-400 text-[10px]">06</span>
-                    <span>Contact</span>
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">06</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Contact</span>
                   </a>
                 </div>
               </div>
 
               {/* Col 3: Channels & Socials (2 cols) */}
               <div className="lg:col-span-2 flex flex-col gap-3">
-                <span className="font-mono text-[11px] font-bold text-cyan-400 tracking-wider uppercase">
+                <span className="font-mono text-[11px] font-bold text-cyan-300 tracking-wider uppercase drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
                   // CHANNELS
                 </span>
                 <div className="flex flex-col gap-2 font-mono text-xs">
-                  <a href="https://instagram.com/theoxcyro" target="_blank" rel="noopener noreferrer" className="text-pink-400/90 hover:text-pink-300 transition-colors flex items-center gap-1.5">
-                    <span>Instagram</span>
-                    <span className="text-[10px] text-pink-400/50">↗</span>
+                  <a href="https://instagram.com/theoxcyro" target="_blank" rel="noopener noreferrer" className="text-pink-300 hover:text-pink-200 transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">Instagram</span>
+                    <span className="text-[10px] text-pink-400">↗</span>
                   </a>
-                  <a href="https://github.com/Theology26" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5">
-                    <span>GitHub</span>
-                    <span className="text-[10px] text-zinc-500">↗</span>
+                  <a href="https://github.com/Theology26" target="_blank" rel="noopener noreferrer" className="text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">GitHub</span>
+                    <span className="text-[10px] text-zinc-400">↗</span>
                   </a>
-                  <a href="https://linkedin.com/in/yosia-gracetheo-boimau-919340211/" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5">
-                    <span>LinkedIn</span>
-                    <span className="text-[10px] text-zinc-500">↗</span>
+                  <a href="https://linkedin.com/in/yosia-gracetheo-boimau-919340211/" target="_blank" rel="noopener noreferrer" className="text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">LinkedIn</span>
+                    <span className="text-[10px] text-zinc-400">↗</span>
                   </a>
-                  <a href="https://linktr.ee/TheHighTee" target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5">
-                    <span>Linktree</span>
-                    <span className="text-[10px] text-zinc-500">↗</span>
+                  <a href="https://linktr.ee/TheHighTee" target="_blank" rel="noopener noreferrer" className="text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">Linktree</span>
+                    <span className="text-[10px] text-zinc-400">↗</span>
                   </a>
-                  <a href="mailto:yosiagracetheo0@gmail.com" className="text-zinc-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5">
-                    <span>Email Direct</span>
-                    <span className="text-[10px] text-zinc-500">✉</span>
+                  <a href="mailto:yosiagracetheo0@gmail.com" className="text-zinc-300 hover:text-cyan-300 transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">Email Direct</span>
+                    <span className="text-[10px] text-zinc-400">✉</span>
                   </a>
                 </div>
               </div>
 
               {/* Col 4: Deliverables & CMS Access (3 cols) */}
               <div className="lg:col-span-3 flex flex-col gap-3">
-                <span className="font-mono text-[11px] font-bold text-cyan-400 tracking-wider uppercase">
+                <span className="font-mono text-[11px] font-bold text-cyan-300 tracking-wider uppercase drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
                   // DELIVERABLES & ACCESS
                 </span>
                 
-                {/* CV Action Card */}
+                {/* CV Action Glass Card */}
                 <a
                   href="/api/cv/download"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-xl bg-white/[0.03] hover:bg-cyan-500/10 border border-white/10 hover:border-cyan-500/30 transition-all flex items-center justify-between group"
+                  className="p-3.5 rounded-2xl bg-white/[0.05] hover:bg-cyan-500/15 border border-white/15 hover:border-cyan-400/50 transition-all flex items-center justify-between group backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.25)]"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-300 flex items-center justify-center font-mono shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 flex items-center justify-center font-mono shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
                       </svg>
                     </div>
                     <div>
-                      <div className="font-mono text-xs font-semibold text-white group-hover:text-cyan-300 transition-colors">
+                      <div className="font-mono text-xs font-semibold text-white group-hover:text-cyan-200 transition-colors">
                         ATS Resume / CV
                       </div>
-                      <div className="font-mono text-[10px] text-zinc-400">
+                      <div className="font-mono text-[10px] text-zinc-300/80">
                         A4 Portrait • Standard Compliant
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs text-cyan-400 group-hover:translate-x-0.5 transition-transform">↗</span>
+                  <span className="text-xs text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform font-bold">↗</span>
                 </a>
 
-                {/* Admin CMS Access Card */}
+                {/* Admin CMS Access Glass Card */}
                 <a
                   href="/admin"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 hover:border-white/25 transition-all flex items-center justify-between group"
+                  className="p-3.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.10] border border-white/15 hover:border-white/40 transition-all flex items-center justify-between group backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(255,255,255,0.15)]"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-white/10 text-zinc-300 flex items-center justify-center font-mono shrink-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-mono shrink-0">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                         <path d="M7 11V7a5 5 0 0110 0v4"/>
                       </svg>
                     </div>
                     <div>
-                      <div className="font-mono text-xs font-semibold text-white group-hover:text-zinc-200 transition-colors">
+                      <div className="font-mono text-xs font-semibold text-white group-hover:text-zinc-100 transition-colors">
                         Admin CMS Portal
                       </div>
-                      <div className="font-mono text-[10px] text-zinc-400">
+                      <div className="font-mono text-[10px] text-zinc-300/80">
                         Secure SQLite Data Console
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs text-zinc-400 group-hover:translate-x-0.5 transition-transform">→</span>
+                  <span className="text-xs text-zinc-300 group-hover:translate-x-0.5 transition-transform font-bold">→</span>
                 </a>
               </div>
 
             </div>
 
-            {/* Bottom Row: Copyright, Tech Badges & Scroll to Top */}
-            <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[11px] text-zinc-400">
+            {/* Bottom Row: Frosted Glass Capsule (Copyright, Badges & Back to Top) */}
+            <div className="relative z-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[11px] text-zinc-300">
               <div className="flex items-center gap-2 text-center md:text-left">
-                <span className="text-zinc-300 font-medium">© 2025 THEOLOGY26</span>
-                <span className="text-white/20">•</span>
-                <span>Yosia Gracetheo Boimau. All rights reserved.</span>
+                <span className="text-white font-medium">© 2025 THEOLOGY26</span>
+                <span className="text-white/30">•</span>
+                <span className="text-zinc-300">Yosia Gracetheo Boimau. All rights reserved.</span>
               </div>
 
-              <div className="hidden lg:flex items-center gap-2 text-[10px] text-zinc-400/80">
-                <span className="px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08]">LARAVEL 11</span>
-                <span className="px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08]">THREE.JS 3D</span>
-                <span className="px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08]">SQLITE CMS</span>
-                <span className="px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08]">ATS CV</span>
+              <div className="hidden lg:flex items-center gap-2 text-[10px]">
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">LARAVEL 11</span>
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">THREE.JS 3D</span>
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">SQLITE CMS</span>
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">ATS CV</span>
               </div>
 
               <button
                 onClick={scrollToTop}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-all text-xs font-mono group cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.16] text-white border border-white/20 hover:border-cyan-400/50 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] hover:shadow-[0_0_16px_rgba(6,182,212,0.35)] transition-all text-xs font-mono group cursor-pointer"
               >
-                <span>KEMBALI KE ATAS</span>
-                <svg className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <span>BACK TO TOP</span>
+                <svg className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M18 15l-6-6-6 6"/>
                 </svg>
               </button>
@@ -3150,6 +3312,19 @@
     // ═══════════════════════════════════════════
     const App = () => {
       const [content, setContent] = useState(null);
+      const [ecoMode, setEcoMode] = useState(() => {
+        const saved = localStorage.getItem('theo_eco_mode');
+        if (saved !== null) return saved === 'true';
+        return window.innerWidth < 768 || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+      });
+
+      const toggleEcoMode = () => {
+        setEcoMode(prev => {
+          const next = !prev;
+          localStorage.setItem('theo_eco_mode', String(next));
+          return next;
+        });
+      };
 
       useEffect(() => {
         fetch('/api/content')
@@ -3165,9 +3340,9 @@
 
       return (
         <>
-          <ThreeBackground spaceConfig={content?.spaceConfig} />
+          <ThreeBackground spaceConfig={content?.spaceConfig} ecoMode={ecoMode} />
           <GradientOverlays />
-          <Navbar generalData={content?.general} />
+          <Navbar generalData={content?.general} ecoMode={ecoMode} toggleEcoMode={toggleEcoMode} />
 
           <main className="relative" style={{ zIndex: 2 }}>
             <HeroSection
@@ -3175,6 +3350,12 @@
               techTagsData={content?.techTags}
               lanyardData={content?.lanyard}
             />
+
+            <ScrollReveal>
+              <CertificatesSection
+                certificatesData={content?.certificatesList}
+              />
+            </ScrollReveal>
 
             <ScrollReveal>
               <ProjectSpotlight
@@ -3190,10 +3371,6 @@
 
             <ScrollReveal>
               <Education experiencesData={content?.cvData?.experiences} />
-            </ScrollReveal>
-
-            <ScrollReveal>
-              <CreativeGallery galleryData={content?.gallery} />
             </ScrollReveal>
 
             <ScrollReveal>
