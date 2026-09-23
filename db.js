@@ -29,7 +29,7 @@ const DEFAULT_CONTENT = {
     linktreeUrl: 'https://linktr.ee/TheHighTee',
     githubUrl: 'https://github.com/Theology26',
     instagramUrl: 'https://instagram.com/theoxcyro',
-    address: 'Jl.S.Supriadi VII No 3, Malang, Indonesia',
+    address: 'Malang, East Java, Indonesia',
     adminPasscode: 'theology26',
     logoUrl: '/Assets/avatar_animated.png',
     githubUsername: 'Theology26',
@@ -81,18 +81,115 @@ const DEFAULT_CONTENT = {
   ],
   projectsList: [
     {
-      id: 'ocr-webtoon',
+      id: 'mbg-smart-logistics-fulldev',
       type: 'project',
-      title: 'PENGEMBANGAN OCR UNTUK WEBTOON KOREA',
-      category: 'AI & Computer Vision',
-      issuer: 'Independent AI Research',
-      tags: 'Python, Rest API, Easy OCR, YOLO, IO Paint',
-      description: 'Pengembangan sistem OCR Webtoon Korea ini menunjukkan hasil yang sangat positif dalam mengatasi keterbatasan bahasa dan menekan penggunaan situs ilegal.',
-      linkUrl: 'https://github.com/Theology26',
-      imageUrl: '',
+      title: 'MBG Smart Logistics FullDev',
+      category: 'Go Application',
+      issuer: 'GitHub Repository // @Theology26',
+      tags: 'Go, Backend, Microservices, 2 ★',
+      description: 'Arsitektur logistik cerdas terdistribusi performa tinggi dibangun dengan bahasa pemrograman Go.',
+      linkUrl: 'https://github.com/Theology26/MBG-Smart-Logistics-FullDev',
+      badge: '★ 2 STARS',
+      featured: true,
+      stats: '2 Stars • 0 Forks',
+      date: '2025'
+    },
+    {
+      id: 'logieat-os',
+      type: 'project',
+      title: 'Logieat OS & OCR Vision',
+      category: 'Python Application',
+      issuer: 'GitHub Repository // @Theology26',
+      tags: 'Python, EasyOCR, YOLO, Computer Vision',
+      description: 'Sistem komputasi visi & otomasi pengenalan teks Korea berbasis machine learning dan pipeline deep learning.',
+      linkUrl: 'https://github.com/Theology26/Logieat-OS',
       badge: 'AI / OCR ENGINE',
       featured: true,
-      stats: 'YOLO + EasyOCR',
+      stats: 'Python • Computer Vision',
+      date: '2025'
+    },
+    {
+      id: 'webportofoliotheo',
+      type: 'project',
+      title: 'Web Portofolio Theo (Blade / Laravel)',
+      category: 'Blade Application',
+      issuer: 'GitHub Repository // @Theology26',
+      tags: 'Blade, Laravel 11, Tailwind CSS, 1 ★',
+      description: 'Portofolio interaktif full-stack dengan ekosistem Laravel 11, blade templating engine, dan dynamic components.',
+      linkUrl: 'https://github.com/Theology26/webportofoliotheo',
+      badge: '★ 1 STAR',
+      featured: true,
+      stats: '1 Star • Laravel 11',
+      date: '2025'
+    },
+    {
+      id: 'webportofolioexpotheo',
+      type: 'project',
+      title: 'Web Portofolio Expo Mobile',
+      category: 'TypeScript Application',
+      issuer: 'GitHub Repository // @Theology26',
+      tags: 'TypeScript, React Native, Expo, 1 ★',
+      description: 'Aplikasi portofolio mobile cross-platform responsif dan native didukung React Native dan Expo ecosystem.',
+      linkUrl: 'https://github.com/Theology26/webportofolioexpotheo',
+      badge: '★ 1 STAR',
+      featured: true,
+      stats: '1 Star • React Native Expo',
+      date: '2025'
+    },
+    {
+      id: 'mbg-smart-logistics',
+      type: 'project',
+      title: 'MBG Smart Logistics Engine',
+      category: 'Go Application',
+      issuer: 'GitHub Repository // @Theology26',
+      tags: 'Go, REST API, Logistics, 1 ★',
+      description: 'Core microservice engine untuk optimalisasi rute dan sinkronisasi status pengiriman logistik secara real-time.',
+      linkUrl: 'https://github.com/Theology26/mbg-smart-logistics',
+      badge: '★ 1 STAR',
+      featured: true,
+      stats: '1 Star • Go Microservices',
+      date: '2025'
+    },
+    {
+      id: 'sparkling-clean-studio',
+      type: 'project',
+      title: 'Sparkling Clean Studio',
+      category: 'TypeScript Application',
+      issuer: 'GitHub Repository // @Theology26',
+      tags: 'TypeScript, Next.js, Modern UI, 1 ★',
+      description: 'Platform web manajemen booking dan operasional layanan kebersihan untuk segmen komersial dan residensial.',
+      linkUrl: 'https://github.com/Theology26/sparkling-clean-studio',
+      badge: '★ 1 STAR',
+      featured: false,
+      stats: '1 Star • Commercial UMKM',
+      date: '2025'
+    },
+    {
+      id: 'nutrisafe-food-delivery',
+      type: 'project',
+      title: 'NutriSafe Food Delivery Agent',
+      category: 'Vue Application',
+      issuer: 'GitHub Repository // @Theology26',
+      tags: 'Vue, JavaScript, State Management, Agent',
+      description: 'Sistem pemesanan dan pengantaran makanan dengan integrasi rekomendasi nutrisi cerdas bagi pengguna.',
+      linkUrl: 'https://github.com/Theology26/NutriSafeFoodDeliveryAgent',
+      badge: 'VUE CLIENT',
+      featured: false,
+      stats: 'Vue • Intelligent Agent',
+      date: '2025'
+    },
+    {
+      id: 'portofolio-sparklingcleaners',
+      type: 'project',
+      title: 'Website Sparkling Cleaners Malang',
+      category: 'JavaScript Application',
+      issuer: 'Client Project Malang',
+      tags: 'JavaScript, HTML5, CSS3, Responsive UI',
+      description: 'Website promosi dan pemesanan layanan kebersihan untuk UMKM Kota Malang dengan alur pemesanan mudah dan efisien.',
+      linkUrl: 'https://github.com/Theology26/portofolio-sparklingcleaners',
+      badge: 'CLIENT UMKM',
+      featured: false,
+      stats: 'Malang UMKM Client',
       date: '2025'
     },
     {
@@ -111,21 +208,6 @@ const DEFAULT_CONTENT = {
       date: '2024'
     },
     {
-      id: 'sparkling-cleaners',
-      type: 'project',
-      title: 'Website Sparkling Cleaners Malang',
-      category: 'Web & UMKM',
-      issuer: 'Client Project Malang',
-      tags: 'HTML, JS, CSS, Responsive UI',
-      description: 'Membuatkan website untuk promosi dan pemesanan layanan kebersihan untuk UMKM Kota Malang dengan desain modern dan alur pemesanan mudah.',
-      linkUrl: 'https://github.com/Theology26',
-      imageUrl: '',
-      badge: 'CLIENT UMKM',
-      featured: false,
-      stats: 'Malang UMKM',
-      date: '2025'
-    },
-    {
       id: 'cert-meta-frontend',
       type: 'certificate',
       title: 'Meta Front-End Developer Professional Certificate',
@@ -138,21 +220,6 @@ const DEFAULT_CONTENT = {
       badge: 'PROFESSIONAL CERTIFICATE',
       featured: false,
       stats: 'Verified Credential',
-      date: '2024'
-    },
-    {
-      id: 'logistik-cerdas',
-      type: 'project',
-      title: 'INTEGRASI VISI KOMPUTER & LOGISTIK CERDAS',
-      category: 'Enterprise & AI',
-      issuer: 'Enterprise System',
-      tags: 'Tailwind CSS, JavaScript, Custom CMS, Laravel 11',
-      description: 'Sistem manajemen rantai pasok (supply chain) modern yang dirancang untuk melacak pergerakan armada dan inventaris secara presisi. Fondasi backend Laravel dengan struktur database relasional tingkat tinggi dan dasbor analitik real-time.',
-      linkUrl: 'https://github.com/Theology26',
-      imageUrl: '',
-      badge: 'ENTERPRISE SYSTEM',
-      featured: true,
-      stats: 'Laravel 11 + OCR',
       date: '2024'
     },
     {
@@ -182,7 +249,7 @@ const DEFAULT_CONTENT = {
       { label: 'FRAMEWORK', value: 'Laravel 11' },
       { label: 'FRONTEND', value: 'Tailwind + React' },
       { label: 'DATABASE', value: 'MySQL Relational' },
-      { label: 'DISPATCH', value: 'Real-time Tracking' }
+      { label: 'DISPATCH', value: 'Real-time Tracking' },
     ],
     terminalLines: [
       '$ php artisan serve --port=8000',
@@ -193,7 +260,7 @@ const DEFAULT_CONTENT = {
       '$ git push origin main',
       'Enumerating objects: 42, done.',
       '→ Branch main → origin/main',
-      '$ echo "Distribution logistics optimized ✓"'
+      '$ echo "Distribution logistics optimized ✓"',
     ],
     githubRepoUrl: 'https://github.com/Theology26',
     liveDemoUrl: '#'
@@ -201,7 +268,7 @@ const DEFAULT_CONTENT = {
   gallery: [
     {
       title: 'Visual Projection Mapping & VJ Live Performance',
-      subtitle: 'GKJW Sukun Event Visual Stage Control',
+      subtitle: 'Event Visual Stage Control',
       tags: 'VJing, Resolume, Projection Mapping',
       icon: 'VJ'
     },
@@ -238,7 +305,7 @@ const DEFAULT_CONTENT = {
     avatarUrl: 'https://avatars.githubusercontent.com/u/180420712?v=4',
     showPhoto: true,
     email: 'yosiagracetheo0@gmail.com',
-    location: 'Jl.S.Supriadi VII No 3, Malang',
+    location: 'Malang, East Java, Indonesia',
     website: 'theo.dev',
     linkedin: 'linkedin.com/in/yosia-gracetheo-boimau-919340211/',
     github: 'github.com/Theology26',
@@ -258,16 +325,16 @@ const DEFAULT_CONTENT = {
         description: 'Menganalisis tren dan merancang arsitektur konten digital beserta jadwal distribusinya.'
       },
       {
-        title: 'Director Iklan Sekolah',
-        company: 'School Campaign Project',
+        title: 'Director Iklan',
+        company: 'Commercial Project',
         year: '2025',
-        description: 'Memimpin produksi visual kampanye sekolah hingga sukses menaikkan rasio pendaftaran.'
+        description: 'Memimpin produksi visual dan penyutradaraan kampanye iklan komersial dari pra-produksi hingga rilis final.'
       },
       {
-        title: 'Virtual Jockey (VJ) GKJW Sukun',
-        company: 'GKJW Sukun',
+        title: 'Virtual Jockey (VJ)',
+        company: 'Live Staging',
         year: '2024 - Sekarang',
-        description: 'Mengendalikan tata visual dan projection mapping secara live untuk berbagai event.'
+        description: 'Mengendalikan tata visual dan projection mapping secara live untuk berbagai event dan pertunjukan.'
       }
     ],
     selectedProjects: [
