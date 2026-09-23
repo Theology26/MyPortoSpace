@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Theology26 // System Admin & Dynamic Content Console</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            geist: ['Geist', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            space: {
+              black: '#08080a',
+              900: '#0e0e12',
+              800: '#141418',
+              700: '#1a1a20',
+              600: '#222228',
+            },
+            muted: '#94a3b8',
+            subtle: '#e2e8f0',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- React 18 & Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Geist', system-ui, sans-serif;
+      background: #08080a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #08080a; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      box-shadow: inset 0 1px 1px 1px rgba(255,255,255,0.08);
+    }
+    .glass-card-strong {
+      background: rgba(16, 20, 30, 0.65);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 2px 1px rgba(255,255,255,0.12);
+    }
+    .glass-input {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      transition: all 0.2s;
+    }
+    .glass-input:focus {
+      outline: none;
+      border-color: #38bdf8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const AdminApp = () => {
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
+      const [passcode, setPasscode] = useState('');
+      const [loginError, setLoginError] = useState('');
+      const [activeTab, setActiveTab] = useState('hero');
+      const [content, setContent] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [saving, setSaving] = useState(false);
+      const [toast, setToast] = useState(null);
+      const [githubSyncing, setGithubSyncing] = useState(false);
+
+      const showToast = (msg, type = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 4000);
+      };
+
+      // Check existing session
+      useEffect(() => {
+        const token = sessionStorage.getItem('theo_admin_token');
+        if (token) {
+          setIsAuthenticated(true);
+          fetchContent(token);
+        } else {
+          setLoading(false);
+        }
+      }, []);
+
+      const fetchContent = async (token) => {
+        try {
+          setLoading(true);
+          const res = await fetch('/api/content');
+          const json = await res.json();
+          if (json.success) {
+            setContent(json.data);
+          }
+        } catch (err) {
+          showToast('Failed to fetch database content', 'error');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoginError('');
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ passcode }),
+          });
+          const json = await res.json();
+          if (json.success) {
+            sessionStorage.setItem('theo_admin_token', json.token);
+            setIsAuthenticated(true);
+            fetchContent(json.token);
+            showToast('Access Authorized // Welcome to Systems Admin');
+          } else {
+            setLoginError(json.error || 'Invalid passcode');
+          }
+        } catch (err) {
+          setLoginError('Server connection error');
+        }
+      };
+
+      const handleLogout = () => {
+        sessionStorage.removeItem('theo_admin_token');
+        setIsAuthenticated(false);
+        setPasscode('');
+      };
+
+      const handleSave = async () => {
+        setSaving(true);
+        const token = sessionStorage.getItem('theo_admin_token');
+        try {
+          const res = await fetch('/api/content', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(content),
+          });
+          const json = await res.json();
+          if (json.success) {
+            setContent(json.data);
+            showToast('✓ All changes saved to SQLite database successfully!');
+          } else {
+            showToast(json.error || 'Failed to save changes', 'error');
+          }
+        } catch (err) {
+          showToast('Network error while saving data', 'error');
+        } finally {
+          setSaving(false);
+        }
+      };
+
+      const handleSyncGithub = async () => {
+        setGithubSyncing(true);
+        try {
+          const res = await fetch('/api/github/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: content.general.githubUsername,
+              token: content.general.githubToken,
+            }),
+          });
+          const json = await res.json();
+          if (json.success) {
+            if (json.projectsList && Array.isArray(json.projectsList)) {
+              setContent(prev => ({
+                ...prev,
+                projectsList: json.projectsList
+              }));
+            }
+            showToast(json.message || `✓ GitHub Sync Sukses: ${json.count} repository berhasil disinkronkan ke database!`);
+          } else {
+            showToast(json.error || 'GitHub Sync Gagal', 'error');
+          }
+        } catch (err) {
+          showToast('Gagal terhubung ke API GitHub', 'error');
+        } finally {
+          setGithubSyncing(false);
+        }
+      };
+
+      // Helper for deep mutations
+      const updateField = (section, field, value) => {
+        setContent(prev => ({
+          ...prev,
+          [section]: {
+            ...prev[section],
+            [field]: value,
+          },
+        }));
+      };
+
+      // Image File Upload to DataURL
+      const handleImageUpload = (file, targetSection) => {
+        if (!file) return;
+        if (file.size > 3 * 1024 * 1024) {
+          showToast('Image file size exceeds 3MB. Please choose a smaller image.', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target.result;
+          if (targetSection === 'lanyard') {
+            updateField('lanyard', 'avatarUrl', dataUrl);
+            // Also sync to cvData so user has consistent profile photo
+            updateField('cvData', 'avatarUrl', dataUrl);
+            showToast('✓ Profile photo updated for Lanyard Badge & ATS CV!');
+          } else if (targetSection === 'cvData') {
+            updateField('cvData', 'avatarUrl', dataUrl);
+            showToast('✓ ATS CV Profile Photo updated!');
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+
+      // Project/Certificate Image File Upload to DataURL (Base64)
+      const handleProjectItemImageUpload = (file, index) => {
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('Gambar sertifikat/proyek melebihi 5MB. Pilih file lebih kecil.', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target.result;
+          setContent(prev => {
+            const list = [...(prev.projectsList || [])];
+            if (list[index]) {
+              list[index] = { ...list[index], imageUrl: dataUrl };
+            }
+            return { ...prev, projectsList: list };
+          });
+          showToast('✓ Gambar sertifikat/proyek berhasil diunggah!');
+        };
+        reader.readAsDataURL(file);
+      };
+
+      // Login Screen
+      if (!isAuthenticated) {
+        return (
+          <div className="min-h-screen flex items-center justify-center p-6 bg-space-black relative overflow-hidden">
+            {/* Ambient background glow */}
+            <div className="absolute w-96 h-96 rounded-full bg-cyan-500/10 blur-[120px] top-1/4 left-1/4" />
+            <div className="absolute w-96 h-96 rounded-full bg-blue-600/10 blur-[140px] bottom-1/4 right-1/4" />
+
+            <div className="glass-card-strong rounded-3xl p-8 max-w-md w-full relative z-10 border border-white/15 shadow-2xl">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-mono text-xs font-semibold tracking-wider text-muted uppercase">
+                  SECURITY PROTOCOL // AUTHORIZED ONLY
+                </span>
+              </div>
+              <h1 className="font-geist text-2xl font-bold text-white mb-2 tracking-tight">
+                Systems Admin Console
+              </h1>
+              <p className="font-geist text-sm text-muted mb-6">
+                Enter your developer master passcode to access the live SQLite CMS and database controls.
+              </p>
+
+              <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1.5 uppercase">Master Passcode</label>
+                  <input
+                    type="password"
+                    placeholder="Enter passcode (default: theology26)"
+                    value={passcode}
+                    onChange={(e) => setPasscode(e.target.value)}
+                    className="glass-input w-full px-4 py-3 rounded-xl font-mono text-sm"
+                    required
+                  />
+                  {loginError && (
+                    <span className="font-mono text-xs text-rose-400 mt-1.5 block">
+                      ⚠ {loginError}
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl bg-white text-space-black font-geist text-sm font-semibold hover:bg-white/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg"
+                >
+                  Unlock Admin Dashboard →
+                </button>
+
+                <div className="pt-2 text-center">
+                  <a href="/" className="font-mono text-xs text-muted hover:text-white transition-colors">
+                    ← Return to Public Portfolio
+                  </a>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      if (loading || !content) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-space-black text-white font-mono text-sm">
+            <span className="animate-spin inline-block mr-3">⟳</span> Connecting to SQLite Database...
+          </div>
+        );
+      }
+
+      const tabs = [
+        { id: 'hero', label: '01 // Hero & Brand' },
+        { id: 'lanyard', label: '02 // Lanyard Pass' },
+        { id: 'skills', label: '03 // Tech Stacks' },
+        { id: 'projects', label: '04 // Projects & Certificates' },
+        { id: 'cv', label: '05 // ATS CV Generator' },
+        { id: 'github', label: '06 // GitHub API Engine' },
+        { id: 'space', label: '07 // Space 3D Settings' },
+      ];
+
+      return (
+        <div className="min-h-screen bg-space-black text-slate-200 pb-24">
+          {/* Top Bar Navigation */}
+          <header className="sticky top-0 z-50 glass-card-strong border-b border-white/10 px-8 py-4 backdrop-blur-xl">
+            <div className="max-w-7xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full border border-cyan-400/40 overflow-hidden shadow-[0_0_10px_rgba(6,182,212,0.3)] shrink-0">
+                  <img
+                    src={content.general.logoUrl || '/Assets/avatar_animated.png'}
+                    alt="Logo"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <div className="font-mono text-xs font-bold text-white tracking-wide uppercase">
+                    {content.general.brandName} // SYSTEM CMS
+                  </div>
+                  <div className="font-mono text-[10px] text-muted">
+                    SQLITE DATABASE ACTIVE • PORT 3000
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <a
+                  href="/"
+                  target="_blank"
+                  className="glass-pill px-4 py-2 rounded-full font-geist text-xs text-muted hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5"
+                >
+                  View Live Site ↗
+                </a>
+
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-5 py-2 rounded-full bg-white text-space-black font-geist text-xs font-semibold hover:bg-white/90 active:scale-[0.98] transition-all flex items-center gap-2 shadow-lg disabled:opacity-50"
+                >
+                  {saving ? (
+                    <>
+                      <span className="animate-spin">⟳</span> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <span>💾</span> Save All Changes
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="glass-pill px-3 py-2 rounded-full font-mono text-xs text-rose-400 hover:bg-rose-500/10 transition-colors"
+                  title="Logout"
+                >
+                  Exit ⏻
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Toast Notification */}
+          {toast && (
+            <div className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl font-mono text-xs shadow-2xl flex items-center gap-2 border ${
+              toast.type === 'error'
+                ? 'bg-rose-950/90 text-rose-200 border-rose-500/40'
+                : 'bg-emerald-950/90 text-emerald-200 border-emerald-500/40'
+            }`}>
+              <span>{toast.type === 'error' ? '⚠' : '✓'}</span>
+              <span>{toast.msg}</span>
+            </div>
+          )}
+
+          {/* Main Layout */}
+          <main className="max-w-7xl mx-auto px-8 pt-8">
+            {/* Tabs Navigation */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 border-b border-white/10">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={`px-4 py-2 rounded-xl font-mono text-xs transition-all whitespace-nowrap ${
+                    activeTab === t.id
+                      ? 'bg-white text-space-black font-semibold shadow-md'
+                      : 'glass-pill text-muted hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* TAB 1: HERO & BRAND */}
+            {activeTab === 'hero' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="glass-card rounded-2xl p-6 flex flex-col gap-4">
+                  <h2 className="font-geist text-lg font-semibold text-white border-b border-white/10 pb-2">
+                    Hero Typography & Headings
+                  </h2>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Architecture Chip Badge</label>
+                    <input
+                      type="text"
+                      value={content.hero.badgeText}
+                      onChange={(e) => updateField('hero', 'badgeText', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Architecture Chip Subtext</label>
+                    <input
+                      type="text"
+                      value={content.hero.badgeSubtext}
+                      onChange={(e) => updateField('hero', 'badgeSubtext', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Eyebrow Greeting</label>
+                    <input
+                      type="text"
+                      value={content.hero.eyebrow}
+                      onChange={(e) => updateField('hero', 'eyebrow', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Main Title (Line 1)</label>
+                    <input
+                      type="text"
+                      value={content.hero.titleLine1}
+                      onChange={(e) => updateField('hero', 'titleLine1', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-bold text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Title Gradient Accent (Line 2)</label>
+                    <input
+                      type="text"
+                      value={content.hero.titleLine2}
+                      onChange={(e) => updateField('hero', 'titleLine2', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-bold text-base text-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Description Paragraph</label>
+                    <textarea
+                      rows="4"
+                      value={content.hero.description}
+                      onChange={(e) => updateField('hero', 'description', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-sm leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                <div className="glass-card rounded-2xl p-6 flex flex-col gap-4">
+                  <h2 className="font-geist text-lg font-semibold text-white border-b border-white/10 pb-2">
+                    Action Buttons & Brand Configuration
+                  </h2>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Primary CTA Button Text</label>
+                    <input
+                      type="text"
+                      value={content.hero.ctaPrimaryText}
+                      onChange={(e) => updateField('hero', 'ctaPrimaryText', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Primary CTA Link / Anchor</label>
+                    <input
+                      type="text"
+                      value={content.hero.ctaPrimaryLink}
+                      onChange={(e) => updateField('hero', 'ctaPrimaryLink', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">CV Download Button Label</label>
+                    <input
+                      type="text"
+                      value={content.hero.ctaSecondaryText}
+                      onChange={(e) => updateField('hero', 'ctaSecondaryText', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Linktree Button Text</label>
+                    <input
+                      type="text"
+                      value={content.hero.ctaTertiaryText}
+                      onChange={(e) => updateField('hero', 'ctaTertiaryText', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Linktree URL</label>
+                    <input
+                      type="text"
+                      value={content.general.linktreeUrl}
+                      onChange={(e) => updateField('general', 'linktreeUrl', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Brand Name & Domain</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={content.general.brandName}
+                        onChange={(e) => updateField('general', 'brandName', e.target.value)}
+                        className="glass-input px-3 py-2 rounded-lg font-mono text-xs"
+                        placeholder="THEOLOGY26"
+                      />
+                      <input
+                        type="text"
+                        value={content.general.brandDomain}
+                        onChange={(e) => updateField('general', 'brandDomain', e.target.value)}
+                        className="glass-input px-3 py-2 rounded-lg font-mono text-xs"
+                        placeholder="theo.dev"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Brand Animated Avatar Logo URL</label>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full border border-cyan-400/40 overflow-hidden shrink-0 bg-white/5 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+                        <img
+                          src={content.general.logoUrl || '/Assets/avatar_animated.png'}
+                          alt="Brand Logo"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={content.general.logoUrl || '/Assets/avatar_animated.png'}
+                        onChange={(e) => updateField('general', 'logoUrl', e.target.value)}
+                        className="glass-input flex-1 px-3 py-2 rounded-lg font-mono text-xs"
+                        placeholder="/Assets/avatar_animated.png"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: LANYARD PASS */}
+            {activeTab === 'lanyard' && (
+              <div className="glass-card rounded-2xl p-6 max-w-2xl mx-auto flex flex-col gap-5">
+                <div className="border-b border-white/10 pb-3">
+                  <h2 className="font-geist text-lg font-semibold text-white">
+                    Interactive Lanyard Pass & Photo Identity
+                  </h2>
+                  <p className="font-geist text-xs text-muted mt-0.5">
+                    Upload your custom photo to appear on the 3D lanyard pass (replaces the 'TG' monogram) and synchronize with your ATS CV.
+                  </p>
+                </div>
+
+                {/* Profile Photo & Avatar Uploader */}
+                <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col sm:flex-row items-center gap-5">
+                  <div className="relative">
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center border-2 border-cyan-400/60 bg-black/40 shadow-lg shrink-0">
+                      {content.lanyard?.avatarUrl ? (
+                        <img
+                          src={content.lanyard.avatarUrl}
+                          alt="Avatar Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="font-geist text-2xl font-bold text-white tracking-tight">
+                          {content.lanyard?.monogram || 'TG'}
+                        </span>
+                      )}
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center text-[10px] text-white">✓</span>
+                  </div>
+
+                  <div className="flex-1 flex flex-col gap-2.5 w-full">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="px-4 py-2 rounded-xl bg-cyan-500 text-space-black font-geist text-xs font-bold hover:bg-cyan-400 cursor-pointer transition-all inline-flex items-center gap-1.5 shadow-md">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        Upload Photo File
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleImageUpload(e.target.files[0], 'lanyard')}
+                        />
+                      </label>
+                      {content.lanyard?.avatarUrl && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateField('lanyard', 'avatarUrl', '');
+                            showToast('Photo removed. Pass reverted to TG monogram.');
+                          }}
+                          className="px-3 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 text-xs font-mono hover:bg-rose-500/20 transition-all"
+                        >
+                          Revert to Monogram
+                        </button>
+                      )}
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="Or paste image URL (https://...)"
+                        value={content.lanyard?.avatarUrl || ''}
+                        onChange={(e) => {
+                          updateField('lanyard', 'avatarUrl', e.target.value);
+                          updateField('cvData', 'avatarUrl', e.target.value);
+                        }}
+                        className="glass-input w-full px-3 py-1.5 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Pass Header</label>
+                    <input
+                      type="text"
+                      value={content.lanyard.passHeader}
+                      onChange={(e) => updateField('lanyard', 'passHeader', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Pass Status</label>
+                    <input
+                      type="text"
+                      value={content.lanyard.passStatus}
+                      onChange={(e) => updateField('lanyard', 'passStatus', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Monogram</label>
+                    <input
+                      type="text"
+                      value={content.lanyard.monogram}
+                      onChange={(e) => updateField('lanyard', 'monogram', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-sm font-bold"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="font-mono text-xs text-muted block mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      value={content.lanyard.userName}
+                      onChange={(e) => updateField('lanyard', 'userName', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">Job Title / Subtitle</label>
+                  <input
+                    type="text"
+                    value={content.lanyard.userTitle}
+                    onChange={(e) => updateField('lanyard', 'userTitle', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">University / Alumnus</label>
+                  <input
+                    type="text"
+                    value={content.lanyard.userAlumnus}
+                    onChange={(e) => updateField('lanyard', 'userAlumnus', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">ID Number</label>
+                    <input
+                      type="text"
+                      value={content.lanyard.idNumber}
+                      onChange={(e) => updateField('lanyard', 'idNumber', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Issuance / Node</label>
+                    <input
+                      type="text"
+                      value={content.lanyard.issuanceNode}
+                      onChange={(e) => updateField('lanyard', 'issuanceNode', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">Core Architecture Tagline</label>
+                  <input
+                    type="text"
+                    value={content.lanyard.coreArch}
+                    onChange={(e) => updateField('lanyard', 'coreArch', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">Woven Fabric Strap Curved Text</label>
+                  <input
+                    type="text"
+                    value={content.lanyard.ribbonText}
+                    onChange={(e) => updateField('lanyard', 'ribbonText', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs tracking-wider"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: TECH STACKS */}
+            {activeTab === 'skills' && (
+              <div className="glass-card rounded-2xl p-6 max-w-2xl mx-auto flex flex-col gap-4">
+                <h2 className="font-geist text-lg font-semibold text-white border-b border-white/10 pb-2">
+                  Core Technical Substrates (Pill Tags)
+                </h2>
+
+                <div className="flex flex-wrap gap-2 py-3">
+                  {content.techTags.map((tag, idx) => (
+                    <div key={idx} className="glass-pill px-3 py-1.5 rounded-full flex items-center gap-2">
+                      <span className="font-mono text-xs text-white">{tag}</span>
+                      <button
+                        onClick={() => {
+                          const updated = content.techTags.filter((_, i) => i !== idx);
+                          setContent(prev => ({ ...prev, techTags: updated }));
+                        }}
+                        className="text-rose-400 hover:text-rose-300 text-xs"
+                        title="Remove tag"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                  <input
+                    id="newTagInput"
+                    type="text"
+                    placeholder="Enter new technology name (e.g., Redis, Docker, GraphQL)"
+                    className="glass-input flex-1 px-4 py-2.5 rounded-xl font-mono text-xs"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = e.target.value.trim();
+                        if (val && !content.techTags.includes(val)) {
+                          setContent(prev => ({ ...prev, techTags: [...prev.techTags, val] }));
+                          e.target.value = '';
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const inp = document.getElementById('newTagInput');
+                      const val = inp.value.trim();
+                      if (val && !content.techTags.includes(val)) {
+                        setContent(prev => ({ ...prev, techTags: [...prev.techTags, val] }));
+                        inp.value = '';
+                      }
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-white text-space-black font-geist text-xs font-semibold hover:bg-white/90"
+                  >
+                    + Add Tag
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: PROJECTS */}
+            {activeTab === 'projects' && (
+              <div className="glass-card rounded-2xl p-6 max-w-3xl mx-auto flex flex-col gap-6">
+                <h2 className="font-geist text-lg font-semibold text-white border-b border-white/10 pb-2">
+                  Featured Build & Terminal Spotlight
+                </h2>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Project Name</label>
+                    <input
+                      type="text"
+                      value={content.projectSpotlight.projectName}
+                      onChange={(e) => updateField('projectSpotlight', 'projectName', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-semibold text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Status Badge</label>
+                    <input
+                      type="text"
+                      value={content.projectSpotlight.badge}
+                      onChange={(e) => updateField('projectSpotlight', 'badge', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">Project Description</label>
+                  <textarea
+                    rows="3"
+                    value={content.projectSpotlight.description}
+                    onChange={(e) => updateField('projectSpotlight', 'description', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                  />
+                </div>
+
+                {/* Metrics Table */}
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-2">Metrics Grid</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {content.projectSpotlight.metrics.map((m, i) => (
+                      <div key={i} className="glass-pill p-3 rounded-xl flex items-center justify-between">
+                        <input
+                          type="text"
+                          value={m.label}
+                          onChange={(e) => {
+                            const copy = [...content.projectSpotlight.metrics];
+                            copy[i].label = e.target.value;
+                            updateField('projectSpotlight', 'metrics', copy);
+                          }}
+                          className="glass-input px-2 py-1 rounded font-mono text-xs w-28 uppercase"
+                        />
+                        <input
+                          type="text"
+                          value={m.value}
+                          onChange={(e) => {
+                            const copy = [...content.projectSpotlight.metrics];
+                            copy[i].value = e.target.value;
+                            updateField('projectSpotlight', 'metrics', copy);
+                          }}
+                          className="glass-input px-2 py-1 rounded font-mono text-xs w-36 text-right text-cyan-400 font-bold"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Terminal Simulation Lines */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="font-mono text-xs text-muted uppercase">Terminal Simulation Commands</label>
+                    <button
+                      onClick={() => {
+                        const copy = [...content.projectSpotlight.terminalLines, '$ echo "New command line"'];
+                        updateField('projectSpotlight', 'terminalLines', copy);
+                      }}
+                      className="font-mono text-xs text-cyan-400 hover:text-cyan-300"
+                    >
+                      + Add Command
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {content.projectSpotlight.terminalLines.map((line, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-muted w-6">{idx + 1}.</span>
+                        <input
+                          type="text"
+                          value={line}
+                          onChange={(e) => {
+                            const copy = [...content.projectSpotlight.terminalLines];
+                            copy[idx] = e.target.value;
+                            updateField('projectSpotlight', 'terminalLines', copy);
+                          }}
+                          className="glass-input flex-1 px-3 py-1.5 rounded-lg font-mono text-xs"
+                        />
+                        <button
+                          onClick={() => {
+                            const copy = content.projectSpotlight.terminalLines.filter((_, i) => i !== idx);
+                            updateField('projectSpotlight', 'terminalLines', copy);
+                          }}
+                          className="text-rose-400 hover:text-rose-300 text-xs px-2"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                </div>
+
+                {/* All Projects & Certificates Manager */}
+                <div className="pt-6 border-t border-white/10">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                    <div>
+                      <h3 className="font-geist text-base font-semibold text-white flex items-center gap-2">
+                        <span>Projects & Certificates Collection</span>
+                        <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300">
+                          {(content.projectsList || []).length} Items
+                        </span>
+                      </h3>
+                      <p className="font-geist text-xs text-muted">
+                        Kelola portofolio proyek dan sertifikat resmi. Setiap item dapat memiliki gambar (upload manual/URL) dan link direct tujuan.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={handleSyncGithub}
+                        disabled={githubSyncing}
+                        className="px-3 py-1.5 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-300 font-mono text-xs hover:bg-sky-500/35 transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-[0_0_12px_rgba(56,189,248,0.15)]"
+                        title="Tarik live repositories dari akun GitHub langsung ke database projects"
+                      >
+                        <span>{githubSyncing ? '⟳ Syncing...' : '⚡ Tarik dari GitHub'}</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const newProj = {
+                            id: 'proj-' + Date.now(),
+                            type: 'project',
+                            title: 'Judul Proyek Baru',
+                            category: 'Web Development',
+                            issuer: 'Client / Personal',
+                            badge: 'NEW BUILD',
+                            tags: 'Laravel, React, Tailwind',
+                            description: 'Deskripsi singkat mengenai sistem arsitektur, tantangan, dan solusi teknis...',
+                            linkUrl: 'https://github.com/Theology26',
+                            imageUrl: '',
+                            stats: 'Active',
+                            date: '2025'
+                          };
+                          const updated = [...(content.projectsList || []), newProj];
+                          setContent(prev => ({ ...prev, projectsList: updated }));
+                          showToast('+ Proyek baru ditambahkan!');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 font-mono text-xs hover:bg-cyan-600/50 transition-all flex items-center gap-1.5"
+                      >
+                        <span>+ Tambah Proyek</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          const newCert = {
+                            id: 'cert-' + Date.now(),
+                            type: 'certificate',
+                            title: 'Nama Sertifikat / Lisensi',
+                            category: 'Professional Credential',
+                            issuer: 'Penerbit (e.g. Meta, AWS, BINUS)',
+                            badge: 'OFFICIAL CERTIFICATE',
+                            tags: 'Certification, Credential, Exam',
+                            description: 'Keahlian terverifikasi, nomor kredensial, atau materi kompetensi yang diuji...',
+                            linkUrl: 'https://github.com/Theology26',
+                            imageUrl: '',
+                            stats: 'Verified',
+                            date: '2025'
+                          };
+                          const updated = [...(content.projectsList || []), newCert];
+                          setContent(prev => ({ ...prev, projectsList: updated }));
+                          showToast('+ Sertifikat baru ditambahkan!');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600/30 border border-emerald-500/40 text-emerald-200 font-mono text-xs hover:bg-emerald-600/50 transition-all flex items-center gap-1.5"
+                      >
+                        <span>+ Tambah Sertifikat</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-5">
+                    {(content.projectsList || []).map((proj, pIdx) => {
+                      const isCert = proj.type === 'certificate';
+                      return (
+                        <div key={proj.id || pIdx} className={`glass-pill p-5 rounded-2xl flex flex-col gap-4 border ${
+                          isCert ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-cyan-500/30 bg-cyan-950/10'
+                        }`}>
+                          {/* Card Header: Item Number, Type Selector, Title, and Delete */}
+                          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs text-muted w-6">#{pIdx + 1}</span>
+                              <select
+                                value={proj.type || 'project'}
+                                onChange={(e) => {
+                                  const copy = [...content.projectsList];
+                                  copy[pIdx].type = e.target.value;
+                                  setContent(prev => ({ ...prev, projectsList: copy }));
+                                }}
+                                className="glass-input px-2.5 py-1 rounded-lg font-mono text-xs font-semibold text-white bg-black/60 border border-white/20"
+                              >
+                                <option value="project" className="bg-slate-900 text-cyan-300">📁 PROYEK (Project)</option>
+                                <option value="certificate" className="bg-slate-900 text-emerald-300">📜 SERTIFIKAT (Certificate)</option>
+                              </select>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold tracking-wider ${
+                                isCert ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                              }`}>
+                                {isCert ? 'SERTIFIKAT' : 'PROYEK'}
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                if (confirm(`Hapus "${proj.title}"?`)) {
+                                  const copy = content.projectsList.filter((_, i) => i !== pIdx);
+                                  setContent(prev => ({ ...prev, projectsList: copy }));
+                                  showToast('Item berhasil dihapus');
+                                }
+                              }}
+                              className="text-rose-400 hover:text-rose-300 font-mono text-xs px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 transition-colors"
+                            >
+                              Hapus ✕
+                            </button>
+                          </div>
+
+                          {/* Image Upload & Direct Link Section */}
+                          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-3.5 rounded-xl bg-black/40 border border-white/[0.08]">
+                            {/* Image Preview & Upload */}
+                            <div className="md:col-span-5 flex flex-col gap-2">
+                              <label className="font-mono text-[10px] text-muted uppercase flex items-center justify-between">
+                                <span>Gambar / Scan {isCert ? 'Sertifikat' : 'Proyek'}</span>
+                                {proj.imageUrl && (
+                                  <button
+                                    onClick={() => {
+                                      const copy = [...content.projectsList];
+                                      copy[pIdx].imageUrl = '';
+                                      setContent(prev => ({ ...prev, projectsList: copy }));
+                                      showToast('Gambar dihapus');
+                                    }}
+                                    className="text-rose-400 hover:underline text-[10px]"
+                                  >
+                                    Hapus Gambar
+                                  </button>
+                                )}
+                              </label>
+
+                              {proj.imageUrl ? (
+                                <div className="relative group rounded-xl overflow-hidden border border-white/20 h-32 bg-black/50">
+                                  <img
+                                    src={proj.imageUrl}
+                                    alt={proj.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                    <label className="cursor-pointer px-3 py-1 rounded-lg bg-white/20 text-white font-mono text-xs hover:bg-white/30 backdrop-blur-sm">
+                                      Ganti Gambar
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={(e) => handleProjectItemImageUpload(e.target.files[0], pIdx)}
+                                      />
+                                    </label>
+                                  </div>
+                                </div>
+                              ) : (
+                                <label className="h-32 border-2 border-dashed border-white/20 hover:border-cyan-400/60 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors bg-white/[0.02] hover:bg-white/[0.04]">
+                                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-white/40 mb-1">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21 15 16 10 5 21"/>
+                                  </svg>
+                                  <span className="font-mono text-xs text-white/80">Upload File Gambar</span>
+                                  <span className="font-mono text-[9px] text-muted">PNG, JPG, WebP max 5MB</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => handleProjectItemImageUpload(e.target.files[0], pIdx)}
+                                  />
+                                </label>
+                              )}
+
+                              {/* Or paste direct Image URL */}
+                              <input
+                                type="text"
+                                value={proj.imageUrl || ''}
+                                placeholder="Atau paste Image URL langsung..."
+                                onChange={(e) => {
+                                  const copy = [...content.projectsList];
+                                  copy[pIdx].imageUrl = e.target.value;
+                                  setContent(prev => ({ ...prev, projectsList: copy }));
+                                }}
+                                className="glass-input w-full px-2.5 py-1 rounded-lg text-xs font-mono"
+                              />
+                            </div>
+
+                            {/* Direct Link & Destination */}
+                            <div className="md:col-span-7 flex flex-col justify-between gap-3">
+                              <div>
+                                <label className="font-mono text-[10px] text-cyan-300 uppercase block mb-1">
+                                  🔗 Direct Link URL (Tujuan Klik)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={proj.linkUrl || ''}
+                                  placeholder="https://credential.net/verify/... atau https://github.com/..."
+                                  onChange={(e) => {
+                                    const copy = [...content.projectsList];
+                                    copy[pIdx].linkUrl = e.target.value;
+                                    setContent(prev => ({ ...prev, projectsList: copy }));
+                                  }}
+                                  className="glass-input w-full px-3 py-2 rounded-lg text-xs font-mono text-cyan-200 border-cyan-500/40"
+                                />
+                                <div className="flex items-center justify-between mt-1.5">
+                                  <span className="font-mono text-[10px] text-muted">
+                                    Link ini akan dibuka saat kartu atau tombol diklik di web.
+                                  </span>
+                                  {proj.linkUrl && (
+                                    <a
+                                      href={proj.linkUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="font-mono text-[10px] text-cyan-400 hover:text-cyan-200 flex items-center gap-1"
+                                    >
+                                      <span>Test Buka Link</span>
+                                      <span>↗</span>
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="font-mono text-[10px] text-muted block mb-1">Penerbit / Organisasi (Issuer)</label>
+                                  <input
+                                    type="text"
+                                    value={proj.issuer || ''}
+                                    placeholder="e.g. BINUS, Meta, Laravel"
+                                    onChange={(e) => {
+                                      const copy = [...content.projectsList];
+                                      copy[pIdx].issuer = e.target.value;
+                                      setContent(prev => ({ ...prev, projectsList: copy }));
+                                    }}
+                                    className="glass-input w-full px-2.5 py-1.5 rounded-lg text-xs"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="font-mono text-[10px] text-muted block mb-1">Tahun / Periode</label>
+                                  <input
+                                    type="text"
+                                    value={proj.date || ''}
+                                    placeholder="e.g. 2024, 2025"
+                                    onChange={(e) => {
+                                      const copy = [...content.projectsList];
+                                      copy[pIdx].date = e.target.value;
+                                      setContent(prev => ({ ...prev, projectsList: copy }));
+                                    }}
+                                    className="glass-input w-full px-2.5 py-1.5 rounded-lg text-xs"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Title and Badge fields */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="md:col-span-2">
+                              <label className="font-mono text-[10px] text-muted block mb-1">Judul / Nama Lengkap</label>
+                              <input
+                                type="text"
+                                value={proj.title || ''}
+                                placeholder="Judul Proyek atau Nama Sertifikasi"
+                                onChange={(e) => {
+                                  const copy = [...content.projectsList];
+                                  copy[pIdx].title = e.target.value;
+                                  setContent(prev => ({ ...prev, projectsList: copy }));
+                                }}
+                                className="glass-input w-full px-3 py-1.5 rounded-lg font-semibold text-sm text-white"
+                              />
+                            </div>
+                            <div>
+                              <label className="font-mono text-[10px] text-muted block mb-1">Badge Text</label>
+                              <input
+                                type="text"
+                                value={proj.badge || ''}
+                                placeholder="OFFICIAL CERTIFICATE / CLIENT UMKM"
+                                onChange={(e) => {
+                                  const copy = [...content.projectsList];
+                                  copy[pIdx].badge = e.target.value;
+                                  setContent(prev => ({ ...prev, projectsList: copy }));
+                                }}
+                                className="glass-input w-full px-3 py-1.5 rounded-lg text-xs font-mono uppercase"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Category and Tags */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                              <label className="font-mono text-[10px] text-muted block mb-1">Kategori</label>
+                              <input
+                                type="text"
+                                value={proj.category || ''}
+                                placeholder="e.g. Backend Architecture, AI"
+                                onChange={(e) => {
+                                  const copy = [...content.projectsList];
+                                  copy[pIdx].category = e.target.value;
+                                  setContent(prev => ({ ...prev, projectsList: copy }));
+                                }}
+                                className="glass-input w-full px-2.5 py-1.5 rounded-lg text-xs"
+                              />
+                            </div>
+                            <div className="md:col-span-2">
+                              <label className="font-mono text-[10px] text-muted block mb-1">Tech Tags (pisahkan koma)</label>
+                              <input
+                                type="text"
+                                value={proj.tags || ''}
+                                placeholder="Laravel 11, PHP 8.3, TDD"
+                                onChange={(e) => {
+                                  const copy = [...content.projectsList];
+                                  copy[pIdx].tags = e.target.value;
+                                  setContent(prev => ({ ...prev, projectsList: copy }));
+                                }}
+                                className="glass-input w-full px-2.5 py-1.5 rounded-lg text-xs"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Description */}
+                          <div>
+                            <label className="font-mono text-[10px] text-muted block mb-1">Deskripsi Detail</label>
+                            <textarea
+                              rows="2"
+                              value={proj.description || ''}
+                              placeholder="Deskripsi mengenai proyek atau pencapaian sertifikat..."
+                              onChange={(e) => {
+                                const copy = [...content.projectsList];
+                                copy[pIdx].description = e.target.value;
+                                setContent(prev => ({ ...prev, projectsList: copy }));
+                              }}
+                              className="glass-input w-full px-3 py-1.5 rounded-lg text-xs"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: ATS CV GENERATOR */}
+            {activeTab === 'cv' && (
+              <div className="glass-card rounded-2xl p-6 max-w-3xl mx-auto flex flex-col gap-6">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div>
+                    <h2 className="font-geist text-lg font-semibold text-white">
+                      ATS CV & PDF Generator Configuration
+                    </h2>
+                    <p className="font-geist text-xs text-muted">
+                      Exact A4 Portrait (210 × 297 mm) architecture template. Supports photo display and instant browser print/download.
+                    </p>
+                  </div>
+                  <a
+                    href="/api/cv/download?format=html"
+                    target="_blank"
+                    className="px-4 py-2 rounded-xl bg-cyan-500 text-space-black font-geist text-xs font-bold hover:bg-cyan-400 transition-all shadow-md flex items-center gap-1.5"
+                  >
+                    Preview & Print A4 CV ↗
+                  </a>
+                </div>
+
+                {/* Profile Photo Display Toggle on CV */}
+                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-cyan-400/50 bg-black/40 flex items-center justify-center shrink-0">
+                      {content.cvData?.avatarUrl || content.lanyard?.avatarUrl ? (
+                        <img
+                          src={content.cvData?.avatarUrl || content.lanyard?.avatarUrl}
+                          alt="CV Photo"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="font-mono text-xs text-muted">No Photo</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="font-geist text-sm text-white font-medium block">Display Profile Photo on CV Document</span>
+                      <span className="font-mono text-[11px] text-muted">Show official portrait avatar at the top header of the A4 CV sheet</span>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={content.cvData?.showPhoto !== false}
+                      onChange={(e) => updateField('cvData', 'showPhoto', e.target.checked)}
+                      className="w-4 h-4 accent-cyan-400 rounded"
+                    />
+                    <span className="font-mono text-xs text-cyan-300">Show Photo</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Full Legal Name (for CV)</label>
+                    <input
+                      type="text"
+                      value={content.cvData.fullName}
+                      onChange={(e) => updateField('cvData', 'fullName', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-bold text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Professional Job Title</label>
+                    <input
+                      type="text"
+                      value={content.cvData.jobTitle}
+                      onChange={(e) => updateField('cvData', 'jobTitle', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={content.cvData.email}
+                      onChange={(e) => updateField('cvData', 'email', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Location / Address</label>
+                    <input
+                      type="text"
+                      value={content.cvData.location}
+                      onChange={(e) => updateField('cvData', 'location', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">LinkedIn Profile</label>
+                    <input
+                      type="text"
+                      value={content.cvData.linkedin}
+                      onChange={(e) => updateField('cvData', 'linkedin', e.target.value)}
+                      className="glass-input w-full px-3 py-2 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">Professional Summary</label>
+                  <textarea
+                    rows="3"
+                    value={content.cvData.summary}
+                    onChange={(e) => updateField('cvData', 'summary', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg text-sm leading-relaxed"
+                  />
+                </div>
+
+                {/* Experience list */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="font-mono text-xs text-muted uppercase">Experience Items</label>
+                    <button
+                      onClick={() => {
+                        const copy = [
+                          ...content.cvData.experiences,
+                          { title: 'New Role', company: 'Company Name', year: '2024', description: 'Role duties...' },
+                        ];
+                        updateField('cvData', 'experiences', copy);
+                      }}
+                      className="font-mono text-xs text-cyan-400 hover:text-cyan-300"
+                    >
+                      + Add Experience
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    {content.cvData.experiences.map((exp, idx) => (
+                      <div key={idx} className="glass-pill p-4 rounded-xl flex flex-col gap-2 relative">
+                        <button
+                          onClick={() => {
+                            const copy = content.cvData.experiences.filter((_, i) => i !== idx);
+                            updateField('cvData', 'experiences', copy);
+                          }}
+                          className="absolute top-3 right-3 text-rose-400 text-sm font-bold"
+                          title="Remove item"
+                        >
+                          ×
+                        </button>
+                        <div className="grid grid-cols-3 gap-2 pr-6">
+                          <input
+                            type="text"
+                            placeholder="Title / Role"
+                            value={exp.title}
+                            onChange={(e) => {
+                              const copy = [...content.cvData.experiences];
+                              copy[idx].title = e.target.value;
+                              updateField('cvData', 'experiences', copy);
+                            }}
+                            className="glass-input px-3 py-1.5 rounded-lg text-xs font-bold"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Company / Institution"
+                            value={exp.company}
+                            onChange={(e) => {
+                              const copy = [...content.cvData.experiences];
+                              copy[idx].company = e.target.value;
+                              updateField('cvData', 'experiences', copy);
+                            }}
+                            className="glass-input px-3 py-1.5 rounded-lg text-xs"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Year (e.g., 2022 — 2024)"
+                            value={exp.year}
+                            onChange={(e) => {
+                              const copy = [...content.cvData.experiences];
+                              copy[idx].year = e.target.value;
+                              updateField('cvData', 'experiences', copy);
+                            }}
+                            className="glass-input px-3 py-1.5 rounded-lg text-xs font-mono"
+                          />
+                        </div>
+                        <textarea
+                          rows="2"
+                          placeholder="Description of accomplishments..."
+                          value={exp.description}
+                          onChange={(e) => {
+                            const copy = [...content.cvData.experiences];
+                            copy[idx].description = e.target.value;
+                            updateField('cvData', 'experiences', copy);
+                          }}
+                          className="glass-input w-full px-3 py-1.5 rounded-lg text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">Technical Skills String</label>
+                  <input
+                    type="text"
+                    value={content.cvData.technicalSkills}
+                    onChange={(e) => updateField('cvData', 'technicalSkills', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg text-xs font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* TAB 6: GITHUB API ENGINE */}
+            {activeTab === 'github' && (
+              <div className="glass-card rounded-2xl p-6 max-w-2xl mx-auto flex flex-col gap-5">
+                <div className="border-b border-white/10 pb-3">
+                  <h2 className="font-geist text-lg font-semibold text-white">
+                    GitHub Telemetry & API Integration
+                  </h2>
+                  <p className="font-geist text-xs text-muted">
+                    Synchronize real-time repositories, stars, forks, and language analytics directly from GitHub API.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">GitHub Username</label>
+                  <input
+                    type="text"
+                    value={content.general.githubUsername}
+                    onChange={(e) => updateField('general', 'githubUsername', e.target.value)}
+                    className="glass-input w-full px-4 py-2.5 rounded-xl font-mono text-sm"
+                    placeholder="Theology26"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">
+                    GitHub Personal Access Token (PAT)
+                  </label>
+                  <input
+                    type="password"
+                    value={content.general.githubToken}
+                    onChange={(e) => updateField('general', 'githubToken', e.target.value)}
+                    className="glass-input w-full px-4 py-2.5 rounded-xl font-mono text-sm"
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx (Optional for public, increases rate limit)"
+                  />
+                  <span className="font-mono text-[11px] text-muted/80 mt-1.5 block">
+                    Token is securely stored locally in your SQLite database. Grants access to private/public repo statistics.
+                  </span>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={handleSyncGithub}
+                    disabled={githubSyncing}
+                    className="w-full py-3 rounded-xl bg-cyan-500 text-space-black font-geist text-sm font-bold hover:bg-cyan-400 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                  >
+                    {githubSyncing ? (
+                      <>
+                        <span className="animate-spin">⟳</span> Connecting to GitHub API...
+                      </>
+                    ) : (
+                      <>
+                        <span>⚡</span> Synchronize Repositories Now
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 7: SPACE 3D SETTINGS */}
+            {activeTab === 'space' && (
+              <div className="glass-card rounded-2xl p-6 max-w-2xl mx-auto flex flex-col gap-5">
+                <div className="border-b border-white/10 pb-3">
+                  <h2 className="font-geist text-lg font-semibold text-white">
+                    WebGL Deep Space Simulation Parameters
+                  </h2>
+                  <p className="font-geist text-xs text-muted">
+                    Tune star density, nebula clouds drift, and satellite orbital dynamics.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Total Stars Count</label>
+                    <input
+                      type="number"
+                      value={content.spaceConfig.starsCount}
+                      onChange={(e) => updateField('spaceConfig', 'starsCount', parseInt(e.target.value) || 3200)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-mono text-xs text-muted block mb-1">Nebula Clouds Count</label>
+                    <input
+                      type="number"
+                      value={content.spaceConfig.nebulaCount}
+                      onChange={(e) => updateField('spaceConfig', 'nebulaCount', parseInt(e.target.value) || 75)}
+                      className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">
+                    Satellite Orbit Speed Multiplier ({content.spaceConfig.orbitSpeedMultiplier}x)
+                  </label>
+                  <input
+                    type="range"
+                    min="0.2"
+                    max="3.0"
+                    step="0.1"
+                    value={content.spaceConfig.orbitSpeedMultiplier}
+                    onChange={(e) => updateField('spaceConfig', 'orbitSpeedMultiplier', parseFloat(e.target.value) || 1.0)}
+                    className="w-full accent-cyan-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">
+                    Atmospheric Scattering Glow Intensity ({content.spaceConfig.atmosphereIntensity}x)
+                  </label>
+                  <input
+                    type="range"
+                    min="0.3"
+                    max="2.5"
+                    step="0.1"
+                    value={content.spaceConfig.atmosphereIntensity}
+                    onChange={(e) => updateField('spaceConfig', 'atmosphereIntensity', parseFloat(e.target.value) || 1.0)}
+                    className="w-full accent-cyan-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-mono text-xs text-muted block mb-1">Master Security Passcode</label>
+                  <input
+                    type="text"
+                    value={content.general.adminPasscode}
+                    onChange={(e) => updateField('general', 'adminPasscode', e.target.value)}
+                    className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs text-emerald-400 font-bold"
+                  />
+                  <span className="font-mono text-[10px] text-muted mt-1 block">
+                    Key required to log into this Admin Console.
+                  </span>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      );
+    };
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<AdminApp />);
+  </script>
+</body>
+</html>

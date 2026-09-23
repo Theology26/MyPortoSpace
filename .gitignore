@@ -1,0 +1,31 @@
+# Custom AI Agent & IDE Configuration (Do NOT track)
+.agents/
+.agents
+.clinerules
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Local SQLite Database & Cache
+database.sqlite
+database.sqlite-journal
+*.sqlite
+*.sqlite3
+
+# Vercel & Build Artifacts
+.vercel/
+dist/
+build/
+
+# Operating System & Logs
+.DS_Store
+Thumbs.db
+*.log
