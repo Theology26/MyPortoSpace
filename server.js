@@ -793,12 +793,12 @@ app.get('/api/cv/download', async (req, res) => {
 });
 
 // Serve admin dashboard
-app.get('/admin', (req, res) => {
+app.get(['/admin', '/admin.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // Serve main portfolio
-app.get('/', (req, res) => {
+app.get(['/', '/index.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 

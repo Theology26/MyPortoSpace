@@ -19,6 +19,7 @@ database.sqlite
 database.sqlite-journal
 *.sqlite
 *.sqlite3
+portfolio_store.json
 
 # Vercel & Build Artifacts
 .vercel/

@@ -1819,6 +1819,163 @@
       </div>
     );
 
+    const DEFAULT_PROJECTS = [
+      {
+        id: 'mbg-smart-logistics-fulldev',
+        type: 'project',
+        title: 'MBG Smart Logistics FullDev',
+        category: 'Go Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Go, Backend, Microservices, 2 ★',
+        description: 'Arsitektur logistik cerdas terdistribusi performa tinggi dibangun dengan bahasa pemrograman Go.',
+        linkUrl: 'https://github.com/Theology26/MBG-Smart-Logistics-FullDev',
+        badge: '★ 2 STARS',
+        featured: true,
+        stats: '2 Stars • 0 Forks',
+        date: '2025'
+      },
+      {
+        id: 'logieat-os',
+        type: 'project',
+        title: 'Logieat OS & OCR Vision',
+        category: 'Python Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Python, EasyOCR, YOLO, Computer Vision',
+        description: 'Sistem komputasi visi & otomasi pengenalan teks Korea berbasis machine learning dan pipeline deep learning.',
+        linkUrl: 'https://github.com/Theology26/Logieat-OS',
+        badge: 'AI / OCR ENGINE',
+        featured: true,
+        stats: 'Python • Computer Vision',
+        date: '2025'
+      },
+      {
+        id: 'webportofoliotheo',
+        type: 'project',
+        title: 'Web Portofolio Theo (Blade / Laravel)',
+        category: 'Blade Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Blade, Laravel 11, Tailwind CSS, 1 ★',
+        description: 'Portofolio interaktif full-stack dengan ekosistem Laravel 11, blade templating engine, dan dynamic components.',
+        linkUrl: 'https://github.com/Theology26/webportofoliotheo',
+        badge: '★ 1 STAR',
+        featured: true,
+        stats: '1 Star • Laravel 11',
+        date: '2025'
+      },
+      {
+        id: 'webportofolioexpotheo',
+        type: 'project',
+        title: 'Web Portofolio Expo Mobile',
+        category: 'TypeScript Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'TypeScript, React Native, Expo, 1 ★',
+        description: 'Aplikasi portofolio mobile cross-platform responsif dan native didukung React Native dan Expo ecosystem.',
+        linkUrl: 'https://github.com/Theology26/webportofolioexpotheo',
+        badge: '★ 1 STAR',
+        featured: true,
+        stats: '1 Star • React Native Expo',
+        date: '2025'
+      },
+      {
+        id: 'mbg-smart-logistics',
+        type: 'project',
+        title: 'MBG Smart Logistics Engine',
+        category: 'Go Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Go, REST API, Logistics, 1 ★',
+        description: 'Core microservice engine untuk optimalisasi rute dan sinkronisasi status pengiriman logistik secara real-time.',
+        linkUrl: 'https://github.com/Theology26/mbg-smart-logistics',
+        badge: '★ 1 STAR',
+        featured: true,
+        stats: '1 Star • Go Microservices',
+        date: '2025'
+      },
+      {
+        id: 'sparkling-clean-studio',
+        type: 'project',
+        title: 'Sparkling Clean Studio',
+        category: 'TypeScript Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'TypeScript, Next.js, Modern UI, 1 ★',
+        description: 'Platform web manajemen booking dan operasional layanan kebersihan untuk segmen komersial dan residensial.',
+        linkUrl: 'https://github.com/Theology26/sparkling-clean-studio',
+        badge: '★ 1 STAR',
+        featured: false,
+        stats: '1 Star • Commercial UMKM',
+        date: '2025'
+      },
+      {
+        id: 'nutrisafe-food-delivery',
+        type: 'project',
+        title: 'NutriSafe Food Delivery Agent',
+        category: 'Vue Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Vue, JavaScript, State Management, Agent',
+        description: 'Sistem pemesanan dan pengantaran makanan dengan integrasi rekomendasi nutrisi cerdas bagi pengguna.',
+        linkUrl: 'https://github.com/Theology26/NutriSafeFoodDeliveryAgent',
+        badge: 'VUE CLIENT',
+        featured: false,
+        stats: 'Vue • Intelligent Agent',
+        date: '2025'
+      },
+      {
+        id: 'portofolio-sparklingcleaners',
+        type: 'project',
+        title: 'Website Sparkling Cleaners Malang',
+        category: 'JavaScript Application',
+        issuer: 'Client Project Malang',
+        tags: 'JavaScript, HTML5, CSS3, Responsive UI',
+        description: 'Website promosi dan pemesanan layanan kebersihan untuk UMKM Kota Malang dengan alur pemesanan mudah dan efisien.',
+        linkUrl: 'https://github.com/Theology26/portofolio-sparklingcleaners',
+        badge: 'CLIENT UMKM',
+        featured: false,
+        stats: 'Malang UMKM Client',
+        date: '2025'
+      },
+      {
+        id: 'cert-laravel-11',
+        type: 'certificate',
+        title: 'Sertifikasi Laravel 11 Advanced Architecture & TDD',
+        category: 'Backend Architecture',
+        issuer: 'Laravel / PHP Specialist',
+        tags: 'Laravel 11, Eloquent ORM, REST API, PHP 8.3, TDD',
+        description: 'Penguasaan arsitektur backend enterprise Laravel 11, optimasi database query Eloquent, unit testing, dan integrasi reporting engine.',
+        linkUrl: 'https://github.com/Theology26',
+        badge: 'OFFICIAL CERTIFICATE',
+        featured: true,
+        stats: 'Score: 96%',
+        date: '2024'
+      },
+      {
+        id: 'cert-meta-frontend',
+        type: 'certificate',
+        title: 'Meta Front-End Developer Professional Certificate',
+        category: 'Frontend Engineering',
+        issuer: 'Meta (Coursera)',
+        tags: 'React, JavaScript ES6+, UI/UX Systems, Responsive Design',
+        description: 'Spesialisasi rekayasa antarmuka web modern, arsitektur komponen React, state management, dan optimasi performa web responsif.',
+        linkUrl: 'https://github.com/Theology26',
+        badge: 'PROFESSIONAL CERTIFICATE',
+        featured: false,
+        stats: 'Verified Credential',
+        date: '2024'
+      },
+      {
+        id: 'cert-binus-cs',
+        type: 'certificate',
+        title: 'Bachelor of Computer Science Degree',
+        category: 'Academic Foundation',
+        issuer: 'BINUS University',
+        tags: 'Computer Science, Software Architecture, GPA 3.5+',
+        description: 'Fondasi akademik ilmu komputer dengan fokus rekayasa perangkat lunak, sistem cerdas, dan arsitektur komputasi awan skala besar.',
+        linkUrl: 'https://github.com/Theology26',
+        badge: 'ACADEMIC DEGREE',
+        featured: true,
+        stats: 'BINUS University',
+        date: '2024'
+      }
+    ];
+
     // ═══════════════════════════════════════════
     // PROJECTS & REPOSITORY MATRIX (Matches Expo App & User Screenshots)
     // ═══════════════════════════════════════════
@@ -1892,7 +2049,7 @@
         Mermaid: '#ff3670'
       };
 
-      const allProjects = Array.isArray(projectsList) && projectsList.length > 0 ? projectsList : [];
+      const allProjects = Array.isArray(projectsList) && projectsList.length > 0 ? projectsList : DEFAULT_PROJECTS;
 
       const ownRepos = allProjects.filter(item => item.type !== 'certificate');
       const certificates = allProjects.filter(item => item.type === 'certificate');
@@ -2400,16 +2557,16 @@
         },
         {
           year: '2025',
-          title: 'Director Iklan Sekolah',
-          company: 'School Campaign Project',
-          desc: 'Memimpin produksi visual kampanye sekolah hingga sukses menaikkan rasio pendaftaran.',
-          tags: ['Creative Direction', 'Visual Campaign', 'Enrollment Growth'],
+          title: 'Director Iklan',
+          company: 'Commercial Project',
+          desc: 'Memimpin produksi visual dan penyutradaraan kampanye iklan komersial dari pra-produksi hingga rilis final.',
+          tags: ['Creative Direction', 'Commercial Ads', 'Visual Campaign'],
         },
         {
           year: '2024 — Sekarang',
-          title: 'Virtual Jockey (VJ) GKJW Sukun',
-          company: 'GKJW Sukun',
-          desc: 'Mengendalikan tata visual dan projection mapping secara live untuk berbagai event.',
+          title: 'Virtual Jockey (VJ)',
+          company: 'Live Staging',
+          desc: 'Mengendalikan tata visual dan projection mapping secara live untuk berbagai event dan pertunjukan.',
           tags: ['Virtual Jockey', 'Projection Mapping', 'Resolume Arena', 'Live Staging'],
         },
         {
@@ -2470,13 +2627,13 @@
       const items = galleryData && galleryData.length > 0 ? galleryData : [
         {
           title: 'Visual Projection Mapping & VJ Live Performance',
-          subtitle: 'GKJW Sukun Event Visual Stage Control — Pengendalian live visual tata panggung dan projection mapping.',
+          subtitle: 'Event Visual Stage Control — Pengendalian live visual tata panggung dan projection mapping secara interaktif.',
           tags: 'VJing, Resolume, Projection Mapping',
           icon: 'VJ'
         },
         {
           title: 'Video Editing & Visual Storytelling Post-Production',
-          subtitle: 'Spesialis pasca-produksi untuk meracik raw footage menjadi narasi visual premium dan kampanye iklan sekolah.',
+          subtitle: 'Spesialis pasca-produksi untuk meracik raw footage menjadi narasi visual premium dan kampanye iklan komersial.',
           tags: 'Premiere Pro, After Effects, DaVinci',
           icon: 'EDIT'
         },
@@ -2581,7 +2738,7 @@
       const inputClass = "w-full px-4 py-3 rounded-2xl bg-black/40 border border-white/[0.12] font-geist text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-cyan-400 focus:bg-black/60 transition-all";
 
       const email = cvData?.email || 'yosiagracetheo0@gmail.com';
-      const address = generalData?.address || cvData?.location || 'Jl.S.Supriadi VII No 3, Malang';
+      const address = generalData?.address || cvData?.location || 'Malang, East Java, Indonesia';
       const instagram = generalData?.instagramUrl || 'https://instagram.com/theoxcyro';
       const github = generalData?.githubUrl || 'https://github.com/Theology26';
 
