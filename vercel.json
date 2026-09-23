@@ -1,21 +1,14 @@
 {
   "version": 2,
-  "routes": [
+  "cleanUrls": true,
+  "rewrites": [
     {
-      "src": "/Assets/(.*)",
-      "dest": "/Assets/$1"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/admin",
-      "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
+      "source": "/admin",
+      "destination": "/admin.html"
     }
   ]
 }

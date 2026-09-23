@@ -22,6 +22,32 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Serve static assets
 app.use('/Assets', express.static(path.join(__dirname, 'Assets')));
 
+let dbReady = false;
+let dbInitPromise = null;
+async function ensureDb() {
+  if (dbReady) return;
+  if (!dbInitPromise) {
+    dbInitPromise = initDb().then(() => {
+      dbReady = true;
+      syncGithubReposToProjects().catch(err => console.log('[GitHub Auto-Sync Notice]', err.message));
+    }).catch(err => {
+      console.warn('Database initialization warning:', err.message);
+      dbReady = true;
+    });
+  }
+  return dbInitPromise;
+}
+
+// Middleware to ensure DB is initialized on all requests
+app.use(async (req, res, next) => {
+  try {
+    await ensureDb();
+    next();
+  } catch (err) {
+    next();
+  }
+});
+
 // 1. Get complete portfolio dynamic content
 app.get('/api/content', async (req, res) => {
   try {
@@ -776,33 +802,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-let dbReady = false;
-let dbInitPromise = null;
-async function ensureDb() {
-  if (dbReady) return;
-  if (!dbInitPromise) {
-    dbInitPromise = initDb().then(() => {
-      dbReady = true;
-      syncGithubReposToProjects().catch(err => console.log('[GitHub Auto-Sync Notice]', err.message));
-    }).catch(err => {
-      console.warn('Database initialization warning:', err.message);
-      dbReady = true;
-    });
-  }
-  return dbInitPromise;
-}
 
-// Middleware to ensure DB is initialized on serverless requests
-app.use(async (req, res, next) => {
-  try {
-    await ensureDb();
-    next();
-  } catch (err) {
-    next();
-  }
-});
-
-// Start server
+// Start server locally
 async function startServer() {
   try {
     await ensureDb();
@@ -820,7 +821,7 @@ async function startServer() {
   }
 }
 
-if (!process.env.VERCEL) {
+if (require.main === module && !process.env.VERCEL) {
   startServer();
 }
 

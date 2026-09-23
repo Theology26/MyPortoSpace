@@ -1,26 +1,24 @@
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+
+// Attempt to load native sqlite3 with graceful fallback for serverless / Vercel
+let sqlite3 = null;
+try {
+  sqlite3 = require('sqlite3').verbose();
+} catch (err) {
+  console.warn('[DB Engine] Native sqlite3 unavailable in serverless environment; using Zero-Config JSON/In-Memory store.');
+}
 
 const isVercel = Boolean(process.env.VERCEL);
 const DB_PATH = isVercel
   ? path.join('/tmp', 'database.sqlite')
   : path.join(__dirname, 'database.sqlite');
 
-if (isVercel) {
-  const localDb = path.join(__dirname, 'database.sqlite');
-  if (fs.existsSync(localDb) && !fs.existsSync(DB_PATH)) {
-    try {
-      fs.copyFileSync(localDb, DB_PATH);
-    } catch (e) {
-      console.warn('Could not copy seed database to /tmp:', e.message);
-    }
-  }
-}
+const JSON_STORE_PATH = isVercel
+  ? path.join('/tmp', 'portfolio_store.json')
+  : path.join(__dirname, 'portfolio_store.json');
 
-const db = new sqlite3.Database(DB_PATH);
-
-// Initial default content matching Theo's authentic portfolio and PDF CV
+// Initial default content matching Theo's authentic portfolio, PDF CV, and GitHub telemetry
 const DEFAULT_CONTENT = {
   general: {
     siteTitle: 'Yosia Gracetheo Boimau — Fullstack Developer, Video Editor & VJ',
@@ -154,47 +152,32 @@ const DEFAULT_CONTENT = {
       imageUrl: '',
       badge: 'ENTERPRISE SYSTEM',
       featured: true,
-      stats: 'Laravel + AI Vision',
-      date: '2025'
+      stats: 'Laravel 11 + OCR',
+      date: '2024'
     },
     {
       id: 'cert-binus-cs',
       type: 'certificate',
       title: 'Bachelor of Computer Science Degree',
-      category: 'Academic Credential',
+      category: 'Academic Foundation',
       issuer: 'BINUS University',
-      tags: 'Software Engineering, Database, Web Architecture, Algorithms',
-      description: 'Gelar sarjana ilmu komputer dengan fokus pada software engineering, arsitektur sistem enterprise, database relasional, dan kecerdasan buatan.',
+      tags: 'Computer Science, Software Architecture, GPA 3.5+',
+      description: 'Fondasi akademik ilmu komputer dengan fokus rekayasa perangkat lunak, sistem cerdas, dan arsitektur komputasi awan skala besar.',
       linkUrl: 'https://github.com/Theology26',
       imageUrl: '',
       badge: 'ACADEMIC DEGREE',
       featured: true,
-      stats: 'GPA 3.5+',
-      date: '2021 — 2025'
-    },
-    {
-      id: 'web-portofolio',
-      type: 'project',
-      title: 'Web Portofolio Theo (3D Space Edition)',
-      category: 'Full-Stack & 3D WebGL',
-      issuer: 'Theology26 Core',
-      tags: 'Laravel 11, React 18, Three.js, MySQL, DomPDF Engine',
-      description: 'Full-stack portfolio system dengan dynamic CMS backend, real-time GitHub sync engine, automated A4 PDF generation, dan 3D WebGL space atmosphere.',
-      linkUrl: 'https://github.com/Theology26/webportofoliotheo',
-      imageUrl: '',
-      badge: 'FULL-STACK CMS',
-      featured: true,
-      stats: '3D WebGL + SQLite',
-      date: '2025'
+      stats: 'BINUS University',
+      date: '2024'
     }
   ],
   projectSpotlight: {
-    label: '02 // FEATURED LOGISTICS BUILD',
-    title: 'Sistem Logistik Cerdas & Visi Komputer',
-    subtitle: 'Rantai pasok (supply chain) modern dengan backend Laravel dan algoritma pelacakan presisi.',
     badge: 'ENTERPRISE ARCHITECTURE',
+    title: 'INTEGRASI VISI KOMPUTER DAN JARINGAN SARAF TIRUAN PADA SISTEM LOGISTIK CERDAS UNTUK EFISIENSI DISTRIBUSI MAKAN BERGIZI',
     projectName: 'Integrasi Visi Komputer & Logistik Cerdas',
-    description: 'Sistem manajemen rantai pasok modern untuk efisiensi distribusi makan bergizi. Dilengkapi arsitektur backend Laravel, dasbor analitik real-time, dan minimasi kesalahan logistik.',
+    description: 'Sistem manajemen rantai pasok (supply chain) modern yang dirancang untuk melacak pergerakan armada dan inventaris secara presisi. Dibangun di atas fondasi backend Laravel dengan struktur database relasional tingkat tinggi. Sistem ini dilengkapi dengan dasbor analitik interaktif dan algoritma pelacakan real-time yang mampu mengurangi bottleneck distribusi, memberikan laporan instan, serta meminimalisir kesalahan input logistik secara otomatis.',
+    linkText: 'View Project Repo ↗',
+    linkUrl: 'https://github.com/Theology26',
     metrics: [
       { label: 'FRAMEWORK', value: 'Laravel 11' },
       { label: 'FRONTEND', value: 'Tailwind + React' },
@@ -301,7 +284,7 @@ const DEFAULT_CONTENT = {
       {
         title: 'INTEGRASI VISI KOMPUTER DAN JARINGAN SARAF TIRUAN PADA SISTEM LOGISTIK CERDAS UNTUK EFISIENSI DISTRIBUSI MAKAN BERGIZI',
         tags: 'Tailwind CSS, JavaScript, Custom CMS',
-        description: 'Sistem manajemen rantai pasok (supply chain) modern yang dirancang untuk melacak pergerakan armada dan inventaris secara presisi. Dibangun di atas fondasi backend Laravel dengan struktur database relasional tingkat tinggi. Sistem ini dilengkapi dengan dasbor analitik interaktif dan algoritma pelacakan real-time yang mampu mengurangi bottleneck distribusi, memberikan laporan instan, serta meminimalisir kesalahan input logistik secara otomatis.'
+        description: 'Sistem manajemen rantai pasok (supply chain) modern yang dirancang untuk melacak pergerakan armada dan inventaris secara presisi. Dibangun di atas fondasi backend Laravel dengan struktur database relasional tingkat tinggi.'
       }
     ],
     technicalSkills: 'Python, Rest API, Easy OCR, YOLO, IO Paint, HTML, js, CSS, Tailwind CSS, JavaScript, Custom CMS, Laravel 11, PHP 8.3, MySQL, React, Three.js, Git'
@@ -325,38 +308,84 @@ const DEFAULT_CONTENT = {
   }
 };
 
-// Initialize schema and seed data
+// ═══════════════════════════════════════════════════════
+// IN-MEMORY / JSON STORE RESILIENT ADAPTER
+// ═══════════════════════════════════════════════════════
+let memoryStore = null;
+let githubReposCache = [];
+
+function loadStore() {
+  if (memoryStore) return memoryStore;
+  try {
+    if (fs.existsSync(JSON_STORE_PATH)) {
+      const parsed = JSON.parse(fs.readFileSync(JSON_STORE_PATH, 'utf8'));
+      memoryStore = { ...DEFAULT_CONTENT, ...parsed };
+      return memoryStore;
+    }
+  } catch (err) {
+    console.warn('[DB Engine] Could not read JSON store:', err.message);
+  }
+  memoryStore = JSON.parse(JSON.stringify(DEFAULT_CONTENT));
+  return memoryStore;
+}
+
+function persistStore(updates) {
+  const current = loadStore();
+  memoryStore = { ...current, ...updates };
+  try {
+    fs.writeFileSync(JSON_STORE_PATH, JSON.stringify(memoryStore, null, 2), 'utf8');
+  } catch (err) {
+    // If filesystem is read-only, memory remains updated in RAM
+  }
+  return memoryStore;
+}
+
+// ═══════════════════════════════════════════════════════
+// SQLITE CONNECTION SETUP
+// ═══════════════════════════════════════════════════════
+let db = null;
+let useJsonFallback = !sqlite3;
+
+if (sqlite3) {
+  try {
+    if (isVercel) {
+      const localSeed = path.join(__dirname, 'database.sqlite');
+      if (fs.existsSync(localSeed) && !fs.existsSync(DB_PATH)) {
+        try { fs.copyFileSync(localSeed, DB_PATH); } catch (e) {}
+      }
+    }
+    db = new sqlite3.Database(DB_PATH, (err) => {
+      if (err) {
+        console.warn('[DB Engine] SQLite initialization failed, using Zero-Config JSON store:', err.message);
+        useJsonFallback = true;
+      }
+    });
+  } catch (err) {
+    console.warn('[DB Engine] SQLite constructor failed, using Zero-Config JSON store:', err.message);
+    useJsonFallback = true;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PUBLIC API IMPLEMENTATIONS
+// ═══════════════════════════════════════════════════════
+
 function initDb() {
-  return new Promise((resolve, reject) => {
+  if (useJsonFallback || !db) {
+    loadStore();
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
     db.serialize(() => {
-      // 1. Settings table for key-value json sections
       db.run(`
         CREATE TABLE IF NOT EXISTS settings (
           section TEXT PRIMARY KEY,
           data TEXT NOT NULL,
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
-      `, (err) => {
-        if (err) return reject(err);
-      });
-
-      // 2. Custom projects table
-      db.run(`
-        CREATE TABLE IF NOT EXISTS custom_projects (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          title TEXT NOT NULL,
-          description TEXT,
-          tags TEXT,
-          stars INTEGER DEFAULT 0,
-          forks INTEGER DEFAULT 0,
-          language TEXT,
-          repo_url TEXT,
-          live_url TEXT,
-          sort_order INTEGER DEFAULT 0
-        )
       `);
 
-      // 3. GitHub repositories cache table
       db.run(`
         CREATE TABLE IF NOT EXISTS github_repos (
           id INTEGER PRIMARY KEY,
@@ -371,19 +400,13 @@ function initDb() {
         )
       `);
 
-      // Seed initial content if empty
       db.get('SELECT COUNT(*) as count FROM settings', (err, row) => {
-        if (err) return reject(err);
-        if (row && row.count === 0) {
-          console.log('Seeding initial portfolio content into SQLite...');
-          const stmt = db.prepare('INSERT INTO settings (section, data) VALUES (?, ?)');
+        if (err || (row && row.count === 0)) {
+          const stmt = db.prepare('INSERT OR REPLACE INTO settings (section, data) VALUES (?, ?)');
           for (const [section, data] of Object.entries(DEFAULT_CONTENT)) {
             stmt.run(section, JSON.stringify(data));
           }
-          stmt.finalize((err2) => {
-            if (err2) reject(err2);
-            else resolve();
-          });
+          stmt.finalize(() => resolve());
         } else {
           resolve();
         }
@@ -392,78 +415,81 @@ function initDb() {
   });
 }
 
-// Get all site content
 function getAllContent() {
+  if (useJsonFallback || !db) {
+    return Promise.resolve(loadStore());
+  }
+
   return new Promise((resolve) => {
     db.all('SELECT section, data FROM settings', (err, rows) => {
-      if (err) {
-        console.warn('DB read fallback to default content:', err.message);
-        return resolve(DEFAULT_CONTENT);
+      if (err || !rows || rows.length === 0) {
+        return resolve(loadStore());
       }
       const content = {};
-      rows.forEach(r => {
-        try {
-          content[r.section] = JSON.parse(r.data);
-        } catch (e) {
-          content[r.section] = r.data;
-        }
+      rows.forEach((r) => {
+        try { content[r.section] = JSON.parse(r.data); } catch (e) { content[r.section] = r.data; }
       });
-      // Merge with defaults for safety
-      const merged = { ...DEFAULT_CONTENT, ...content };
-      resolve(merged);
+      resolve({ ...DEFAULT_CONTENT, ...content });
     });
   });
 }
 
-// Update a specific section
 function updateSection(section, data) {
-  return new Promise((resolve, reject) => {
+  persistStore({ [section]: data });
+
+  if (useJsonFallback || !db) {
+    return Promise.resolve({ section, success: true });
+  }
+
+  return new Promise((resolve) => {
     const jsonStr = JSON.stringify(data);
     db.run(
       `INSERT INTO settings (section, data, updated_at) 
        VALUES (?, ?, CURRENT_TIMESTAMP)
        ON CONFLICT(section) DO UPDATE SET data = excluded.data, updated_at = CURRENT_TIMESTAMP`,
       [section, jsonStr],
-      function(err) {
-        if (err) reject(err);
-        else resolve({ section, success: true });
-      }
+      () => resolve({ section, success: true })
     );
   });
 }
 
-// Update multiple sections in batch
 function updateAllContent(payload) {
-  return new Promise((resolve, reject) => {
+  persistStore(payload);
+
+  if (useJsonFallback || !db) {
+    return Promise.resolve({ success: true });
+  }
+
+  return new Promise((resolve) => {
     db.serialize(() => {
       const stmt = db.prepare(`
         INSERT INTO settings (section, data, updated_at) 
         VALUES (?, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(section) DO UPDATE SET data = excluded.data, updated_at = CURRENT_TIMESTAMP
       `);
-      
       for (const [section, data] of Object.entries(payload)) {
         stmt.run(section, JSON.stringify(data));
       }
-
-      stmt.finalize((err) => {
-        if (err) reject(err);
-        else resolve({ success: true });
-      });
+      stmt.finalize(() => resolve({ success: true }));
     });
   });
 }
 
-// Save GitHub repo cache
 function saveGithubRepos(repos) {
-  return new Promise((resolve, reject) => {
+  githubReposCache = repos || [];
+
+  if (useJsonFallback || !db) {
+    return Promise.resolve({ count: githubReposCache.length });
+  }
+
+  return new Promise((resolve) => {
     db.serialize(() => {
       db.run('DELETE FROM github_repos');
       const stmt = db.prepare(`
         INSERT INTO github_repos (id, name, full_name, description, html_url, stars, forks, language, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
-      repos.forEach(repo => {
+      (repos || []).forEach((repo) => {
         stmt.run([
           repo.id,
           repo.name,
@@ -476,19 +502,20 @@ function saveGithubRepos(repos) {
           repo.updated_at
         ]);
       });
-      stmt.finalize((err) => {
-        if (err) reject(err);
-        else resolve({ count: repos.length });
-      });
+      stmt.finalize(() => resolve({ count: (repos || []).length }));
     });
   });
 }
 
 function getGithubRepos() {
-  return new Promise((resolve, reject) => {
+  if (useJsonFallback || !db) {
+    return Promise.resolve(githubReposCache || []);
+  }
+
+  return new Promise((resolve) => {
     db.all('SELECT * FROM github_repos ORDER BY stars DESC', (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows || []);
+      if (err || !rows) return resolve(githubReposCache || []);
+      resolve(rows);
     });
   });
 }
