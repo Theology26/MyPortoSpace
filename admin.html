@@ -219,12 +219,12 @@
                 projectsList: json.projectsList
               }));
             }
-            showToast(json.message || `✓ GitHub Sync Sukses: ${json.count} repository berhasil disinkronkan ke database!`);
+            showToast(json.message || `✓ GitHub Sync Success: ${json.count} repositories synchronized to database!`);
           } else {
-            showToast(json.error || 'GitHub Sync Gagal', 'error');
+            showToast(json.error || 'GitHub Sync Failed', 'error');
           }
         } catch (err) {
-          showToast('Gagal terhubung ke API GitHub', 'error');
+          showToast('Failed to connect to GitHub API', 'error');
         } finally {
           setGithubSyncing(false);
         }
@@ -264,11 +264,11 @@
         reader.readAsDataURL(file);
       };
 
-      // Project/Certificate Image File Upload to DataURL (Base64)
+      // Project Image File Upload to DataURL (Base64)
       const handleProjectItemImageUpload = (file, index) => {
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
-          showToast('Gambar sertifikat/proyek melebihi 5MB. Pilih file lebih kecil.', 'error');
+          showToast('Project image exceeds 5MB. Please choose a smaller file.', 'error');
           return;
         }
         const reader = new FileReader();
@@ -281,7 +281,29 @@
             }
             return { ...prev, projectsList: list };
           });
-          showToast('✓ Gambar sertifikat/proyek berhasil diunggah!');
+          showToast('✓ Project image uploaded successfully!');
+        };
+        reader.readAsDataURL(file);
+      };
+
+      // Certificate Image File Upload to DataURL (Base64)
+      const handleCertItemImageUpload = (file, index) => {
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('Certificate photo exceeds 5MB. Please choose a smaller file.', 'error');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target.result;
+          setContent(prev => {
+            const list = [...(prev.certificatesList || [])];
+            if (list[index]) {
+              list[index] = { ...list[index], imageUrl: dataUrl };
+            }
+            return { ...prev, certificatesList: list };
+          });
+          showToast('✓ Certificate photo uploaded successfully!');
         };
         reader.readAsDataURL(file);
       };
@@ -313,7 +335,7 @@
                   <label className="font-mono text-xs text-muted block mb-1.5 uppercase">Master Passcode</label>
                   <input
                     type="password"
-                    placeholder="Enter passcode (default: theology26)"
+                    placeholder="Enter security passcode..."
                     value={passcode}
                     onChange={(e) => setPasscode(e.target.value)}
                     className="glass-input w-full px-4 py-3 rounded-xl font-mono text-sm"
@@ -356,10 +378,11 @@
         { id: 'hero', label: '01 // Hero & Brand' },
         { id: 'lanyard', label: '02 // Lanyard Pass' },
         { id: 'skills', label: '03 // Tech Stacks' },
-        { id: 'projects', label: '04 // Projects & Certificates' },
-        { id: 'cv', label: '05 // ATS CV Generator' },
-        { id: 'github', label: '06 // GitHub API Engine' },
-        { id: 'space', label: '07 // Space 3D Settings' },
+        { id: 'certificates', label: '04 // Certificates' },
+        { id: 'projects', label: '05 // Projects & Repos' },
+        { id: 'cv', label: '06 // ATS CV Generator' },
+        { id: 'github', label: '07 // GitHub Engine' },
+        { id: 'space', label: '08 // Space 3D Settings' },
       ];
 
       return (
@@ -854,7 +877,234 @@
               </div>
             )}
 
-            {/* TAB 4: PROJECTS */}
+            {/* TAB 4: CERTIFICATES (Instagram Feed Style) */}
+            {activeTab === 'certificates' && (
+              <div className="glass-card rounded-2xl p-6 max-w-4xl mx-auto flex flex-col gap-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                  <div>
+                    <h2 className="font-geist text-lg font-semibold text-white flex items-center gap-2">
+                      <span>Certificates & Credentials (IG Feed)</span>
+                      <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-emerald-300">
+                        {(content.certificatesList || []).length} Verified Items
+                      </span>
+                    </h2>
+                    <p className="font-geist text-xs text-muted mt-1">
+                      Displayed above Projects & Repositories in a dynamic Instagram / Pinterest Masonry grid. Each card has a direct link, title, and customizable aspect ratio.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const newCert = {
+                        id: 'cert-' + Date.now(),
+                        title: 'New Certification Title',
+                        issuer: 'Certification Authority',
+                        imageUrl: '',
+                        linkUrl: 'https://github.com/Theology26',
+                        aspectRatio: 'aspect-[4/5]',
+                        badge: 'OFFICIAL CREDENTIAL',
+                        date: new Date().getFullYear().toString()
+                      };
+                      const updated = [...(content.certificatesList || []), newCert];
+                      setContent(prev => ({ ...prev, certificatesList: updated }));
+                      showToast('+ New certificate added!');
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600/30 border border-emerald-500/40 text-emerald-200 font-mono text-xs hover:bg-emerald-600/50 transition-all flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                  >
+                    <span>+ Add Certificate</span>
+                  </button>
+                </div>
+
+                {/* Certificates List */}
+                <div className="flex flex-col gap-5">
+                  {(content.certificatesList || []).map((cert, cIdx) => (
+                    <div key={cert.id || cIdx} className="glass-pill p-5 rounded-2xl flex flex-col gap-4 border border-emerald-500/30 bg-emerald-950/10">
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-emerald-400 font-bold">#{cIdx + 1}</span>
+                          <span className="font-geist text-sm font-semibold text-white truncate max-w-xs sm:max-w-md">
+                            {cert.title || 'Untitled Certificate'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const copy = (content.certificatesList || []).filter((_, i) => i !== cIdx);
+                            setContent(prev => ({ ...prev, certificatesList: copy }));
+                            showToast('Certificate removed');
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-mono text-xs hover:bg-rose-500/40 transition-colors"
+                        >
+                          Delete ✕
+                        </button>
+                      </div>
+
+                      {/* Main Fields */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="font-mono text-[11px] text-muted block mb-1">Judul Sertifikat (Title) *</label>
+                          <input
+                            type="text"
+                            value={cert.title || ''}
+                            onChange={(e) => {
+                              const copy = [...content.certificatesList];
+                              copy[cIdx] = { ...copy[cIdx], title: e.target.value };
+                              setContent(prev => ({ ...prev, certificatesList: copy }));
+                            }}
+                            className="glass-input w-full px-3 py-2 rounded-lg text-xs text-white font-medium"
+                            placeholder="e.g. Meta Front-End Developer Certificate"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="font-mono text-[11px] text-muted block mb-1">Penerbit / Instansi (Issuer)</label>
+                          <input
+                            type="text"
+                            value={cert.issuer || ''}
+                            onChange={(e) => {
+                              const copy = [...content.certificatesList];
+                              copy[cIdx] = { ...copy[cIdx], issuer: e.target.value };
+                              setContent(prev => ({ ...prev, certificatesList: copy }));
+                            }}
+                            className="glass-input w-full px-3 py-2 rounded-lg text-xs"
+                            placeholder="e.g. Meta, Coursera, BINUS University"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="font-mono text-[11px] text-muted block mb-1">Direct Link URL (Klik Direct ke Sini) *</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={cert.linkUrl || ''}
+                              onChange={(e) => {
+                                const copy = [...content.certificatesList];
+                                copy[cIdx] = { ...copy[cIdx], linkUrl: e.target.value };
+                                setContent(prev => ({ ...prev, certificatesList: copy }));
+                              }}
+                              className="glass-input flex-1 px-3 py-2 rounded-lg text-xs text-cyan-300 font-mono"
+                              placeholder="https://..."
+                            />
+                            {cert.linkUrl && (
+                              <a
+                                href={cert.linkUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-2 rounded-lg bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/40 text-xs font-mono shrink-0 transition-colors"
+                                title="Test link"
+                              >
+                                Test ↗
+                              </a>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="font-mono text-[11px] text-muted block mb-1">Ukuran / Rasio (Feed IG Style) *</label>
+                          <select
+                            value={cert.aspectRatio || 'aspect-[4/5]'}
+                            onChange={(e) => {
+                              const copy = [...content.certificatesList];
+                              copy[cIdx] = { ...copy[cIdx], aspectRatio: e.target.value };
+                              setContent(prev => ({ ...prev, certificatesList: copy }));
+                            }}
+                            className="glass-input w-full px-3 py-2 rounded-lg text-xs text-white"
+                          >
+                            <option value="aspect-[4/5]" className="bg-space-black text-white">Portrait (4:5 - IG Post Standar)</option>
+                            <option value="aspect-square" className="bg-space-black text-white">Square (1:1 - Kotak Klasik)</option>
+                            <option value="aspect-[16/10]" className="bg-space-black text-white">Landscape (16:10 - Sertifikat Melebar)</option>
+                            <option value="aspect-[3/4]" className="bg-space-black text-white">Tall Portrait (3:4 - Vertikal Tinggi)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="font-mono text-[11px] text-muted block mb-1">Badge Status / Kategori</label>
+                          <input
+                            type="text"
+                            value={cert.badge || ''}
+                            onChange={(e) => {
+                              const copy = [...content.certificatesList];
+                              copy[cIdx] = { ...copy[cIdx], badge: e.target.value };
+                              setContent(prev => ({ ...prev, certificatesList: copy }));
+                            }}
+                            className="glass-input w-full px-3 py-2 rounded-lg text-xs"
+                            placeholder="e.g. OFFICIAL CERTIFICATE"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="font-mono text-[11px] text-muted block mb-1">Tahun / Tanggal (Year)</label>
+                          <input
+                            type="text"
+                            value={cert.date || ''}
+                            onChange={(e) => {
+                              const copy = [...content.certificatesList];
+                              copy[cIdx] = { ...copy[cIdx], date: e.target.value };
+                              setContent(prev => ({ ...prev, certificatesList: copy }));
+                            }}
+                            className="glass-input w-full px-3 py-2 rounded-lg text-xs"
+                            placeholder="2024"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Photo Upload & Preview */}
+                      <div className="pt-3 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                        <div className="w-24 h-24 rounded-xl border border-white/20 bg-black/40 overflow-hidden flex items-center justify-center shrink-0">
+                          {cert.imageUrl ? (
+                            <img src={cert.imageUrl} alt={cert.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="font-mono text-[10px] text-muted text-center px-1">No Photo</span>
+                          )}
+                        </div>
+                        <div className="flex-1 flex flex-col gap-2 w-full">
+                          <label className="font-mono text-[11px] text-muted">Foto Sertifikat (Upload atau URL)</label>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <input
+                              type="file"
+                              id={`cert-img-${cIdx}`}
+                              accept="image/*"
+                              onChange={(e) => handleCertItemImageUpload(e.target.files[0], cIdx)}
+                              className="hidden"
+                            />
+                            <label
+                              htmlFor={`cert-img-${cIdx}`}
+                              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-mono text-xs cursor-pointer transition-colors border border-white/15"
+                            >
+                              📁 Upload File Foto
+                            </label>
+                            {cert.imageUrl && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const copy = [...content.certificatesList];
+                                  copy[cIdx] = { ...copy[cIdx], imageUrl: '' };
+                                  setContent(prev => ({ ...prev, certificatesList: copy }));
+                                }}
+                                className="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-300 font-mono text-xs hover:bg-rose-500/30 transition-colors"
+                              >
+                                Hapus Foto
+                              </button>
+                            )}
+                          </div>
+                          <input
+                            type="text"
+                            value={cert.imageUrl || ''}
+                            onChange={(e) => {
+                              const copy = [...content.certificatesList];
+                              copy[cIdx] = { ...copy[cIdx], imageUrl: e.target.value };
+                              setContent(prev => ({ ...prev, certificatesList: copy }));
+                            }}
+                            className="glass-input w-full px-3 py-1.5 rounded-lg text-xs font-mono text-muted"
+                            placeholder="Atau tempel URL gambar (https://...)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: PROJECTS */}
             {activeTab === 'projects' && (
               <div className="glass-card rounded-2xl p-6 max-w-3xl mx-auto flex flex-col gap-6">
                 <h2 className="font-geist text-lg font-semibold text-white border-b border-white/10 pb-2">
@@ -970,13 +1220,13 @@
                   <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                     <div>
                       <h3 className="font-geist text-base font-semibold text-white flex items-center gap-2">
-                        <span>Projects & Certificates Collection</span>
+                        <span>Projects & Repositories Collection</span>
                         <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300">
-                          {(content.projectsList || []).length} Items
+                          {(content.projectsList || []).length} Repositories
                         </span>
                       </h3>
                       <p className="font-geist text-xs text-muted">
-                        Kelola portofolio proyek dan sertifikat resmi. Setiap item dapat memiliki gambar (upload manual/URL) dan link direct tujuan.
+                        Manage project showcases and GitHub repositories.
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -984,21 +1234,21 @@
                         onClick={handleSyncGithub}
                         disabled={githubSyncing}
                         className="px-3 py-1.5 rounded-lg bg-sky-500/20 border border-sky-400/40 text-sky-300 font-mono text-xs hover:bg-sky-500/35 transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-[0_0_12px_rgba(56,189,248,0.15)]"
-                        title="Tarik live repositories dari akun GitHub langsung ke database projects"
+                        title="Fetch live repositories from GitHub directly into database"
                       >
-                        <span>{githubSyncing ? '⟳ Syncing...' : '⚡ Tarik dari GitHub'}</span>
+                        <span>{githubSyncing ? '⟳ Syncing...' : '⚡ Pull from GitHub'}</span>
                       </button>
                       <button
                         onClick={() => {
                           const newProj = {
                             id: 'proj-' + Date.now(),
                             type: 'project',
-                            title: 'Judul Proyek Baru',
+                            title: 'New Project Title',
                             category: 'Web Development',
                             issuer: 'Client / Personal',
                             badge: 'NEW BUILD',
                             tags: 'Laravel, React, Tailwind',
-                            description: 'Deskripsi singkat mengenai sistem arsitektur, tantangan, dan solusi teknis...',
+                            description: 'Brief description of system architecture, technical challenge, and solution...',
                             linkUrl: 'https://github.com/Theology26',
                             imageUrl: '',
                             stats: 'Active',
@@ -1006,35 +1256,11 @@
                           };
                           const updated = [...(content.projectsList || []), newProj];
                           setContent(prev => ({ ...prev, projectsList: updated }));
-                          showToast('+ Proyek baru ditambahkan!');
+                          showToast('+ New project added!');
                         }}
                         className="px-3 py-1.5 rounded-lg bg-cyan-600/30 border border-cyan-500/40 text-cyan-200 font-mono text-xs hover:bg-cyan-600/50 transition-all flex items-center gap-1.5"
                       >
-                        <span>+ Tambah Proyek</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          const newCert = {
-                            id: 'cert-' + Date.now(),
-                            type: 'certificate',
-                            title: 'Nama Sertifikat / Lisensi',
-                            category: 'Professional Credential',
-                            issuer: 'Penerbit (e.g. Meta, AWS, BINUS)',
-                            badge: 'OFFICIAL CERTIFICATE',
-                            tags: 'Certification, Credential, Exam',
-                            description: 'Keahlian terverifikasi, nomor kredensial, atau materi kompetensi yang diuji...',
-                            linkUrl: 'https://github.com/Theology26',
-                            imageUrl: '',
-                            stats: 'Verified',
-                            date: '2025'
-                          };
-                          const updated = [...(content.projectsList || []), newCert];
-                          setContent(prev => ({ ...prev, projectsList: updated }));
-                          showToast('+ Sertifikat baru ditambahkan!');
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600/30 border border-emerald-500/40 text-emerald-200 font-mono text-xs hover:bg-emerald-600/50 transition-all flex items-center gap-1.5"
-                      >
-                        <span>+ Tambah Sertifikat</span>
+                        <span>+ Add Project</span>
                       </button>
                     </div>
                   </div>
@@ -1059,27 +1285,27 @@
                                 }}
                                 className="glass-input px-2.5 py-1 rounded-lg font-mono text-xs font-semibold text-white bg-black/60 border border-white/20"
                               >
-                                <option value="project" className="bg-slate-900 text-cyan-300">📁 PROYEK (Project)</option>
-                                <option value="certificate" className="bg-slate-900 text-emerald-300">📜 SERTIFIKAT (Certificate)</option>
+                                <option value="project" className="bg-slate-900 text-cyan-300">📁 PROJECT</option>
+                                <option value="certificate" className="bg-slate-900 text-emerald-300">📜 CERTIFICATE</option>
                               </select>
                               <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold tracking-wider ${
                                 isCert ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
                               }`}>
-                                {isCert ? 'SERTIFIKAT' : 'PROYEK'}
+                                {isCert ? 'CERTIFICATE' : 'PROJECT'}
                               </span>
                             </div>
 
                             <button
                               onClick={() => {
-                                if (confirm(`Hapus "${proj.title}"?`)) {
+                                if (confirm(`Delete "${proj.title}"?`)) {
                                   const copy = content.projectsList.filter((_, i) => i !== pIdx);
                                   setContent(prev => ({ ...prev, projectsList: copy }));
-                                  showToast('Item berhasil dihapus');
+                                  showToast('Item deleted successfully');
                                 }
                               }}
                               className="text-rose-400 hover:text-rose-300 font-mono text-xs px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 transition-colors"
                             >
-                              Hapus ✕
+                              Delete ✕
                             </button>
                           </div>
 
@@ -1088,18 +1314,18 @@
                             {/* Image Preview & Upload */}
                             <div className="md:col-span-5 flex flex-col gap-2">
                               <label className="font-mono text-[10px] text-muted uppercase flex items-center justify-between">
-                                <span>Gambar / Scan {isCert ? 'Sertifikat' : 'Proyek'}</span>
+                                <span>Image / Scan Document</span>
                                 {proj.imageUrl && (
                                   <button
                                     onClick={() => {
                                       const copy = [...content.projectsList];
                                       copy[pIdx].imageUrl = '';
                                       setContent(prev => ({ ...prev, projectsList: copy }));
-                                      showToast('Gambar dihapus');
+                                      showToast('Image removed');
                                     }}
                                     className="text-rose-400 hover:underline text-[10px]"
                                   >
-                                    Hapus Gambar
+                                    Remove Image
                                   </button>
                                 )}
                               </label>
@@ -1113,7 +1339,7 @@
                                   />
                                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                     <label className="cursor-pointer px-3 py-1 rounded-lg bg-white/20 text-white font-mono text-xs hover:bg-white/30 backdrop-blur-sm">
-                                      Ganti Gambar
+                                      Change Image
                                       <input
                                         type="file"
                                         accept="image/*"
@@ -1130,7 +1356,7 @@
                                     <circle cx="8.5" cy="8.5" r="1.5"/>
                                     <polyline points="21 15 16 10 5 21"/>
                                   </svg>
-                                  <span className="font-mono text-xs text-white/80">Upload File Gambar</span>
+                                  <span className="font-mono text-xs text-white/80">Upload Image File</span>
                                   <span className="font-mono text-[9px] text-muted">PNG, JPG, WebP max 5MB</span>
                                   <input
                                     type="file"
@@ -1145,7 +1371,7 @@
                               <input
                                 type="text"
                                 value={proj.imageUrl || ''}
-                                placeholder="Atau paste Image URL langsung..."
+                                placeholder="Or paste direct Image URL..."
                                 onChange={(e) => {
                                   const copy = [...content.projectsList];
                                   copy[pIdx].imageUrl = e.target.value;
@@ -1226,11 +1452,11 @@
                           {/* Title and Badge fields */}
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div className="md:col-span-2">
-                              <label className="font-mono text-[10px] text-muted block mb-1">Judul / Nama Lengkap</label>
+                              <label className="font-mono text-[10px] text-muted block mb-1">Title / Full Name</label>
                               <input
                                 type="text"
                                 value={proj.title || ''}
-                                placeholder="Judul Proyek atau Nama Sertifikasi"
+                                placeholder="Project Title or Certification Name"
                                 onChange={(e) => {
                                   const copy = [...content.projectsList];
                                   copy[pIdx].title = e.target.value;
@@ -1244,7 +1470,7 @@
                               <input
                                 type="text"
                                 value={proj.badge || ''}
-                                placeholder="OFFICIAL CERTIFICATE / CLIENT UMKM"
+                                placeholder="OFFICIAL CERTIFICATE / ACTIVE PROJECT"
                                 onChange={(e) => {
                                   const copy = [...content.projectsList];
                                   copy[pIdx].badge = e.target.value;
@@ -1258,7 +1484,7 @@
                           {/* Category and Tags */}
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
-                              <label className="font-mono text-[10px] text-muted block mb-1">Kategori</label>
+                              <label className="font-mono text-[10px] text-muted block mb-1">Category</label>
                               <input
                                 type="text"
                                 value={proj.category || ''}
@@ -1272,7 +1498,7 @@
                               />
                             </div>
                             <div className="md:col-span-2">
-                              <label className="font-mono text-[10px] text-muted block mb-1">Tech Tags (pisahkan koma)</label>
+                              <label className="font-mono text-[10px] text-muted block mb-1">Tech Tags (comma separated)</label>
                               <input
                                 type="text"
                                 value={proj.tags || ''}
@@ -1289,11 +1515,11 @@
 
                           {/* Description */}
                           <div>
-                            <label className="font-mono text-[10px] text-muted block mb-1">Deskripsi Detail</label>
+                            <label className="font-mono text-[10px] text-muted block mb-1">Detailed Description</label>
                             <textarea
                               rows="2"
                               value={proj.description || ''}
-                              placeholder="Deskripsi mengenai proyek atau pencapaian sertifikat..."
+                              placeholder="Description of project architecture, key features, or certificate curriculum..."
                               onChange={(e) => {
                                 const copy = [...content.projectsList];
                                 copy[pIdx].description = e.target.value;

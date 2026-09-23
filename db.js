@@ -22,7 +22,7 @@ const JSON_STORE_PATH = isVercel
 const DEFAULT_CONTENT = {
   general: {
     siteTitle: 'Yosia Gracetheo Boimau — Fullstack Developer, Video Editor & VJ',
-    siteDescription: 'Portofolio Yosia Gracetheo Boimau — Solusi Digital Setiap Permasalahan Anda. Fullstack Developer, Video Editor, dan Virtual Jockey berbasis di Malang.',
+    siteDescription: 'Portfolio of Yosia Gracetheo Boimau — Digital Solutions for Every Challenge. Full-stack Developer, Video Editor, and Virtual Jockey based in Malang, Indonesia.',
     brandName: 'THEOLOGY26',
     brandDomain: 'theo.dev',
     brandStatus: 'AVAILABLE',
@@ -38,11 +38,11 @@ const DEFAULT_CONTENT = {
   hero: {
     badgeText: 'FULLSTACK DEVELOPER // VIDEO & VJ',
     badgeSubtext: 'LARAVEL 11 & CREATIVE TECH',
-    eyebrow: 'Solusi Digital Setiap Permasalahan Anda',
+    eyebrow: 'Digital Solutions for Every Challenge',
     titleLine1: 'Yosia Gracetheo Boimau',
     titleLine2: 'Fullstack Dev • Video Editor • VJ',
-    description: 'Membangun arsitektur web modern dengan Laravel 11, integrasi computer vision/OCR, sistem logistik cerdas, serta produksi visual kreatif dan projection mapping tingkat tinggi.',
-    ctaPrimaryText: 'Eksplorasi Portofolio ↓',
+    description: 'Architecting modern web applications with Laravel 11, computer vision & OCR integration, intelligent logistics engines, and premium live visual projection mapping.',
+    ctaPrimaryText: 'Explore Portfolio ↓',
     ctaPrimaryLink: '#projects',
     ctaSecondaryText: 'Download ATS CV (PDF)',
     ctaSecondaryLink: '/api/cv/download',
@@ -87,7 +87,7 @@ const DEFAULT_CONTENT = {
       category: 'Go Application',
       issuer: 'GitHub Repository // @Theology26',
       tags: 'Go, Backend, Microservices, 2 ★',
-      description: 'Arsitektur logistik cerdas terdistribusi performa tinggi dibangun dengan bahasa pemrograman Go.',
+      description: 'High-performance distributed intelligent logistics architecture built with the Go programming language.',
       linkUrl: 'https://github.com/Theology26/MBG-Smart-Logistics-FullDev',
       badge: '★ 2 STARS',
       featured: true,
@@ -101,7 +101,7 @@ const DEFAULT_CONTENT = {
       category: 'Python Application',
       issuer: 'GitHub Repository // @Theology26',
       tags: 'Python, EasyOCR, YOLO, Computer Vision',
-      description: 'Sistem komputasi visi & otomasi pengenalan teks Korea berbasis machine learning dan pipeline deep learning.',
+      description: 'Computer vision & Korean text recognition automation system based on machine learning and deep learning pipelines.',
       linkUrl: 'https://github.com/Theology26/Logieat-OS',
       badge: 'AI / OCR ENGINE',
       featured: true,
@@ -115,7 +115,7 @@ const DEFAULT_CONTENT = {
       category: 'Blade Application',
       issuer: 'GitHub Repository // @Theology26',
       tags: 'Blade, Laravel 11, Tailwind CSS, 1 ★',
-      description: 'Portofolio interaktif full-stack dengan ekosistem Laravel 11, blade templating engine, dan dynamic components.',
+      description: 'Full-stack interactive portfolio powered by the Laravel 11 ecosystem, Blade templating engine, and dynamic components.',
       linkUrl: 'https://github.com/Theology26/webportofoliotheo',
       badge: '★ 1 STAR',
       featured: true,
@@ -129,7 +129,7 @@ const DEFAULT_CONTENT = {
       category: 'TypeScript Application',
       issuer: 'GitHub Repository // @Theology26',
       tags: 'TypeScript, React Native, Expo, 1 ★',
-      description: 'Aplikasi portofolio mobile cross-platform responsif dan native didukung React Native dan Expo ecosystem.',
+      description: 'Responsive cross-platform native mobile portfolio application built on React Native and the Expo ecosystem.',
       linkUrl: 'https://github.com/Theology26/webportofolioexpotheo',
       badge: '★ 1 STAR',
       featured: true,
@@ -143,7 +143,7 @@ const DEFAULT_CONTENT = {
       category: 'Go Application',
       issuer: 'GitHub Repository // @Theology26',
       tags: 'Go, REST API, Logistics, 1 ★',
-      description: 'Core microservice engine untuk optimalisasi rute dan sinkronisasi status pengiriman logistik secara real-time.',
+      description: 'Core microservice engine for route optimization and real-time logistics dispatch synchronization.',
       linkUrl: 'https://github.com/Theology26/mbg-smart-logistics',
       badge: '★ 1 STAR',
       featured: true,
@@ -157,7 +157,7 @@ const DEFAULT_CONTENT = {
       category: 'TypeScript Application',
       issuer: 'GitHub Repository // @Theology26',
       tags: 'TypeScript, Next.js, Modern UI, 1 ★',
-      description: 'Platform web manajemen booking dan operasional layanan kebersihan untuk segmen komersial dan residensial.',
+      description: 'Commercial and residential cleaning service booking and operational web management platform.',
       linkUrl: 'https://github.com/Theology26/sparkling-clean-studio',
       badge: '★ 1 STAR',
       featured: false,
@@ -171,7 +171,7 @@ const DEFAULT_CONTENT = {
       category: 'Vue Application',
       issuer: 'GitHub Repository // @Theology26',
       tags: 'Vue, JavaScript, State Management, Agent',
-      description: 'Sistem pemesanan dan pengantaran makanan dengan integrasi rekomendasi nutrisi cerdas bagi pengguna.',
+      description: 'Food delivery and ordering system with integrated intelligent nutritional recommendation engine.',
       linkUrl: 'https://github.com/Theology26/NutriSafeFoodDeliveryAgent',
       badge: 'VUE CLIENT',
       featured: false,
@@ -185,64 +185,61 @@ const DEFAULT_CONTENT = {
       category: 'JavaScript Application',
       issuer: 'Client Project Malang',
       tags: 'JavaScript, HTML5, CSS3, Responsive UI',
-      description: 'Website promosi dan pemesanan layanan kebersihan untuk UMKM Kota Malang dengan alur pemesanan mudah dan efisien.',
+      description: 'Promotional and online booking website for local Malang commercial cleaning services with streamlined ordering.',
       linkUrl: 'https://github.com/Theology26/portofolio-sparklingcleaners',
       badge: 'CLIENT UMKM',
       featured: false,
       stats: 'Malang UMKM Client',
       date: '2025'
-    },
+    }
+  ],
+  certificatesList: [
     {
       id: 'cert-laravel-11',
-      type: 'certificate',
-      title: 'Sertifikasi Laravel 11 Advanced Architecture & TDD',
-      category: 'Backend Architecture',
+      title: 'Laravel 11 Advanced Architecture & TDD Certification',
       issuer: 'Laravel / PHP Specialist',
-      tags: 'Laravel 11, Eloquent ORM, REST API, PHP 8.3, TDD',
-      description: 'Penguasaan arsitektur backend enterprise Laravel 11, optimasi database query Eloquent, unit testing, dan integrasi reporting engine.',
+      imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
       linkUrl: 'https://github.com/Theology26',
-      imageUrl: '',
+      aspectRatio: 'aspect-[4/5]',
       badge: 'OFFICIAL CERTIFICATE',
-      featured: true,
-      stats: 'Score: 96%',
       date: '2024'
     },
     {
       id: 'cert-meta-frontend',
-      type: 'certificate',
       title: 'Meta Front-End Developer Professional Certificate',
-      category: 'Frontend Engineering',
       issuer: 'Meta (Coursera)',
-      tags: 'React, JavaScript ES6+, UI/UX Systems, Responsive Design',
-      description: 'Spesialisasi rekayasa antarmuka web modern, arsitektur komponen React, state management, dan optimasi performa web responsif.',
+      imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
       linkUrl: 'https://github.com/Theology26',
-      imageUrl: '',
+      aspectRatio: 'aspect-square',
       badge: 'PROFESSIONAL CERTIFICATE',
-      featured: false,
-      stats: 'Verified Credential',
       date: '2024'
     },
     {
       id: 'cert-binus-cs',
-      type: 'certificate',
       title: 'Bachelor of Computer Science Degree',
-      category: 'Academic Foundation',
       issuer: 'BINUS University',
-      tags: 'Computer Science, Software Architecture, GPA 3.5+',
-      description: 'Fondasi akademik ilmu komputer dengan fokus rekayasa perangkat lunak, sistem cerdas, dan arsitektur komputasi awan skala besar.',
+      imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
       linkUrl: 'https://github.com/Theology26',
-      imageUrl: '',
+      aspectRatio: 'aspect-[16/10]',
       badge: 'ACADEMIC DEGREE',
-      featured: true,
-      stats: 'BINUS University',
       date: '2024'
+    },
+    {
+      id: 'cert-python-ai',
+      title: 'Python Deep Learning & Computer Vision (YOLO & OCR)',
+      issuer: 'Deep Learning Institute',
+      imageUrl: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=800&q=80',
+      linkUrl: 'https://github.com/Theology26/Logieat-OS',
+      aspectRatio: 'aspect-[3/4]',
+      badge: 'AI SPECIALIST',
+      date: '2025'
     }
   ],
   projectSpotlight: {
     badge: 'ENTERPRISE ARCHITECTURE',
-    title: 'INTEGRASI VISI KOMPUTER DAN JARINGAN SARAF TIRUAN PADA SISTEM LOGISTIK CERDAS UNTUK EFISIENSI DISTRIBUSI MAKAN BERGIZI',
-    projectName: 'Integrasi Visi Komputer & Logistik Cerdas',
-    description: 'Sistem manajemen rantai pasok (supply chain) modern yang dirancang untuk melacak pergerakan armada dan inventaris secara presisi. Dibangun di atas fondasi backend Laravel dengan struktur database relasional tingkat tinggi. Sistem ini dilengkapi dengan dasbor analitik interaktif dan algoritma pelacakan real-time yang mampu mengurangi bottleneck distribusi, memberikan laporan instan, serta meminimalisir kesalahan input logistik secara otomatis.',
+    title: 'COMPUTER VISION AND NEURAL NETWORK INTEGRATION IN SMART LOGISTICS FOR NUTRITIOUS FOOD DISTRIBUTION',
+    projectName: 'Computer Vision & Smart Logistics Integration',
+    description: 'Modern supply chain management system designed to track fleet movement and inventory with high precision. Built on Laravel backend with relational database architecture, real-time tracking analytics, and automated logistics dispatch optimization.',
     linkText: 'View Project Repo ↗',
     linkUrl: 'https://github.com/Theology26',
     metrics: [
@@ -265,32 +262,6 @@ const DEFAULT_CONTENT = {
     githubRepoUrl: 'https://github.com/Theology26',
     liveDemoUrl: '#'
   },
-  gallery: [
-    {
-      title: 'Visual Projection Mapping & VJ Live Performance',
-      subtitle: 'Event Visual Stage Control',
-      tags: 'VJing, Resolume, Projection Mapping',
-      icon: 'VJ'
-    },
-    {
-      title: 'Video Editing & Visual Storytelling Post-Production',
-      subtitle: 'Narasi visual kampanye dan video kreatif',
-      tags: 'Premiere Pro, After Effects, DaVinci',
-      icon: 'EDIT'
-    },
-    {
-      title: 'OCR Webtoon Korea & AI Translation Pipeline',
-      subtitle: 'EasyOCR & YOLO Machine Learning Engine',
-      tags: 'Python, YOLO, Computer Vision',
-      icon: 'AI'
-    },
-    {
-      title: 'Full-Stack Architecture & Modern CMS Console',
-      subtitle: 'Laravel 11, Three.js WebGL & React Systems',
-      tags: 'Laravel, Node, SQLite, Three.js',
-      icon: 'DEV'
-    }
-  ],
   spaceConfig: {
     starsCount: 3200,
     nebulaCount: 75,
@@ -310,48 +281,48 @@ const DEFAULT_CONTENT = {
     linkedin: 'linkedin.com/in/yosia-gracetheo-boimau-919340211/',
     github: 'github.com/Theology26',
     instagram: 'instagram.com/theoxcyro',
-    summary: 'Solusi Digital Setiap Permasalahan Anda',
+    summary: 'Digital Solutions for Every Challenge',
     experiences: [
       {
         title: 'Video Editor',
         company: 'Independent Creative Specialist',
-        year: '2025 - Sekarang',
-        description: 'Spesialis pasca-produksi untuk meracik raw footage menjadi narasi visual premium.'
+        year: '2025 - Present',
+        description: 'Post-production specialist transforming raw footage into high-impact visual storytelling and commercial brand narratives.'
       },
       {
         title: 'Content Strategist',
         company: 'Digital Media Strategy',
-        year: '2025 - Sekarang',
-        description: 'Menganalisis tren dan merancang arsitektur konten digital beserta jadwal distribusinya.'
+        year: '2025 - Present',
+        description: 'Analyzing digital trends, structuring content architecture, and orchestrating multi-channel distribution pipelines.'
       },
       {
-        title: 'Director Iklan',
-        company: 'Commercial Project',
+        title: 'Commercial Director',
+        company: 'Commercial Advertising',
         year: '2025',
-        description: 'Memimpin produksi visual dan penyutradaraan kampanye iklan komersial dari pra-produksi hingga rilis final.'
+        description: 'Directing visual production and commercial advertising campaigns from pre-production to master release.'
       },
       {
         title: 'Virtual Jockey (VJ)',
-        company: 'Live Staging',
-        year: '2024 - Sekarang',
-        description: 'Mengendalikan tata visual dan projection mapping secara live untuk berbagai event dan pertunjukan.'
+        company: 'Live Stage Visuals',
+        year: '2024 - Present',
+        description: 'Controlling live stage visual projection mapping, MIDI timing sync, and generative visuals for concerts and events.'
       }
     ],
     selectedProjects: [
       {
-        title: 'PENGEMBANGAN OCR UNTUK WEBTOON KOREA',
+        title: 'KOREAN WEBTOON OCR & AI TRANSLATION PIPELINE',
         tags: 'Python, Rest API, Easy OCR, YOLO, IO Paint',
-        description: 'Pengembangan sistem OCR Webtoon Korea ini menunjukkan hasil yang sangat positif dalam mengatasi keterbatasan bahasa dan menekan penggunaan situs ilegal.'
+        description: 'Development of a Korean webtoon OCR and translation pipeline to overcome language barriers and empower localized content access.'
       },
       {
         title: 'Website Sparkling Cleaners Malang',
         tags: 'HTML, js, CSS,',
-        description: 'Membuatkan website untuk promosi dan pemesanan untuk UMKM Kota Malang'
+        description: 'Promotional and online booking website for local Malang commercial cleaning services with streamlined ordering.'
       },
       {
-        title: 'INTEGRASI VISI KOMPUTER DAN JARINGAN SARAF TIRUAN PADA SISTEM LOGISTIK CERDAS UNTUK EFISIENSI DISTRIBUSI MAKAN BERGIZI',
+        title: 'COMPUTER VISION AND NEURAL NETWORK INTEGRATION IN SMART LOGISTICS FOR NUTRITIOUS FOOD DISTRIBUTION',
         tags: 'Tailwind CSS, JavaScript, Custom CMS',
-        description: 'Sistem manajemen rantai pasok (supply chain) modern yang dirancang untuk melacak pergerakan armada dan inventaris secara presisi. Dibangun di atas fondasi backend Laravel dengan struktur database relasional tingkat tinggi.'
+        description: 'Modern supply chain management system designed to track fleet movement and inventory with high precision. Built on Laravel backend with relational database architecture.'
       }
     ],
     technicalSkills: 'Python, Rest API, Easy OCR, YOLO, IO Paint, HTML, js, CSS, Tailwind CSS, JavaScript, Custom CMS, Laravel 11, PHP 8.3, MySQL, React, Three.js, Git'
@@ -475,6 +446,30 @@ function initDb() {
           }
           stmt.finalize(() => resolve());
         } else {
+          // Automatic Migration: Ensure certificatesList exists and remove gallery
+          db.get("SELECT data FROM settings WHERE section = 'certificatesList'", (cErr, cRow) => {
+            if (!cRow) {
+              db.run("INSERT OR REPLACE INTO settings (section, data) VALUES (?, ?)", [
+                'certificatesList',
+                JSON.stringify(DEFAULT_CONTENT.certificatesList)
+              ]);
+            }
+          });
+          // Remove obsolete gallery section
+          db.run("DELETE FROM settings WHERE section = 'gallery'");
+
+          // Filter projectsList to remove legacy certificates
+          db.get("SELECT data FROM settings WHERE section = 'projectsList'", (pErr, pRow) => {
+            if (pRow) {
+              try {
+                const parsed = JSON.parse(pRow.data);
+                if (Array.isArray(parsed) && parsed.some(p => p.type === 'certificate')) {
+                  const cleaned = parsed.filter(p => p.type !== 'certificate');
+                  db.run("UPDATE settings SET data = ? WHERE section = 'projectsList'", [JSON.stringify(cleaned)]);
+                }
+              } catch (e) {}
+            }
+          });
           resolve();
         }
       });

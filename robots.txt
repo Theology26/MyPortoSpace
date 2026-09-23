@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /Assets/
+Allow: /api/cv/download
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/auth/
+Disallow: /api/content
+
+# Crawl-delay for crawler politeness
+Crawl-delay: 1
+
+# Sitemap reference
+Sitemap: https://theo.dev/sitemap.xml

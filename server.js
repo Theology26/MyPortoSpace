@@ -15,9 +15,106 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ═══════════════════════════════════════════════════════
+// SECURITY PROTOCOLS & IN-MEMORY RATE LIMITERS
+// ═══════════════════════════════════════════════════════
+// Sliding window rate limiter
+const rateLimitStores = {
+  login: new Map(),
+  content: new Map(),
+  githubSync: new Map(),
+  general: new Map(),
+};
+
+function createRateLimiter(storeName, maxRequests, windowMs, message) {
+  const store = rateLimitStores[storeName];
+  return (req, res, next) => {
+    const ip = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || '127.0.0.1';
+    const now = Date.now();
+    const entry = store.get(ip) || { count: 0, resetTime: now + windowMs };
+
+    if (now > entry.resetTime) {
+      entry.count = 1;
+      entry.resetTime = now + windowMs;
+    } else {
+      entry.count += 1;
+    }
+    store.set(ip, entry);
+
+    // Periodic sweep to prevent memory leak
+    if (store.size > 1000) {
+      for (const [k, v] of store.entries()) {
+        if (now > v.resetTime) store.delete(k);
+      }
+    }
+
+    if (entry.count > maxRequests) {
+      const waitSeconds = Math.ceil((entry.resetTime - now) / 1000);
+      return res.status(429).json({
+        success: false,
+        error: message || `Too many requests. Please wait ${waitSeconds} seconds before retrying.`,
+        retryAfter: waitSeconds,
+      });
+    }
+    next();
+  };
+}
+
+const loginRateLimiter = createRateLimiter('login', 5, 15 * 60 * 1000, 'Security lockout: Too many failed login attempts. Please wait 15 minutes.');
+const contentUpdateRateLimiter = createRateLimiter('content', 30, 10 * 60 * 1000, 'Rate limit exceeded: Too many content update requests.');
+const githubSyncRateLimiter = createRateLimiter('githubSync', 5, 10 * 60 * 1000, 'GitHub sync rate limit reached: Maximum 5 syncs per 10 minutes.');
+const generalRateLimiter = createRateLimiter('general', 180, 60 * 1000, 'Too many requests. Please slow down.');
+
+// Comprehensive HTTP Security Headers
+app.use((req, res, next) => {
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://www.gstatic.com https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.googleapis.com https://va.vercel-scripts.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com data:; " +
+    "img-src 'self' data: blob: https: http:; " +
+    "connect-src 'self' blob: data: https: http:; " +
+    "worker-src 'self' blob: https://www.gstatic.com; " +
+    "media-src 'self' blob:; " +
+    "object-src 'none'; " +
+    "base-uri 'self'; " +
+    "frame-ancestors 'self';"
+  );
+  next();
+});
+
+// Anti-Jailbreak / AI Prompt Injection Defense Header
+app.use((req, res, next) => {
+  res.setHeader('X-AI-Integrity', 'portfolio-system-v1; protected-against-prompt-injection');
+  next();
+});
+
+// Prototype Pollution & Injection Guard
+function sanitizeDeep(obj) {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeDeep);
+  const clean = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      continue; // Block prototype pollution vectors
+    }
+    clean[key] = sanitizeDeep(value);
+  }
+  return clean;
+}
+
 app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Apply general API rate limiting to all /api/ endpoints
+app.use('/api', generalRateLimiter);
 
 // Serve static assets
 app.use('/Assets', express.static(path.join(__dirname, 'Assets')));
@@ -65,8 +162,8 @@ app.get('/api/content', async (req, res) => {
   }
 });
 
-// 2. Update portfolio content (Protected by passcode header)
-app.put('/api/content', async (req, res) => {
+// 2. Update portfolio content (Protected by passcode header + rate limit + prototype pollution guard)
+app.put('/api/content', contentUpdateRateLimiter, async (req, res) => {
   try {
     const authHeader = req.headers['authorization'];
     const currentContent = await getAllContent();
@@ -76,7 +173,7 @@ app.put('/api/content', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Unauthorized: Invalid Admin Passcode' });
     }
 
-    const payload = req.body;
+    const payload = sanitizeDeep(req.body);
     await updateAllContent(payload);
     const updated = await getAllContent();
     res.json({ success: true, message: 'Content updated successfully in SQLite database', data: updated });
@@ -86,8 +183,8 @@ app.put('/api/content', async (req, res) => {
   }
 });
 
-// 3. Admin Authentication endpoint
-app.post('/api/auth/login', async (req, res) => {
+// 3. Admin Authentication endpoint (Protected by brute-force rate limiter)
+app.post('/api/auth/login', loginRateLimiter, async (req, res) => {
   try {
     const { passcode } = req.body;
     const content = await getAllContent();
@@ -334,7 +431,7 @@ app.get('/api/github/stats', async (req, res) => {
   }
 });
 
-app.post('/api/github/sync', async (req, res) => {
+app.post('/api/github/sync', githubSyncRateLimiter, async (req, res) => {
   try {
     const { username, token } = req.body;
     const content = await getAllContent();
@@ -353,7 +450,7 @@ app.post('/api/github/sync', async (req, res) => {
       count: result.totalCount,
       addedCount: result.addedCount,
       updatedCount: result.updatedCount,
-      message: `Berhasil sinkronisasi ${result.totalCount} repository GitHub untuk @${result.username}! ${result.addedCount} proyek baru dimasukkan ke database & CV.`,
+      message: `Successfully synchronized ${result.totalCount} GitHub repositories for @${result.username}! ${result.addedCount} new projects imported to database & CV.`,
       projectsList: result.projectsList,
       githubStats: result.githubStats,
       repos: result.repos,
@@ -363,6 +460,26 @@ app.post('/api/github/sync', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// Sanitization Utilities for Safe HTML Rendering (Anti-XSS & Anti-Injection)
+function sanitizeText(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sanitizeUrl(url) {
+  if (!url || typeof url !== 'string') return '#';
+  const trimmed = url.trim();
+  if (/^(https?:|\/|mailto:)/i.test(trimmed)) {
+    return trimmed.replace(/"/g, '%22').replace(/'/g, '%27');
+  }
+  return '#';
+}
 
 // 5. Dynamic ATS CV Generator (HTML template matching original Blade template)
 function renderCvHtml(content) {
@@ -397,18 +514,27 @@ function renderCvHtml(content) {
   const showPhoto = cv.showPhoto !== false && Boolean(avatarUrl);
 
   const contactItems = [];
-  if (cv.email) contactItems.push(`<span>${cv.email}</span>`);
-  if (cv.location) contactItems.push(`<span>${cv.location}</span>`);
-  if (cv.github) contactItems.push(`<span>github: <a href="https://${cv.github.replace(/^https?:\/\//, '')}" target="_blank">${cv.github.replace(/^https?:\/\//, '')}</a></span>`);
-  if (cv.linkedin) contactItems.push(`<span>linkedin: <a href="https://${cv.linkedin.replace(/^https?:\/\//, '')}" target="_blank">${cv.linkedin.replace(/^https?:\/\//, '')}</a></span>`);
-  if (cv.instagram) contactItems.push(`<span>instagram: <a href="https://${cv.instagram.replace(/^https?:\/\//, '')}" target="_blank">${cv.instagram.replace(/^https?:\/\//, '')}</a></span>`);
+  if (cv.email) contactItems.push(`<span>${sanitizeText(cv.email)}</span>`);
+  if (cv.location) contactItems.push(`<span>${sanitizeText(cv.location)}</span>`);
+  if (cv.github) {
+    const cleanGh = sanitizeText(cv.github.replace(/^https?:\/\//, ''));
+    contactItems.push(`<span>github: <a href="${sanitizeUrl('https://' + cleanGh)}" target="_blank">${cleanGh}</a></span>`);
+  }
+  if (cv.linkedin) {
+    const cleanLi = sanitizeText(cv.linkedin.replace(/^https?:\/\//, ''));
+    contactItems.push(`<span>linkedin: <a href="${sanitizeUrl('https://' + cleanLi)}" target="_blank">${cleanLi}</a></span>`);
+  }
+  if (cv.instagram) {
+    const cleanIg = sanitizeText(cv.instagram.replace(/^https?:\/\//, ''));
+    contactItems.push(`<span>instagram: <a href="${sanitizeUrl('https://' + cleanIg)}" target="_blank">${cleanIg}</a></span>`);
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV - ${cv.fullName || 'YOSIA GRACETHEO BOIMAU'}</title>
+    <title>CV - ${sanitizeText(cv.fullName || 'YOSIA GRACETHEO BOIMAU')}</title>
     <style>
         /* Exact A4 Portrait Dimensions matching user DomPDF template */
         @page {
@@ -693,13 +819,13 @@ function renderCvHtml(content) {
         <div class="top-action-bar no-print">
             <a href="/" class="back-link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                Kembali ke Portfolio
+                Return to Portfolio
             </a>
             <div class="doc-badge">
                 <span>📄 A4 PORTRAIT FORMAT // 210 × 297 MM</span>
             </div>
             <div class="action-btns">
-                <a href="/admin" class="back-link" style="font-size: 11px;">Edit di Admin ↗</a>
+                <a href="/admin" class="back-link" style="font-size: 11px;">Edit in Admin ↗</a>
                 <button class="print-btn-top" onclick="window.print()">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     Print / Save as PDF
@@ -713,12 +839,12 @@ function renderCvHtml(content) {
             <div class="header">
                 ${showPhoto ? `
                 <div class="avatar-frame">
-                    <img src="${avatarUrl}" alt="${cv.fullName || 'Profile'}" class="avatar-img" />
+                    <img src="${sanitizeUrl(avatarUrl)}" alt="${sanitizeText(cv.fullName || 'Profile')}" class="avatar-img" />
                 </div>
                 ` : ''}
                 <div class="header-main">
-                    <h1 class="name">${cv.fullName || 'YOSIA GRACETHEO BOIMAU'}</h1>
-                    <div class="job-title">${cv.jobTitle || 'Fullstack Developer | Video Editor | Virtual Jockey'}</div>
+                    <h1 class="name">${sanitizeText(cv.fullName || 'YOSIA GRACETHEO BOIMAU')}</h1>
+                    <div class="job-title">${sanitizeText(cv.jobTitle || 'Fullstack Developer | Video Editor | Virtual Jockey')}</div>
                     <div class="contact-info">
                         ${contactItems.join(' • ')}
                     </div>
@@ -728,7 +854,7 @@ function renderCvHtml(content) {
             <!-- Professional Summary -->
             <div class="section">
                 <h2 class="section-title">PROFESSIONAL SUMMARY</h2>
-                <div class="summary">${cv.summary || 'Solusi Digital Setiap Permasalahan Anda'}</div>
+                <div class="summary">${sanitizeText(cv.summary || 'Digital Solutions for Every Problem')}</div>
             </div>
 
             <!-- Experience -->
@@ -737,10 +863,10 @@ function renderCvHtml(content) {
                 ${experiences.map(exp => `
                 <div class="item">
                     <div class="item-header">
-                        <span class="item-title">${exp.title}</span>
-                        <span class="item-date">${exp.year}</span>
+                        <span class="item-title">${sanitizeText(exp.title)}</span>
+                        <span class="item-date">${sanitizeText(exp.year)}</span>
                     </div>
-                    <div class="item-desc">${exp.description}</div>
+                    <div class="item-desc">${sanitizeText(exp.description)}</div>
                 </div>`).join('')}
             </div>
 
@@ -750,12 +876,12 @@ function renderCvHtml(content) {
                 ${projects.map(proj => `
                 <div class="item">
                     <div class="item-header">
-                        <span class="item-title">${proj.title}</span>
-                        ${proj.tags ? `<span class="tags" style="font-size: 8.5pt; color: #475569; font-weight: 500; margin-left: 6px;">| ${proj.tags}</span>` : ''}
-                        ${proj.date ? `<span class="item-date">${proj.date}</span>` : ''}
+                        <span class="item-title">${sanitizeText(proj.title)}</span>
+                        ${proj.tags ? `<span class="tags" style="font-size: 8.5pt; color: #475569; font-weight: 500; margin-left: 6px;">| ${sanitizeText(proj.tags)}</span>` : ''}
+                        ${proj.date ? `<span class="item-date">${sanitizeText(proj.date)}</span>` : ''}
                     </div>
-                    <div class="item-desc">${proj.description}</div>
-                    ${proj.linkUrl ? `<div style="font-size: 7.8pt; color: #0284c7; margin-top: 1px;"><a href="${proj.linkUrl}" target="_blank" style="color: #0284c7; text-decoration: none;">${proj.linkUrl}</a></div>` : ''}
+                    <div class="item-desc">${sanitizeText(proj.description)}</div>
+                    ${proj.linkUrl ? `<div style="font-size: 7.8pt; color: #0284c7; margin-top: 1px;"><a href="${sanitizeUrl(proj.linkUrl)}" target="_blank" style="color: #0284c7; text-decoration: none;">${sanitizeText(proj.linkUrl)}</a></div>` : ''}
                 </div>`).join('')}
             </div>
 
@@ -764,7 +890,7 @@ function renderCvHtml(content) {
                 <h2 class="section-title">TECHNICAL SKILLS</h2>
                 <div class="skills-container">
                     <span class="skills-category">Core Technologies & Tools: </span>
-                    ${cv.technicalSkills || 'Python, Rest API, Easy OCR, YOLO, IO Paint, HTML, js, CSS, Tailwind CSS, JavaScript, Custom CMS, Laravel 11, PHP 8.3, MySQL, React, Three.js, Git'}
+                    ${sanitizeText(cv.technicalSkills || 'Python, REST API, EasyOCR, YOLO, HTML, JavaScript, CSS, Tailwind CSS, Laravel 11, PHP 8.3, MySQL, React, Three.js, Git')}
                 </div>
             </div>
         </div>
@@ -790,6 +916,18 @@ app.get('/api/cv/download', async (req, res) => {
   } catch (err) {
     res.status(500).send('Error generating CV: ' + err.message);
   }
+});
+
+// Serve robots.txt for search engines
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'robots.txt'));
+});
+
+// Serve sitemap.xml for search engines
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'sitemap.xml'));
 });
 
 // Serve admin dashboard
