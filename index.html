@@ -371,6 +371,7 @@
           vertexColors: true,
           transparent: true,
           opacity: 0.85,
+          depthWrite: false,
         });
         const starField = new THREE.Points(starGeo, starMat);
         scene.add(starField);
@@ -383,12 +384,13 @@
           cvs.width = 128;
           cvs.height = 128;
           const ctx = cvs.getContext('2d');
+          ctx.clearRect(0, 0, 128, 128);
           const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
           g.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
           g.addColorStop(0.2, 'rgba(255, 255, 255, 0.45)');
           g.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
           g.addColorStop(0.8, 'rgba(255, 255, 255, 0.03)');
-          g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          g.addColorStop(1, 'rgba(255, 255, 255, 0)');
           ctx.fillStyle = g;
           ctx.fillRect(0, 0, 128, 128);
           return new THREE.CanvasTexture(cvs);
@@ -447,47 +449,61 @@
           cvs.width = 256;
           cvs.height = 256;
           const ctx = cvs.getContext('2d');
+          ctx.clearRect(0, 0, 256, 256);
           const cx = 128, cy = 128;
 
-          // Soft central halo
-          const rad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 55);
-          rad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-          rad.addColorStop(0.2, 'rgba(186, 230, 253, 0.85)');
-          rad.addColorStop(0.5, 'rgba(56, 189, 248, 0.28)');
-          rad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          // 1. Soft central radial glow fading to transparent cyan/white
+          const rad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 100);
+          rad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+          rad.addColorStop(0.12, 'rgba(224, 242, 254, 0.90)');
+          rad.addColorStop(0.35, 'rgba(125, 211, 252, 0.35)');
+          rad.addColorStop(0.65, 'rgba(56, 189, 248, 0.08)');
+          rad.addColorStop(1.0, 'rgba(56, 189, 248, 0.0)');
+          ctx.beginPath();
+          ctx.arc(cx, cy, 100, 0, Math.PI * 2);
           ctx.fillStyle = rad;
-          ctx.fillRect(0, 0, 256, 256);
+          ctx.fill();
 
-          // Horizontal anamorphic cross flare
-          const hg = ctx.createLinearGradient(0, cy, 256, cy);
-          hg.addColorStop(0, 'rgba(255, 255, 255, 0)');
-          hg.addColorStop(0.38, 'rgba(186, 230, 253, 0.35)');
-          hg.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
-          hg.addColorStop(0.62, 'rgba(186, 230, 253, 0.35)');
-          hg.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          // 2. Horizontal anamorphic flare
+          const hg = ctx.createLinearGradient(12, cy, 244, cy);
+          hg.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+          hg.addColorStop(0.30, 'rgba(186, 230, 253, 0.18)');
+          hg.addColorStop(0.47, 'rgba(224, 242, 254, 0.70)');
+          hg.addColorStop(0.50, 'rgba(255, 255, 255, 1.0)');
+          hg.addColorStop(0.53, 'rgba(224, 242, 254, 0.70)');
+          hg.addColorStop(0.70, 'rgba(186, 230, 253, 0.18)');
+          hg.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
           ctx.fillStyle = hg;
-          ctx.fillRect(0, cy - 2, 256, 4);
+          ctx.fillRect(12, cy - 3, 232, 6);
 
-          // Vertical diffraction spike
-          const vg = ctx.createLinearGradient(cx, 0, cx, 256);
-          vg.addColorStop(0, 'rgba(255, 255, 255, 0)');
-          vg.addColorStop(0.38, 'rgba(186, 230, 253, 0.35)');
-          vg.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
-          vg.addColorStop(0.62, 'rgba(186, 230, 253, 0.35)');
-          vg.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          // 3. Vertical diffraction spike
+          const vg = ctx.createLinearGradient(cx, 12, cx, 244);
+          vg.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+          vg.addColorStop(0.30, 'rgba(186, 230, 253, 0.18)');
+          vg.addColorStop(0.47, 'rgba(224, 242, 254, 0.70)');
+          vg.addColorStop(0.50, 'rgba(255, 255, 255, 1.0)');
+          vg.addColorStop(0.53, 'rgba(224, 242, 254, 0.70)');
+          vg.addColorStop(0.70, 'rgba(186, 230, 253, 0.18)');
+          vg.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
           ctx.fillStyle = vg;
-          ctx.fillRect(cx - 2, 0, 4, 256);
+          ctx.fillRect(cx - 3, 12, 6, 232);
 
-          // Diagonal subtle sub-spikes (45 degrees)
+          // 4. Diagonal subtle 45-deg spikes
           ctx.save();
           ctx.translate(cx, cy);
           ctx.rotate(Math.PI / 4);
-          const dg = ctx.createLinearGradient(-80, 0, 80, 0);
-          dg.addColorStop(0, 'rgba(255, 255, 255, 0)');
-          dg.addColorStop(0.5, 'rgba(255, 255, 255, 0.5)');
-          dg.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          const dg = ctx.createLinearGradient(-75, 0, 75, 0);
+          dg.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+          dg.addColorStop(0.35, 'rgba(186, 230, 253, 0.22)');
+          dg.addColorStop(0.50, 'rgba(255, 255, 255, 0.85)');
+          dg.addColorStop(0.65, 'rgba(186, 230, 253, 0.22)');
+          dg.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
           ctx.fillStyle = dg;
-          ctx.fillRect(-80, -1, 160, 2);
+          ctx.fillRect(-75, -2, 150, 4);
+
+          ctx.rotate(Math.PI / 2);
+          ctx.fillStyle = dg;
+          ctx.fillRect(-75, -2, 150, 4);
           ctx.restore();
 
           return new THREE.CanvasTexture(cvs);
@@ -516,10 +532,13 @@
             transparent: true,
             opacity: 0.85,
             blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            depthTest: false,
           });
           const sprite = new THREE.Sprite(mat);
           sprite.position.set(st.x, st.y, st.z);
           sprite.scale.set(st.size, st.size, 1);
+          sprite.renderOrder = 10;
           starFlareGroup.add(sprite);
           return { sprite, data: st };
         });
@@ -534,6 +553,8 @@
           color: 0x38bdf8,
           transparent: true,
           opacity: 0.0,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
         });
         const meteorLine = new THREE.Line(meteorGeo, meteorMat);
         scene.add(meteorLine);
@@ -734,6 +755,8 @@
             color: cfg.trailColor,
             transparent: true,
             opacity: cfg.trailOpacity,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
           });
           const orbitLine = new THREE.Line(orbitGeo, orbitMat);
           scene.add(orbitLine);
