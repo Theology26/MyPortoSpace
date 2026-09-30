@@ -4,7 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node build.js && npm run build:css",
+    "build:css": "tailwindcss -c tailwind.config.js -i ./src/client/tailwind.css -o ./public/tailwind.css --minify && tailwindcss -c tailwind.admin.config.js -i ./src/client/tailwind.css -o ./public/tailwind.admin.css --minify",
+    "start": "node server.js",
+    "dev": "node build.js && node server.js",
+    "test": "node test_security.js && node test_live.js",
+    "test:render": "node test_render.js",
+    "test:upload": "node test_upload.js",
+    "test:certs": "node test_certificates.js",
+    "test:cta": "node test_cta.js",
+    "audit:secrets": "node audit_secrets.js",
+    "test:leak": "node test_canary_leak.js"
   },
   "keywords": [],
   "author": "",
@@ -13,11 +23,16 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
-    "cors": "^2.8.6",
+    "compression": "^1.8.2",
     "express": "^5.2.1",
+    "multer": "^2.4.0",
     "sqlite3": "^6.0.1"
   },
   "devDependencies": {
-    "@babel/parser": "^7.29.9"
+    "@babel/core": "^8.0.6",
+    "@babel/parser": "^7.29.9",
+    "@babel/preset-react": "^8.0.1",
+    "tailwindcss": "^3.4.19",
+    "ws": "^8.22.0"
   }
 }

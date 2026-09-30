@@ -1,0 +1,3151 @@
+
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+    // ═══════════════════════════════════════════
+    // THREE.JS BACKGROUND CANVAS (Deep Space, Earth, Satellites & Star Flares)
+    // ═══════════════════════════════════════════
+    // ═══════════════════════════════════════════
+    // Strip trailing arrow glyphs from CMS labels.
+    // The CTA buttons render their own SVG arrow, so a label like
+    // "Explore Portfolio ↓" would otherwise show two arrows.
+    // ═══════════════════════════════════════════
+    const withoutTrailingArrow = (label) =>
+      String(label || '').replace(/[\s\u2190-\u21FF\u25B2-\u25BF\u27F2-\u27FF\u2B00-\u2B1F]+$/u, '').trim();
+
+    const ThreeBackground = ({ spaceConfig, ecoMode }) => {
+      const canvasRef = useRef(null);
+
+      useEffect(() => {
+        if (ecoMode || !canvasRef.current) return;
+        const canvas = canvasRef.current;
+
+        const isMobile = window.innerWidth < 768;
+        const isLowSpec = isMobile || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 5);
+
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isLowSpec, alpha: true, powerPreference: 'low-power' });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(isLowSpec ? 1 : Math.min(window.devicePixelRatio, 1.5));
+        renderer.setClearColor(0x000000, 0);
+
+        // Lights - vivid solar illumination and atmospheric backfill
+        const sunLight = new THREE.DirectionalLight(0xfffaed, 2.9);
+        sunLight.position.set(-6, 3.5, 4.5);
+        scene.add(sunLight);
+
+        const backBlueLight = new THREE.DirectionalLight(0x38bdf8, 1.5);
+        backBlueLight.position.set(5, -2, -3.5);
+        scene.add(backBlueLight);
+
+        const ambientLight = new THREE.AmbientLight(0x121b2a, 1.2);
+        scene.add(ambientLight);
+
+        const horizonGlow = new THREE.PointLight(0x0284c7, 3.2, 20);
+        horizonGlow.position.set(-1.5, 0.5, 3.5);
+        scene.add(horizonGlow);
+
+        // ═══════════════════════════════════════════
+        // 1. DENSE MULTI-TIER STARFIELD (Adaptive Count)
+        // ═══════════════════════════════════════════
+        const starCount = isLowSpec ? 500 : 2600;
+        const starGeo = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(starCount * 3);
+        const starColors = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount; i++) {
+          starPositions[i * 3] = (Math.random() - 0.5) * 45;
+          starPositions[i * 3 + 1] = (Math.random() - 0.5) * 32;
+          starPositions[i * 3 + 2] = (Math.random() - 0.5) * 28 - 2;
+
+          const rand = Math.random();
+          if (rand > 0.8) {
+            // Blue giant / Sirius blue
+            starColors[i * 3] = 0.45;
+            starColors[i * 3 + 1] = 0.75;
+            starColors[i * 3 + 2] = 1.0;
+          } else if (rand > 0.65) {
+            // Warm solar / amber
+            starColors[i * 3] = 1.0;
+            starColors[i * 3 + 1] = 0.85;
+            starColors[i * 3 + 2] = 0.55;
+          } else if (rand > 0.5) {
+            // Cyan dwarf
+            starColors[i * 3] = 0.35;
+            starColors[i * 3 + 1] = 0.95;
+            starColors[i * 3 + 2] = 1.0;
+          } else {
+            // Pure white
+            starColors[i * 3] = 0.95;
+            starColors[i * 3 + 1] = 0.95;
+            starColors[i * 3 + 2] = 1.0;
+          }
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+
+        const starMat = new THREE.PointsMaterial({
+          size: 0.022,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.85,
+          depthWrite: false,
+        });
+        const starField = new THREE.Points(starGeo, starMat);
+        scene.add(starField);
+
+        // ═══════════════════════════════════════════
+        // 2. DRIFTING RANDOM COSMIC NEBULA CLOUDS
+        // ═══════════════════════════════════════════
+        const createSoftCloudTexture = () => {
+          const cvs = document.createElement('canvas');
+          cvs.width = 128;
+          cvs.height = 128;
+          const ctx = cvs.getContext('2d');
+          ctx.clearRect(0, 0, 128, 128);
+          const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+          g.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+          g.addColorStop(0.2, 'rgba(255, 255, 255, 0.45)');
+          g.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+          g.addColorStop(0.8, 'rgba(255, 255, 255, 0.03)');
+          g.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, 128, 128);
+          return new THREE.CanvasTexture(cvs);
+        };
+
+        const nebulaTex = createSoftCloudTexture();
+        const nebulaCount = 75;
+        const nebulaGeo = new THREE.BufferGeometry();
+        const nebulaPositions = new Float32Array(nebulaCount * 3);
+        const nebulaBasePos = [];
+        const nebulaColors = new Float32Array(nebulaCount * 3);
+
+        const nebulaPalette = [
+          [0.08, 0.55, 0.95], // Cyan/Blue gas
+          [0.48, 0.22, 0.92], // Violet cosmic cloud
+          [0.12, 0.72, 0.85], // Turquoise mist
+          [0.85, 0.52, 0.18], // Warm solar dust
+          [0.32, 0.20, 0.75], // Deep indigo nebula
+        ];
+
+        for (let i = 0; i < nebulaCount; i++) {
+          const bx = (Math.random() - 0.5) * 26;
+          const by = (Math.random() - 0.5) * 18;
+          const bz = (Math.random() - 0.5) * 14 - 3;
+          nebulaPositions[i * 3] = bx;
+          nebulaPositions[i * 3 + 1] = by;
+          nebulaPositions[i * 3 + 2] = bz;
+          nebulaBasePos.push({ x: bx, y: by, z: bz, speed: 0.1 + Math.random() * 0.18, phase: Math.random() * Math.PI * 2 });
+
+          const pal = nebulaPalette[i % nebulaPalette.length];
+          nebulaColors[i * 3] = pal[0];
+          nebulaColors[i * 3 + 1] = pal[1];
+          nebulaColors[i * 3 + 2] = pal[2];
+        }
+
+        nebulaGeo.setAttribute('position', new THREE.BufferAttribute(nebulaPositions, 3));
+        nebulaGeo.setAttribute('color', new THREE.BufferAttribute(nebulaColors, 3));
+
+        const nebulaMat = new THREE.PointsMaterial({
+          size: 4.5,
+          map: nebulaTex,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.22,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const nebulaClouds = new THREE.Points(nebulaGeo, nebulaMat);
+        scene.add(nebulaClouds);
+
+        // ═══════════════════════════════════════════
+        // 3. SILUET CAHAYA BINTANG (4-Point Diffraction Cross Star Flares)
+        // ═══════════════════════════════════════════
+        const createDiffractionStarTexture = () => {
+          const cvs = document.createElement('canvas');
+          cvs.width = 256;
+          cvs.height = 256;
+          const ctx = cvs.getContext('2d');
+          ctx.clearRect(0, 0, 256, 256);
+          const cx = 128, cy = 128;
+
+          // 1. Soft central radial glow fading to transparent cyan/white
+          const rad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 100);
+          rad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+          rad.addColorStop(0.12, 'rgba(224, 242, 254, 0.90)');
+          rad.addColorStop(0.35, 'rgba(125, 211, 252, 0.35)');
+          rad.addColorStop(0.65, 'rgba(56, 189, 248, 0.08)');
+          rad.addColorStop(1.0, 'rgba(56, 189, 248, 0.0)');
+          ctx.beginPath();
+          ctx.arc(cx, cy, 100, 0, Math.PI * 2);
+          ctx.fillStyle = rad;
+          ctx.fill();
+
+          // 2. Horizontal anamorphic flare
+          const hg = ctx.createLinearGradient(12, cy, 244, cy);
+          hg.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+          hg.addColorStop(0.30, 'rgba(186, 230, 253, 0.18)');
+          hg.addColorStop(0.47, 'rgba(224, 242, 254, 0.70)');
+          hg.addColorStop(0.50, 'rgba(255, 255, 255, 1.0)');
+          hg.addColorStop(0.53, 'rgba(224, 242, 254, 0.70)');
+          hg.addColorStop(0.70, 'rgba(186, 230, 253, 0.18)');
+          hg.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+          ctx.fillStyle = hg;
+          ctx.fillRect(12, cy - 3, 232, 6);
+
+          // 3. Vertical diffraction spike
+          const vg = ctx.createLinearGradient(cx, 12, cx, 244);
+          vg.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+          vg.addColorStop(0.30, 'rgba(186, 230, 253, 0.18)');
+          vg.addColorStop(0.47, 'rgba(224, 242, 254, 0.70)');
+          vg.addColorStop(0.50, 'rgba(255, 255, 255, 1.0)');
+          vg.addColorStop(0.53, 'rgba(224, 242, 254, 0.70)');
+          vg.addColorStop(0.70, 'rgba(186, 230, 253, 0.18)');
+          vg.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+          ctx.fillStyle = vg;
+          ctx.fillRect(cx - 3, 12, 6, 232);
+
+          // 4. Diagonal subtle 45-deg spikes
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(Math.PI / 4);
+          const dg = ctx.createLinearGradient(-75, 0, 75, 0);
+          dg.addColorStop(0, 'rgba(255, 255, 255, 0.0)');
+          dg.addColorStop(0.35, 'rgba(186, 230, 253, 0.22)');
+          dg.addColorStop(0.50, 'rgba(255, 255, 255, 0.85)');
+          dg.addColorStop(0.65, 'rgba(186, 230, 253, 0.22)');
+          dg.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+          ctx.fillStyle = dg;
+          ctx.fillRect(-75, -2, 150, 4);
+
+          ctx.rotate(Math.PI / 2);
+          ctx.fillStyle = dg;
+          ctx.fillRect(-75, -2, 150, 4);
+          ctx.restore();
+
+          return new THREE.CanvasTexture(cvs);
+        };
+
+        const starFlareTex = createDiffractionStarTexture();
+        const starFlareGroup = new THREE.Group();
+        scene.add(starFlareGroup);
+
+        const landmarkStars = [
+          { x: -5.5, y: 3.2, z: -3.5, size: 0.95, freq: 1.8, phase: 0.2 },
+          { x: -7.2, y: -2.1, z: -4.0, size: 0.75, freq: 2.3, phase: 1.5 },
+          { x: 6.8, y: 3.8, z: -4.5, size: 1.10, freq: 1.4, phase: 2.8 },
+          { x: 5.2, y: -3.4, z: -3.8, size: 0.85, freq: 2.7, phase: 3.4 },
+          { x: -2.2, y: 4.2, z: -4.2, size: 0.70, freq: 2.0, phase: 4.2 },
+          { x: 1.8, y: 3.6, z: -3.0, size: 0.80, freq: 1.6, phase: 5.1 },
+          { x: -8.0, y: 1.0, z: -5.0, size: 0.90, freq: 2.1, phase: 0.9 },
+          { x: 7.5, y: -1.2, z: -4.8, size: 0.75, freq: 1.9, phase: 3.7 },
+          { x: 0.2, y: -4.1, z: -4.0, size: 0.65, freq: 2.4, phase: 2.1 },
+        ];
+
+        const starFlareSprites = landmarkStars.map((st) => {
+          const mat = new THREE.SpriteMaterial({
+            map: starFlareTex,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.85,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            depthTest: false,
+          });
+          const sprite = new THREE.Sprite(mat);
+          sprite.position.set(st.x, st.y, st.z);
+          sprite.scale.set(st.size, st.size, 1);
+          sprite.renderOrder = 10;
+          starFlareGroup.add(sprite);
+          return { sprite, data: st };
+        });
+
+        // ═══════════════════════════════════════════
+        // 4. SHOOTING STAR / METEOR SYSTEM
+        // ═══════════════════════════════════════════
+        const meteorGeo = new THREE.BufferGeometry();
+        const meteorPositions = new Float32Array([0, 0, 0, -1.8, 1.2, -0.4]);
+        meteorGeo.setAttribute('position', new THREE.BufferAttribute(meteorPositions, 3));
+        const meteorMat = new THREE.LineBasicMaterial({
+          color: 0x38bdf8,
+          transparent: true,
+          opacity: 0.0,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const meteorLine = new THREE.Line(meteorGeo, meteorMat);
+        scene.add(meteorLine);
+
+        let meteorActive = false;
+        let meteorProgress = 0;
+        let meteorOrigin = new THREE.Vector3();
+        let meteorNextTime = 3.5;
+
+        // Earth Master System Group
+        const earthMasterGroup = new THREE.Group();
+        earthMasterGroup.position.set(0.4, -0.15, -0.2);
+        earthMasterGroup.rotation.z = (23.5 * Math.PI) / 180;
+        scene.add(earthMasterGroup);
+
+        const earthSpinGroup = new THREE.Group();
+        earthMasterGroup.add(earthSpinGroup);
+
+        // Placeholder dark sphere while authentic 3D NASA Earth GLB loads
+        const baseEarthMat = new THREE.MeshStandardMaterial({
+          color: 0x071526,
+          roughness: 0.75,
+          metalness: 0.25,
+        });
+        const baseEarthMesh = new THREE.Mesh(new THREE.SphereGeometry(1.85, 32, 32), baseEarthMat);
+        earthSpinGroup.add(baseEarthMesh);
+
+        // ═══════════════════════════════════════════
+        // REALISTIC PLANETARY ATMOSPHERE (Rayleigh & Mie Scattering)
+        // ═══════════════════════════════════════════
+
+        // Dynamic atmospheric cloud layer
+        const cloudMat = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.24,
+          blending: THREE.AdditiveBlending,
+        });
+        const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(1.865, 64, 64), cloudMat);
+        earthSpinGroup.add(cloudMesh);
+
+        // 1. Inner atmospheric Rayleigh limb glow (soft gradient hugging Earth's horizon)
+        const innerAtmoGeo = new THREE.SphereGeometry(1.875, 64, 64);
+        const innerAtmoMat = new THREE.ShaderMaterial({
+          uniforms: {
+            sunDirection: { value: new THREE.Vector3(5, 3, 5).normalize() },
+          },
+          vertexShader: `
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            void main() {
+              vNormal = normalize(normalMatrix * normal);
+              vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+              vViewDir = normalize(-mvPos.xyz);
+              gl_Position = projectionMatrix * mvPos;
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            uniform vec3 sunDirection;
+            void main() {
+              float viewDot = max(0.0, dot(vViewDir, vNormal));
+              // Soft exponential Fresnel falloff concentrated at glancing angles
+              float fresnel = pow(1.0 - viewDot, 2.6) * 1.25;
+              
+              // Directional sunlight scattering
+              vec3 normWorld = normalize(vNormal);
+              float sunDot = dot(normWorld, normalize(sunDirection));
+              float dayFactor = smoothstep(-0.25, 0.65, sunDot);
+              
+              // Atmospheric color transition: twilight navy to stratospheric azure
+              vec3 dayColor = vec3(0.35, 0.75, 1.0);
+              vec3 duskColor = vec3(0.10, 0.32, 0.80);
+              vec3 atmoColor = mix(duskColor, dayColor, dayFactor);
+              
+              gl_FragColor = vec4(atmoColor, fresnel * (dayFactor * 0.70 + 0.15));
+            }
+          `,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const innerAtmoMesh = new THREE.Mesh(innerAtmoGeo, innerAtmoMat);
+        earthMasterGroup.add(innerAtmoMesh);
+
+        // 2. Outer soft planetary haze (exponential decay into the vacuum of space, zero hard edges)
+        const outerAtmoGeo = new THREE.SphereGeometry(2.04, 64, 64);
+        const outerAtmoMat = new THREE.ShaderMaterial({
+          uniforms: {
+            sunDirection: { value: new THREE.Vector3(5, 3, 5).normalize() },
+          },
+          vertexShader: `
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            void main() {
+              vNormal = normalize(normalMatrix * normal);
+              vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+              vViewDir = normalize(-mvPos.xyz);
+              gl_Position = projectionMatrix * mvPos;
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vNormal;
+            varying vec3 vViewDir;
+            uniform vec3 sunDirection;
+            void main() {
+              float rim = max(0.0, dot(vNormal, vViewDir));
+              float intensity = pow(rim, 4.2) * 1.1;
+              
+              vec3 normWorld = normalize(vNormal);
+              float sunDot = dot(normWorld, normalize(sunDirection));
+              float sunScatter = smoothstep(-0.3, 0.7, sunDot) * 0.8 + 0.2;
+              
+              vec3 hazeColor = mix(vec3(0.06, 0.25, 0.70), vec3(0.38, 0.78, 1.0), rim);
+              gl_FragColor = vec4(hazeColor, intensity * sunScatter * 0.50);
+            }
+          `,
+          side: THREE.BackSide,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const outerAtmoMesh = new THREE.Mesh(outerAtmoGeo, outerAtmoMat);
+        earthMasterGroup.add(outerAtmoMesh);
+
+        // ═══════════════════════════════════════════
+        // 4 REALISTIC SATELLITES (CALIPSO, IBEX, Space Systems Loral, LLCD)
+        // ═══════════════════════════════════════════
+        const SATELLITE_CONFIGS = [
+          {
+            name: 'Space Systems Loral',
+            file: '/Assets/Space Systems Loral (SSL-1300).glb',
+            targetSize: 0.36,
+            radiusX: 3.10,
+            radiusZ: 2.85,
+            tilt: [0.22, 0.10, 0.05],
+            speed: 0.16,
+            phase: 0.5,
+            trailColor: 0x38bdf8,
+            trailOpacity: 0.16,
+          },
+          {
+            name: 'Lunar Laser Communication',
+            file: '/Assets/Lunar Laser Communications Demonstration (LLCD).glb',
+            targetSize: 0.32,
+            radiusX: 2.80,
+            radiusZ: 2.65,
+            tilt: [0.65, 0.25, -0.35],
+            speed: 0.22,
+            phase: 2.2,
+            trailColor: 0x22d3ee,
+            trailOpacity: 0.16,
+          },
+          {
+            name: 'Cloud-Aerosol Lidar (CALIPSO)',
+            file: '/Assets/Cloud-Aerosol Lidar and Infrared Pathfinder Satellite (CALIPSO).glb',
+            targetSize: 0.28,
+            radiusX: 2.55,
+            radiusZ: 2.45,
+            tilt: [1.20, 0.18, 0.12],
+            speed: 0.28,
+            phase: 3.9,
+            trailColor: 0x34d399,
+            trailOpacity: 0.15,
+          },
+          {
+            name: 'IBEX',
+            file: '/Assets/Interstellar Boundary Explorer (IBEX).glb',
+            targetSize: 0.24,
+            radiusX: 3.40,
+            radiusZ: 3.15,
+            tilt: [-0.40, -0.18, 0.30],
+            speed: 0.14,
+            phase: 5.2,
+            trailColor: 0xc084fc,
+            trailOpacity: 0.15,
+          },
+        ];
+
+        const activeSatellites = [];
+
+        SATELLITE_CONFIGS.forEach((cfg) => {
+          // Luminous orbital track
+          const orbitPts = [];
+          for (let j = 0; j <= 128; j++) {
+            const theta = (j / 128) * Math.PI * 2;
+            const v = new THREE.Vector3(
+              cfg.radiusX * Math.cos(theta),
+              0.32 * Math.sin(theta),
+              cfg.radiusZ * Math.sin(theta)
+            );
+            v.applyEuler(new THREE.Euler(...cfg.tilt));
+            orbitPts.push(v);
+          }
+          const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPts);
+          const orbitMat = new THREE.LineBasicMaterial({
+            color: cfg.trailColor,
+            transparent: true,
+            opacity: cfg.trailOpacity,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          const orbitLine = new THREE.Line(orbitGeo, orbitMat);
+          scene.add(orbitLine);
+
+          // Satellite host group
+          const satGroup = new THREE.Group();
+          scene.add(satGroup);
+
+          // Initial procedural placeholder with realistic proportions while GLB loads
+          const placeholder = new THREE.Group();
+          const pBusMat = new THREE.MeshStandardMaterial({ color: 0xebb144, metalness: 0.9, roughness: 0.2 });
+          const pBus = new THREE.Mesh(
+            new THREE.BoxGeometry(cfg.targetSize * 0.28, cfg.targetSize * 0.24, cfg.targetSize * 0.32),
+            pBusMat
+          );
+          placeholder.add(pBus);
+
+          const pWingMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, metalness: 0.95, roughness: 0.1 });
+          const pLeftWing = new THREE.Mesh(
+            new THREE.BoxGeometry(cfg.targetSize * 0.42, cfg.targetSize * 0.16, 0.015),
+            pWingMat
+          );
+          pLeftWing.position.x = -cfg.targetSize * 0.34;
+          const pRightWing = new THREE.Mesh(
+            new THREE.BoxGeometry(cfg.targetSize * 0.42, cfg.targetSize * 0.16, 0.015),
+            pWingMat
+          );
+          pRightWing.position.x = cfg.targetSize * 0.34;
+          placeholder.add(pLeftWing, pRightWing);
+
+          satGroup.add(placeholder);
+
+          activeSatellites.push({
+            cfg,
+            group: satGroup,
+            placeholder,
+            model: null,
+          });
+        });
+
+        // Ambient orbital accent lights for satellite highlights
+        const satSpotLight = new THREE.PointLight(0x93c5fd, 2.2, 8);
+        satSpotLight.position.set(2.8, 2.0, 1.2);
+        scene.add(satSpotLight);
+
+        const satSunRim = new THREE.PointLight(0xffedd5, 1.6, 7);
+        satSunRim.position.set(3.5, 0.5, -1.0);
+        scene.add(satSunRim);
+
+        let loadedEarthGlb = null;
+
+        // Load authentic 3D Earth Globe and Satellite GLB models
+        try {
+          const loader = new THREE.GLTFLoader();
+
+          if (typeof THREE.DRACOLoader !== 'undefined') {
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.3/');
+            dracoLoader.preload();
+            loader.setDRACOLoader(dracoLoader);
+          }
+
+        // Load authentic 3D NASA Earth Globe (optimized 4.2 MB)
+        //
+        // The GLB is a progressive enhancement: a procedural Earth already
+        // renders underneath it. Downloading ~4.2 MB (plus ~4.5 MB of
+        // satellites) on a phone is the single biggest cost on this page, so
+        // on low-spec devices we keep the procedural globe and skip the models
+        // entirely. On capable devices we still defer the download until the
+        // browser is idle so it never competes with first paint.
+        const loadHeavyModels = () => {
+          if (isLowSpec) return;
+
+          // Earth globe
+          loader.load(
+            '/Assets/earth_globe.glb',
+            (gltf) => {
+              loadedEarthGlb = gltf.scene;
+              const box = new THREE.Box3().setFromObject(loadedEarthGlb);
+              const center = box.getCenter(new THREE.Vector3());
+              const size = box.getSize(new THREE.Vector3());
+              const maxDim = Math.max(size.x, size.y, size.z);
+
+              const targetDiameter = 3.7;
+              const scaleFactor = targetDiameter / maxDim;
+              loadedEarthGlb.scale.setScalar(scaleFactor);
+
+              loadedEarthGlb.position.x = -center.x * scaleFactor;
+              loadedEarthGlb.position.y = -center.y * scaleFactor;
+              loadedEarthGlb.position.z = -center.z * scaleFactor;
+
+              loadedEarthGlb.traverse((child) => {
+                if (child.isMesh && child.material) {
+                  child.castShadow = true;
+                  child.receiveShadow = true;
+                  child.material.needsUpdate = true;
+                }
+              });
+
+              earthSpinGroup.add(loadedEarthGlb);
+              baseEarthMesh.visible = false;
+            },
+            undefined,
+            (err) => console.warn('Earth GLB load info:', err)
+          );
+
+          // Satellite models
+          activeSatellites.forEach((satObj) => {
+            loader.load(
+              encodeURI(satObj.cfg.file),
+              (gltf) => {
+                const model = gltf.scene;
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+
+                const scaleFactor = satObj.cfg.targetSize / maxDim;
+                model.scale.setScalar(scaleFactor);
+                model.position.set(-center.x * scaleFactor, -center.y * scaleFactor, -center.z * scaleFactor);
+
+                model.traverse((child) => {
+                  if (child.isMesh && child.material) {
+                    child.material.side = THREE.DoubleSide;
+                    child.material.needsUpdate = true;
+                  }
+                });
+
+                satObj.group.remove(satObj.placeholder);
+                satObj.group.add(model);
+                satObj.model = model;
+              },
+              undefined,
+              () => {}
+            );
+          });
+        };
+
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(loadHeavyModels, { timeout: 4000 });
+        } else {
+          setTimeout(loadHeavyModels, 1500);
+        }
+        } catch (e) {
+          console.warn('3D space models init:', e);
+        }
+
+        // Mouse tracking for parallax
+        let mouseX = 0, mouseY = 0;
+        const onMouseMove = (e) => {
+          mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+          mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        };
+        window.addEventListener('mousemove', onMouseMove, { passive: true });
+
+        // Intersection Observer: Pause WebGL rendering loop when user scrolls away from hero
+        let isHeroVisible = true;
+        let heroObserver = null;
+        const heroSection = document.getElementById('hero');
+        if (heroSection && 'IntersectionObserver' in window) {
+          heroObserver = new IntersectionObserver(([entry]) => {
+            isHeroVisible = entry.isIntersecting;
+          }, { threshold: 0.05 });
+          heroObserver.observe(heroSection);
+        }
+
+        // Animation loop (Smart throttled for low-end device battery & GPU efficiency)
+        let frameId;
+        const clock = new THREE.Clock();
+        const animate = () => {
+          frameId = requestAnimationFrame(animate);
+          
+          // If hero section has been scrolled out of view, sleep the render loop!
+          if (!isHeroVisible) return;
+
+          const elapsed = clock.getElapsedTime();
+
+          // 1. Earth rotation & clouds drift
+          earthSpinGroup.rotation.y = elapsed * 0.055;
+          cloudMesh.rotation.y = elapsed * 0.070;
+
+          // 2. Drifting Random Cosmic Nebula Clouds
+          const nPositions = nebulaGeo.attributes.position.array;
+          for (let i = 0; i < nebulaCount; i++) {
+            const b = nebulaBasePos[i];
+            nPositions[i * 3] = b.x + Math.sin(elapsed * b.speed + b.phase) * 1.4;
+            nPositions[i * 3 + 1] = b.y + Math.cos(elapsed * (b.speed * 0.8) + b.phase) * 0.9;
+            nPositions[i * 3 + 2] = b.z + Math.sin(elapsed * (b.speed * 0.6) + b.phase) * 0.6;
+          }
+          nebulaGeo.attributes.position.needsUpdate = true;
+
+          // 3. Twinkling Diffraction Cross Star Flares
+          starFlareSprites.forEach(({ sprite, data }) => {
+            const pulse = Math.sin(elapsed * data.freq + data.phase);
+            sprite.scale.set(data.size * (1 + 0.35 * pulse), data.size * (1 + 0.35 * pulse), 1);
+            sprite.material.opacity = 0.60 + 0.35 * pulse;
+          });
+
+          // 4. Shooting Star / Meteor Triggering
+          if (!meteorActive && elapsed > meteorNextTime) {
+            meteorActive = true;
+            meteorProgress = 0;
+            meteorOrigin.set(
+              (Math.random() - 0.2) * 16 - 2,
+              Math.random() * 6 + 2,
+              -4 - Math.random() * 4
+            );
+            meteorNextTime = elapsed + 5.0 + Math.random() * 6.0;
+          }
+
+          if (meteorActive) {
+            meteorProgress += 0.035;
+            const mx = meteorOrigin.x + meteorProgress * 8;
+            const my = meteorOrigin.y - meteorProgress * 5;
+            const mz = meteorOrigin.z + meteorProgress * 2;
+            const tailLength = 1.6;
+
+            const mPos = meteorGeo.attributes.position.array;
+            mPos[0] = mx;
+            mPos[1] = my;
+            mPos[2] = mz;
+            mPos[3] = mx - tailLength * 0.85;
+            mPos[4] = my + tailLength * 0.55;
+            mPos[5] = mz - tailLength * 0.2;
+            meteorGeo.attributes.position.needsUpdate = true;
+
+            const fade = Math.sin(meteorProgress * Math.PI);
+            meteorMat.opacity = Math.max(0, fade * 0.8);
+
+            if (meteorProgress >= 1.0) {
+              meteorActive = false;
+              meteorMat.opacity = 0;
+            }
+          }
+
+          // 5. Update All 4 Satellites in Orbit
+          activeSatellites.forEach((satObj) => {
+            const t = elapsed * satObj.cfg.speed + satObj.cfg.phase;
+            const x = satObj.cfg.radiusX * Math.cos(t);
+            const y = 0.32 * Math.sin(t);
+            const z = satObj.cfg.radiusZ * Math.sin(t);
+
+            const pos = new THREE.Vector3(x, y, z);
+            pos.applyEuler(new THREE.Euler(...satObj.cfg.tilt));
+            satObj.group.position.copy(pos);
+
+            satObj.group.rotation.y = elapsed * 0.22;
+          });
+
+          // Atmosphere scattering illumination sync
+          innerAtmoMat.uniforms.sunDirection.value.copy(sunLight.position).normalize();
+          outerAtmoMat.uniforms.sunDirection.value.copy(sunLight.position).normalize();
+
+          // 6. Cosmic Parallax with smooth damping
+          camera.position.x += (mouseX * 0.35 - camera.position.x) * 0.025;
+          camera.position.y += (mouseY * 0.25 - camera.position.y) * 0.025;
+          camera.lookAt(0, 0, 0);
+
+          // 7. Starfield gentle celestial rotation
+          starField.rotation.y = elapsed * 0.005;
+
+          renderer.render(scene, camera);
+        };
+        animate();
+
+        // Resize handler
+        const onResize = () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+        window.addEventListener('resize', onResize);
+
+        return () => {
+          cancelAnimationFrame(frameId);
+          if (heroObserver) heroObserver.disconnect();
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('resize', onResize);
+          renderer.dispose();
+        };
+      }, [ecoMode]);
+
+      return (
+        <>
+          {ecoMode ? (
+            <div className="fixed inset-0 pointer-events-none overflow-hidden bg-[#08080a]" style={{ zIndex: 0 }}>
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(14,165,233,0.12),rgba(0,0,0,0))]" />
+              <div className="eco-starfield" />
+            </div>
+          ) : (
+            <canvas
+              ref={canvasRef}
+              className="fixed inset-0 w-full h-full pointer-events-none"
+              style={{ zIndex: 0 }}
+            />
+          )}
+        </>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // GRADIENT OVERLAYS (Cosmic Depth with Deep Space Aura)
+    // ═══════════════════════════════════════════
+    const GradientOverlays = () => (
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+        {/* Subtle linear background that keeps Earth and stars crystal clear */}
+        <div className="absolute inset-0" style={{
+          background: 'linear-gradient(to bottom, rgba(8,8,10,0.10) 0%, rgba(8,8,10,0.28) 45%, rgba(8,8,10,0.85) 88%, rgba(8,8,10,0.98) 100%)'
+        }} />
+        {/* Soft radial vignette */}
+        <div className="absolute inset-0" style={{
+          background: 'radial-gradient(ellipse at 55% 38%, rgba(8,8,10,0) 42%, rgba(8,8,10,0.82) 94%)'
+        }} />
+        {/* Specular cosmic ambient glows */}
+        <div className="ambient-glow" style={{
+          width: 550, height: 550, top: 100, left: 160,
+          background: 'rgba(56, 189, 248, 0.04)',
+        }} />
+        <div className="ambient-glow" style={{
+          width: 700, height: 700, top: 340, right: 0,
+          background: 'rgba(124, 58, 237, 0.035)',
+          filter: 'blur(170px)'
+        }} />
+      </div>
+    );
+
+    // ═══════════════════════════════════════════
+    // NAVBAR (Immaculate Precision Header)
+    // ═══════════════════════════════════════════
+    const Navbar = ({ generalData, ecoMode, toggleEcoMode }) => {
+      const [scrolled, setScrolled] = useState(false);
+      const [activeNav, setActiveNav] = useState('Overview');
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+      const brandTitle = generalData?.brandTitle || 'THEOLOGY26';
+      const brandDomain = generalData?.brandDomain || 'theo.dev';
+      const availabilityStatus = generalData?.availabilityStatus || 'AVAILABLE';
+
+      useEffect(() => {
+        const handleScroll = () => {
+          setScrolled(window.scrollY > 40);
+          const sections = [
+            { id: 'hero', name: 'Overview' },
+            { id: 'certificates', name: 'Certificates' },
+            { id: 'projects', name: 'Projects' },
+            { id: 'techstack', name: 'Stack' },
+            { id: 'education', name: 'Experience' },
+            { id: 'contact', name: 'Contact' },
+          ];
+          const scrollPos = window.scrollY + 220;
+          for (let i = sections.length - 1; i >= 0; i--) {
+            const el = document.getElementById(sections[i].id);
+            if (el && el.offsetTop <= scrollPos) {
+              setActiveNav(sections[i].name);
+              break;
+            }
+          }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, []);
+
+      const navItems = [
+        { label: 'Overview', id: 'hero' },
+        { label: 'Certificates', id: 'certificates' },
+        { label: 'Projects', id: 'projects' },
+        { label: 'Stack', id: 'techstack' },
+        { label: 'Experience', id: 'education' },
+        { label: 'Contact', id: 'contact' },
+      ];
+
+      return (
+        <header className="fixed top-2.5 sm:top-3.5 left-0 right-0 z-50 flex flex-col items-center px-2.5 sm:px-6 pointer-events-none">
+          <nav
+            className={`pointer-events-auto flex items-center justify-between gap-1.5 sm:gap-4 px-2.5 sm:px-4 py-2 rounded-full transition-all duration-300 max-w-[1180px] w-full ${
+              scrolled ? 'nav-scrolled shadow-[0_16px_40px_rgba(0,0,0,0.7)]' : 'shadow-[0_8px_28px_rgba(0,0,0,0.4)]'
+            }`}
+            style={{
+              background: scrolled ? 'rgba(8,10,16,0.92)' : 'rgba(15,18,26,0.65)',
+              border: '1px solid rgba(255,255,255,0.14)',
+              backdropFilter: 'blur(24px)',
+            }}
+          >
+            {/* Brand Identity */}
+            <div 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center gap-2 pr-2 sm:pr-3.5 border-r border-white/10 shrink-0 cursor-pointer group select-none"
+            >
+              <div className="w-7 h-7 rounded-full bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center overflow-hidden group-hover:border-cyan-300 transition-all shadow-[0_0_10px_rgba(6,182,212,0.35)] shrink-0">
+                <img
+                  src={generalData?.logoUrl || '/Assets/avatar_animated.png'}
+                  alt={brandTitle}
+                  className="w-full h-full object-cover object-center"
+                />
+              </div>
+              <div className="flex items-center gap-1 font-mono text-xs">
+                <span className="font-semibold text-white tracking-wider group-hover:text-cyan-300 transition-colors text-[11px] sm:text-xs">{brandTitle}</span>
+                <span className="text-white/25 hidden xs:inline">/</span>
+                <span className="text-sky-400/90 font-medium hidden sm:inline">{brandDomain}</span>
+              </div>
+              <span className="hidden xl:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-mono font-medium tracking-wide bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {availabilityStatus}
+              </span>
+            </div>
+
+            {/* Nav Links (Single-line whitespace-nowrap) */}
+            <div className="hidden lg:flex items-center gap-1">
+              {navItems.map((item) => {
+                const isActive = activeNav === item.label;
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      setActiveNav(item.label);
+                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-mono transition-all duration-200 whitespace-nowrap ${
+                      isActive
+                        ? 'bg-white/15 text-white font-medium border border-white/20 shadow-[0_0_12px_rgba(255,255,255,0.1)]'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+              {/* Eco / Kentang Mode Button */}
+              <button
+                onClick={toggleEcoMode}
+                className={`glass-pill px-2 sm:px-2.5 py-1.5 rounded-full text-[10px] sm:text-xs font-mono transition-all flex items-center gap-1 border shrink-0 ${
+                  ecoMode
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.25)]'
+                    : 'text-zinc-400 hover:text-white border-white/15'
+                }`}
+                title={ecoMode ? 'Eco Mode Active: Lightweight 2D starfield, zero WebGL overhead' : 'Switch to Eco Mode for potato devices (saves GPU & battery)'}
+              >
+                <span>{ecoMode ? '⚡ ECO' : '🚀 3D'}</span>
+              </button>
+
+              {/* ATS CV PDF Generator Link */}
+              <a
+                href="/api/cv/download"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-pill px-2 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-mono font-medium text-cyan-300 hover:text-white hover:bg-cyan-500/20 transition-all flex items-center gap-1 border border-cyan-500/35 whitespace-nowrap shadow-[0_0_10px_rgba(6,182,212,0.15)]"
+                title="Preview & Download ATS CV (PDF)"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                </svg>
+                <span>CV</span>
+              </a>
+
+              <a
+                href="https://linktr.ee/TheHighTee"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden md:flex glass-pill px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-mono text-zinc-300 hover:text-white hover:bg-white/10 transition-all items-center gap-1 whitespace-nowrap border border-white/15"
+              >
+                <span>LINKTREE</span>
+                <span className="text-[10px] text-zinc-400">↗</span>
+              </a>
+
+              <a
+                href="https://github.com/theology26"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-mono font-semibold bg-white text-zinc-950 hover:bg-zinc-200 transition-all items-center gap-1.5 shadow-[0_0_16px_rgba(255,255,255,0.2)] whitespace-nowrap"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                <span>GITHUB</span>
+              </a>
+
+              {/* Admin Dashboard Entry */}
+              <a
+                href="/admin"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-pill w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs font-mono text-zinc-400 hover:text-white hover:bg-white/15 transition-all flex items-center justify-center border border-white/15 shrink-0"
+                title="Admin Console"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+              </a>
+
+              {/* Mobile menu toggle */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden glass-pill w-7 h-7 sm:w-8 sm:h-8 rounded-full text-zinc-300 hover:text-white flex items-center justify-center border border-white/15 shrink-0"
+                aria-label="Toggle navigation menu"
+              >
+                {mobileMenuOpen ? (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                ) : (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </nav>
+
+          {/* Mobile Drawer Dropdown */}
+          {mobileMenuOpen && (
+            <div 
+              className="pointer-events-auto mt-2 w-full max-w-[480px] rounded-2xl p-4 border border-white/15 shadow-2xl flex flex-col gap-2.5 transition-all"
+              style={{ backdropFilter: 'blur(28px)', background: 'rgba(10,12,20,0.96)' }}
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider">// NAVIGATION MENU</span>
+                <button
+                  onClick={toggleEcoMode}
+                  className={`px-2.5 py-1 rounded-full text-[10px] font-mono border transition-all ${
+                    ecoMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-white/5 text-zinc-300 border-white/10'
+                  }`}
+                >
+                  {ecoMode ? '⚡ Eco Mode ON' : '🚀 3D Mode ON'}
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {navItems.map(item => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      setActiveNav(item.label);
+                      setMobileMenuOpen(false);
+                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="text-left px-3 py-2 rounded-lg text-xs font-mono text-zinc-300 hover:text-white hover:bg-white/10 transition-colors"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <div className="pt-2 mt-1 border-t border-white/10 flex items-center justify-between gap-2">
+                <a href="https://linktr.ee/TheHighTee" target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-2 rounded-lg text-xs font-mono bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10">
+                  Linktree ↗
+                </a>
+                <a href="https://github.com/theology26" target="_blank" rel="noopener noreferrer" className="flex-1 text-center py-2 rounded-lg text-xs font-mono bg-white text-zinc-950 font-semibold">
+                  GitHub ↗
+                </a>
+              </div>
+            </div>
+          )}
+        </header>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // LANYARD CARD (Interactive Developer Identity Pass)
+    // ═══════════════════════════════════════════
+    // ═══════════════════════════════════════════
+    // LANYARD CARD (Ultra-Realistic Flexible Rubber / Cloth Physics)
+    // ═══════════════════════════════════════════
+    const LanyardCard = ({ lanyard }) => {
+      const containerRef = useRef(null);
+      const isDraggingRef = useRef(false);
+      const dragStartRef = useRef({ mouseX: 0, mouseY: 0, posX: 0, posY: 0 });
+
+      // Physics State Refs (Updated in 60fps RAF loop)
+      const posRef = useRef({ x: 0, y: 0 });
+      const velRef = useRef({ x: 0, y: 0 });
+      const angleRef = useRef(0);
+      const angleVelRef = useRef(0);
+      const targetPosRef = useRef({ x: 0, y: 0 });
+
+      // Visual state for React rendering
+      const [visualState, setVisualState] = useState({
+        x: 0,
+        y: 0,
+        angle: 0,
+        tiltX: 0,
+        tiltY: 0,
+        isDragging: false,
+      });
+
+      const animRunningRef = useRef(true);
+
+      // 60FPS Physics Animation Loop with Idle Sleep Guard
+      useEffect(() => {
+        let animId;
+        let lastTime = performance.now();
+
+        const updatePhysics = (currentTime) => {
+          const dt = Math.min((currentTime - lastTime) / 1000, 0.033);
+          lastTime = currentTime;
+
+          const isDrag = isDraggingRef.current;
+          const pos = posRef.current;
+          const vel = velRef.current;
+          const target = targetPosRef.current;
+          const restLength = 145;
+
+          if (isDrag) {
+            // Elastic rubber stretch tracking toward pointer target
+            const followSpeed = 22;
+            pos.x += (target.x - pos.x) * followSpeed * dt;
+            pos.y += (target.y - pos.y) * followSpeed * dt;
+
+            // Track velocity for release momentum
+            vel.x = (target.x - pos.x) * 12;
+            vel.y = (target.y - pos.y) * 12;
+
+            // Pendulum tilt angle follows pull direction
+            const targetAngle = Math.atan2(pos.x, restLength + pos.y) * 0.82;
+            angleRef.current += (targetAngle - angleRef.current) * 14 * dt;
+            angleVelRef.current = 0;
+          } else {
+            // Damped Spring Harmonic Oscillation (Elastic rubber + gravity)
+            const kSpring = 42; // Spring stiffness
+            const cDamping = 6.8; // Air & material damping
+
+            // Elastic restoring forces
+            const forceX = -kSpring * pos.x - cDamping * vel.x;
+            const forceY = -kSpring * pos.y - cDamping * vel.y;
+
+            vel.x += forceX * dt;
+            vel.y += forceY * dt;
+            pos.x += vel.x * dt;
+            pos.y += vel.y * dt;
+
+            // Angular pendulum torque and oscillation
+            const kAngle = 36;
+            const cAngle = 5.2;
+            const torque = -kAngle * angleRef.current - cAngle * angleVelRef.current + (vel.x * 0.04);
+            angleVelRef.current += torque * dt;
+            angleRef.current += angleVelRef.current * dt;
+
+            // Check if card has settled to rest
+            const isSettled = Math.abs(pos.x) < 0.25 && Math.abs(pos.y) < 0.25 && Math.abs(vel.x) < 0.6 && Math.abs(vel.y) < 0.6 && Math.abs(angleRef.current) < 0.005;
+            if (isSettled) {
+              pos.x = 0;
+              pos.y = 0;
+              vel.x = 0;
+              vel.y = 0;
+              angleRef.current = 0;
+              angleVelRef.current = 0;
+              setVisualState({ x: 0, y: 0, angle: 0, tiltX: 0, tiltY: 0, isDragging: false });
+              animRunningRef.current = false;
+              return; // Sleep animation loop!
+            }
+          }
+
+          // 3D Perspective card tilts
+          const tiltY = Math.max(-28, Math.min(28, -pos.x * 0.12 - vel.x * 0.04));
+          const tiltX = Math.max(-20, Math.min(22, pos.y * 0.08 - vel.y * 0.03));
+
+          setVisualState({
+            x: pos.x,
+            y: pos.y,
+            angle: angleRef.current,
+            tiltX,
+            tiltY,
+            isDragging: isDrag,
+          });
+
+          animId = requestAnimationFrame(updatePhysics);
+        };
+
+        animId = requestAnimationFrame(updatePhysics);
+        return () => cancelAnimationFrame(animId);
+      }, []);
+
+      // Pointer Event Handlers (Mouse & Touch Support)
+      const handlePointerDown = (e) => {
+        isDraggingRef.current = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+
+        dragStartRef.current = {
+          mouseX: e.clientX,
+          mouseY: e.clientY,
+          posX: posRef.current.x,
+          posY: posRef.current.y,
+        };
+
+        // Wake up physics loop if sleeping
+        if (!animRunningRef.current) {
+          animRunningRef.current = true;
+          animId = requestAnimationFrame(() => {
+            let lastTime = performance.now();
+            const updatePhysics = (currentTime) => {
+              const dt = Math.min((currentTime - lastTime) / 1000, 0.033);
+              lastTime = currentTime;
+              const isDrag = isDraggingRef.current;
+              const pos = posRef.current;
+              const vel = velRef.current;
+              const target = targetPosRef.current;
+              const restLength = 145;
+
+              if (isDrag) {
+                pos.x += (target.x - pos.x) * 22 * dt;
+                pos.y += (target.y - pos.y) * 22 * dt;
+                vel.x = (target.x - pos.x) * 12;
+                vel.y = (target.y - pos.y) * 12;
+                const targetAngle = Math.atan2(pos.x, restLength + pos.y) * 0.82;
+                angleRef.current += (targetAngle - angleRef.current) * 14 * dt;
+                angleVelRef.current = 0;
+              } else {
+                const kSpring = 42;
+                const cDamping = 6.8;
+                vel.x += (-kSpring * pos.x - cDamping * vel.x) * dt;
+                vel.y += (-kSpring * pos.y - cDamping * vel.y) * dt;
+                pos.x += vel.x * dt;
+                pos.y += vel.y * dt;
+                const torque = -36 * angleRef.current - 5.2 * angleVelRef.current + (vel.x * 0.04);
+                angleVelRef.current += torque * dt;
+                angleRef.current += angleVelRef.current * dt;
+
+                const isSettled = Math.abs(pos.x) < 0.25 && Math.abs(pos.y) < 0.25 && Math.abs(vel.x) < 0.6 && Math.abs(vel.y) < 0.6 && Math.abs(angleRef.current) < 0.005;
+                if (isSettled) {
+                  pos.x = 0; pos.y = 0; vel.x = 0; vel.y = 0; angleRef.current = 0; angleVelRef.current = 0;
+                  setVisualState({ x: 0, y: 0, angle: 0, tiltX: 0, tiltY: 0, isDragging: false });
+                  animRunningRef.current = false;
+                  return;
+                }
+              }
+
+              const tiltY = Math.max(-28, Math.min(28, -pos.x * 0.12 - vel.x * 0.04));
+              const tiltX = Math.max(-20, Math.min(22, pos.y * 0.08 - vel.y * 0.03));
+              setVisualState({ x: pos.x, y: pos.y, angle: angleRef.current, tiltX, tiltY, isDragging: isDrag });
+              requestAnimationFrame(updatePhysics);
+            };
+            requestAnimationFrame(updatePhysics);
+          });
+        }
+      };
+
+      const handlePointerMove = (e) => {
+        if (!isDraggingRef.current) return;
+        const deltaX = e.clientX - dragStartRef.current.mouseX;
+        const deltaY = e.clientY - dragStartRef.current.mouseY;
+
+        // Realistic non-linear rubber resistance stretch
+        const rawX = dragStartRef.current.posX + deltaX;
+        const rawY = dragStartRef.current.posY + deltaY;
+
+        // Clamped soft rubber limit
+        const stretchedX = rawX * 0.92;
+        const stretchedY = rawY > 0 ? rawY * 0.88 : rawY * 0.65; // Pulling up slacks, pulling down stretches
+
+        targetPosRef.current = {
+          x: Math.max(-220, Math.min(220, stretchedX)),
+          y: Math.max(-65, Math.min(240, stretchedY)),
+        };
+      };
+
+      const handlePointerUp = (e) => {
+        if (isDraggingRef.current) {
+          isDraggingRef.current = false;
+          try {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+          } catch (err) {}
+        }
+      };
+
+      // ═══════════════════════════════════════════
+      // DYNAMIC CLOTH & RUBBER BEZIER CURVE MATH
+      // ═══════════════════════════════════════════
+      const { x: curX, y: curY, angle: curAngle, tiltX, tiltY, isDragging } = visualState;
+      const anchorX = 170;
+      const anchorY = 0;
+      const restLength = 145;
+
+      // End attachment point at the badge clip
+      const endX = anchorX + curX;
+      const endY = restLength + curY;
+
+      // Dynamic strap width: thins under tension like real rubber/fabric
+      const strapWidth = Math.max(18, Math.min(26, 25 - curY * 0.025));
+
+      // Cubic Bezier Control Points for dynamic cloth ribbon
+      let cp1X, cp1Y, cp2X, cp2Y;
+
+      if (curY < -5) {
+        // PUSHED UP: Ribbon develops natural slack and bows outward like loose cloth
+        const slackAmount = -curY * 0.85;
+        const sideDir = curX >= 0 ? 1 : -1;
+        cp1X = anchorX + sideDir * slackAmount * 0.9;
+        cp1Y = 35;
+        cp2X = endX + sideDir * slackAmount * 0.7;
+        cp2Y = endY - 40;
+      } else {
+        // PULLED DOWN OR SIDEWAYS: Taut elastic ribbon with tangent aligned to anchor and card tilt
+        const tangentLength = Math.max(35, 45 + curY * 0.12);
+        cp1X = anchorX + curX * 0.18;
+        cp1Y = tangentLength;
+        // Tangent entering the clip matches the badge tilt angle
+        cp2X = endX - Math.sin(curAngle) * tangentLength;
+        cp2Y = endY - Math.cos(curAngle) * tangentLength;
+      }
+
+      // Generate Center Spline Path
+      const centerSplineD = `M ${anchorX} ${anchorY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${endX} ${endY}`;
+
+      // Sample 14 points along the curve to generate parallel ribbon polygon with normal offsets
+      const sampleBezier = (t) => {
+        const u = 1 - t;
+        const tt = t * t;
+        const uu = u * u;
+        const uuu = uu * u;
+        const ttt = tt * t;
+
+        const px = uuu * anchorX + 3 * uu * t * cp1X + 3 * u * tt * cp2X + ttt * endX;
+        const py = uuu * anchorY + 3 * uu * t * cp1Y + 3 * u * tt * cp2Y + ttt * endY;
+
+        // Derivative (tangent)
+        const dx = 3 * uu * (cp1X - anchorX) + 6 * u * t * (cp2X - cp1X) + 3 * tt * (endX - cp2X);
+        const dy = 3 * uu * (cp1Y - anchorY) + 6 * u * t * (cp2Y - cp1Y) + 3 * tt * (endY - cp2Y);
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        // Normal vector perpendicular to tangent
+        const nx = -dy / len;
+        const ny = dx / len;
+
+        return { px, py, nx, ny };
+      };
+
+      const numSamples = 14;
+      const leftPts = [];
+      const rightPts = [];
+      const halfW = strapWidth / 2;
+
+      for (let i = 0; i <= numSamples; i++) {
+        const t = i / numSamples;
+        const pt = sampleBezier(t);
+        leftPts.push({ x: pt.px + pt.nx * halfW, y: pt.py + pt.ny * halfW });
+        rightPts.push({ x: pt.px - pt.nx * halfW, y: pt.py - pt.ny * halfW });
+      }
+
+      // Build ribbon polygon path
+      let ribbonPolygonD = `M ${leftPts[0].x.toFixed(1)} ${leftPts[0].y.toFixed(1)}`;
+      for (let i = 1; i <= numSamples; i++) {
+        ribbonPolygonD += ` L ${leftPts[i].x.toFixed(1)} ${leftPts[i].y.toFixed(1)}`;
+      }
+      for (let i = numSamples; i >= 0; i--) {
+        ribbonPolygonD += ` L ${rightPts[i].x.toFixed(1)} ${rightPts[i].y.toFixed(1)}`;
+      }
+      ribbonPolygonD += ' Z';
+
+      // Build stitched seam dashed paths along left and right borders
+      const stitchOffset = halfW - 2.5;
+      let leftStitchD = '';
+      let rightStitchD = '';
+      for (let i = 0; i <= numSamples; i++) {
+        const t = i / numSamples;
+        const pt = sampleBezier(t);
+        const lx = pt.px + pt.nx * stitchOffset;
+        const ly = pt.py + pt.ny * stitchOffset;
+        const rx = pt.px - pt.nx * stitchOffset;
+        const ry = pt.py - pt.ny * stitchOffset;
+        if (i === 0) {
+          leftStitchD += `M ${lx.toFixed(1)} ${ly.toFixed(1)}`;
+          rightStitchD += `M ${rx.toFixed(1)} ${ry.toFixed(1)}`;
+        } else {
+          leftStitchD += ` L ${lx.toFixed(1)} ${ly.toFixed(1)}`;
+          rightStitchD += ` L ${rx.toFixed(1)} ${ry.toFixed(1)}`;
+        }
+      }
+
+      const barcodeWidths = [2, 1, 3, 1, 2, 4, 1, 2, 3, 1, 2, 1, 2, 2, 1, 1, 2];
+
+      return (
+        <div
+          ref={containerRef}
+          className="relative flex flex-col items-center select-none max-w-full overflow-visible"
+          style={{ width: '100%', maxWidth: 340, minHeight: 580, touchAction: 'none' }}
+        >
+          {/* Dynamic Flexible Rubber & Fabric Ribbon SVG */}
+          <div className="absolute top-0 left-0 w-full pointer-events-none" style={{ height: Math.max(220, endY + 80), zIndex: 10 }}>
+            <svg width="100%" height="100%" viewBox={`0 0 340 ${Math.max(220, endY + 80)}`} className="overflow-visible">
+              <defs>
+                {/* Woven Fabric & Rubber Textured Gradient */}
+                <linearGradient id="rubberStrapGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#1a1a20" />
+                  <stop offset="18%" stopColor="#2c2c36" />
+                  <stop offset="50%" stopColor="#202028" />
+                  <stop offset="82%" stopColor="#2e2e3a" />
+                  <stop offset="100%" stopColor="#18181e" />
+                </linearGradient>
+
+                {/* Soft Dynamic Ribbon Drop Shadow */}
+                <filter id="ribbonShadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.5" />
+                  <feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.55 0" />
+                </filter>
+
+                {/* Chrome Metal Clip Gradient */}
+                <linearGradient id="chromeMetalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f4f4f5" />
+                  <stop offset="28%" stopColor="#a1a1aa" />
+                  <stop offset="48%" stopColor="#3f3f46" />
+                  <stop offset="72%" stopColor="#71717a" />
+                  <stop offset="90%" stopColor="#e4e4e7" />
+                  <stop offset="100%" stopColor="#ffffff" />
+                </linearGradient>
+              </defs>
+
+              {/* Dynamic Ribbon Shadow */}
+              <path d={ribbonPolygonD} fill="black" filter="url(#ribbonShadow)" transform="translate(3, 4)" />
+
+              {/* Flexible Fabric Ribbon Body */}
+              <path d={ribbonPolygonD} fill="url(#rubberStrapGrad)" stroke="#3f3f46" strokeWidth="0.6" />
+
+              {/* Stitched Edge Seams that bend with ribbon */}
+              <path d={leftStitchD} fill="none" stroke="#71717a" strokeWidth="1.1" strokeDasharray="3.5 2.5" opacity="0.9" />
+              <path d={rightStitchD} fill="none" stroke="#71717a" strokeWidth="1.1" strokeDasharray="3.5 2.5" opacity="0.9" />
+
+              {/* Center Spline for text alignment */}
+              <path id="strapCenterTextPath" d={centerSplineD} fill="none" />
+
+              {/* Woven Text curving dynamically along ribbon */}
+              <text fill="#a1a1aa" fontSize="7.5" fontFamily="JetBrains Mono, monospace" fontWeight="600" letterSpacing="2.5px" opacity="0.85">
+                <textPath href="#strapCenterTextPath" startOffset="50%" textAnchor="middle">
+                  {lanyard?.ribbonText || 'THEOLOGY26 // ACCESS // LARAVEL 11'}
+                </textPath>
+              </text>
+
+              {/* Anchor Mount Grommet at top */}
+              <circle cx={anchorX} cy={4} r="5.5" fill="#18181b" stroke="url(#chromeMetalGrad)" strokeWidth="1.8" />
+              <circle cx={anchorX} cy={4} r="2.2" fill="#09090b" />
+
+              {/* Chrome Metal Swivel Clip attached at end point */}
+              <g transform={`translate(${endX}, ${endY}) rotate(${(curAngle * 180) / Math.PI})`}>
+                {/* Upper Swivel Ring */}
+                <circle cx="0" cy="-12" r="5" fill="none" stroke="url(#chromeMetalGrad)" strokeWidth="2.2" />
+                {/* Clasp Body */}
+                <rect x="-10" y="-8" width="20" height="7" rx="2" fill="url(#chromeMetalGrad)" stroke="#27272a" strokeWidth="0.8" />
+                {/* Swivel Pivot Joint */}
+                <circle cx="0" cy="-4.5" r="1.8" fill="#18181b" />
+                {/* Metal Spring Hook clasping into badge slot */}
+                <path d="M-4 -1 C-4 7, -2 12, 0 14 C2 12, 4 7, 4 -1" fill="none" stroke="url(#chromeMetalGrad)" strokeWidth="2.5" strokeLinecap="round" />
+                <path d="M0 6 L0 16" stroke="url(#chromeMetalGrad)" strokeWidth="2.2" strokeLinecap="round" />
+                {/* Latch Pin */}
+                <circle cx="0" cy="14" r="2.2" fill="#27272a" stroke="#e4e4e7" strokeWidth="1" />
+              </g>
+            </svg>
+          </div>
+
+          {/* Main Card (Strictly Square 'Kotak' Pass with 2D displacement, pendulum oscillation & 3D tilt) */}
+          <div
+            className={`relative select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+            style={{
+              width: 330,
+              height: 330,
+              maxWidth: '100%',
+              transform: `translate3d(${curX}px, ${curY}px, 0px) rotate(${(curAngle * 180) / Math.PI}deg) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
+              transformOrigin: 'top center',
+              transformStyle: 'preserve-3d',
+              marginTop: 142,
+              zIndex: 20,
+              filter: `drop-shadow(${-curX * 0.12}px ${12 + curY * 0.1}px ${24 + Math.abs(curX) * 0.08}px rgba(0,0,0,0.55))`,
+            }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+          >
+            {/* Badge slot hole */}
+            <div className="flex justify-center mb-1">
+              <div className="w-16 h-3 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'rgba(0,0,0,0.7)',
+                  border: '1px solid rgba(255,255,255,0.28)',
+                  boxShadow: 'inset 0 2px 4px 1px rgba(0,0,0,0.4)',
+                }}>
+                <div className="w-10 h-1 rounded-full bg-white/30" />
+              </div>
+            </div>
+
+            {/* Card body - strictly square aspect ratio with balanced layout */}
+            <div
+              className="glass-card-strong rounded-[26px] p-4 sm:p-5 relative overflow-hidden transition-shadow duration-300 w-full flex flex-col justify-between"
+              style={{ width: '100%', height: 'calc(100% - 16px)' }}
+            >
+              {/* Holographic strip */}
+              <div className="absolute top-0 left-0 right-0 h-1 holo-strip opacity-90" />
+
+              {/* Centered radial glow */}
+              <div className="absolute inset-0 pointer-events-none" style={{
+                background: 'radial-gradient(ellipse at 50% 45%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.03) 55%, transparent 85%)'
+              }} />
+
+              {/* Dynamic specular lighting sheen that moves with 3D card tilt */}
+              <div className="absolute w-80 h-80 pointer-events-none transition-transform duration-75" style={{
+                top: -80 + tiltX * 2,
+                left: -60 - tiltY * 2.5,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.05) 50%, transparent 100%)',
+                borderRadius: '50%',
+                filter: 'blur(28px)',
+                opacity: 0.6,
+              }} />
+
+              {/* Watermark background */}
+              <div className="watermark-icon">
+                <svg width="90" height="90" viewBox="0 0 24 24" fill="white" opacity="0.8">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" strokeWidth="0.5" fill="none" />
+                </svg>
+              </div>
+
+              {/* Badge Header */}
+              <div className="flex items-center justify-between pb-2.5 border-b border-white/[0.08] relative z-10">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" style={{
+                      boxShadow: '0 0 6px rgba(255,255,255,0.9)'
+                    }} />
+                    <span className="font-mono text-[9px] font-medium text-muted tracking-[1px] uppercase">
+                      SYS.ID // ACCESS PASS
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs font-semibold text-white tracking-[0.3px]">
+                    VERIFIED DEVELOPER
+                  </span>
+                </div>
+                <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[9px] font-semibold text-white tracking-[0.5px] uppercase">
+                  ACTIVE
+                </span>
+              </div>
+
+              {/* Profile Identity */}
+              <div className="flex items-center gap-3 py-1 relative z-10">
+                {/* Monogram / Avatar Image */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-[16px] flex items-center justify-center overflow-hidden"
+                    style={{
+                      background: 'rgba(255,255,255,0.1)',
+                      border: '1px solid rgba(255,255,255,0.35)',
+                      boxShadow: 'inset 0 1px 2px 1px rgba(255,255,255,0.4)',
+                      backdropFilter: 'blur(12px)',
+                    }}>
+                    {lanyard?.avatarUrl ? (
+                      <img
+                        src={lanyard.avatarUrl}
+                        alt={lanyard?.userName || 'Avatar'}
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    ) : (
+                      <span className="font-geist text-sm font-semibold text-white tracking-tight">{lanyard?.monogram || 'TG'}</span>
+                    )}
+                  </div>
+                  {/* Verified badge */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center z-10"
+                    style={{ background: '#101015', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="white">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" strokeWidth="2.5" fill="none" />
+                    </svg>
+                  </div>
+                </div>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-geist text-base sm:text-[17px] font-semibold text-white leading-tight truncate">{lanyard?.userName || lanyard?.name || 'Yosia Grace Theo'}</h3>
+                  <p className="font-geist text-xs text-muted truncate">{lanyard?.userTitle || lanyard?.title || 'Full-Stack Developer & Systems Builder'}</p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <svg width="11" height="9" viewBox="0 0 24 24" fill="white" opacity="0.8">
+                      <path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                    </svg>
+                    <span className="font-mono text-[10px] text-muted/90 truncate">{lanyard?.userAlumnus || lanyard?.alumnus || 'BINUS University CS Alumnus'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Telemetry Matrix (Compact) */}
+              <div className="rounded-[16px] p-2.5 relative z-10"
+                style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)' }}>
+                <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                  <div>
+                    <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.45px] block">ID NUMBER</span>
+                    <span className="font-mono text-[10px] font-medium text-white tracking-[0.275px]">{lanyard?.idNumber || '#THEO-2609-SYS'}</span>
+                  </div>
+                  <div>
+                    <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.45px] block">ISSUANCE / NODE</span>
+                    <span className="font-mono text-[10px] font-medium text-white tracking-[0.275px]">{lanyard?.issuanceNode || '2025 // NODE-JKTA'}</span>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t border-white/[0.08]">
+                    <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.45px] block">CORE ARCHITECTURE</span>
+                    <span className="font-mono text-[10px] font-medium text-subtle truncate block">{lanyard?.coreArch || 'Laravel 11 • Next.js • Systems Architecture'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Barcode Footer */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.08] relative z-10">
+                <div className="flex items-center gap-[2px] opacity-85">
+                  {barcodeWidths.map((w, i) => (
+                    <span key={i} className="barcode-line" style={{ width: w, height: 18 }} />
+                  ))}
+                </div>
+                <div className="text-right">
+                  <span className="font-mono text-[8px] text-muted/70 uppercase tracking-[0.8px] block">SECURITY PROTOCOL</span>
+                  <span className="font-mono text-[9px] font-semibold text-emerald-400 tracking-[0.3px]">{lanyard?.securityProtocol || '256-BIT // AUTHORIZED'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // HERO SECTION (1:1 with Theo's Architecture)
+    // ═══════════════════════════════════════════
+    const HeroSection = ({ heroData, techTagsData, lanyardData }) => {
+      const h = heroData || {
+        badgeText: 'FULL-STACK SYSTEMS ARCHITECT',
+        badgeSubtext: 'LARAVEL 11 & NEXT.JS',
+        eyebrow: "Hi, I'm Yosia Grace Theo",
+        titleLine1: 'Full-Stack Developer',
+        titleLine2: '& Systems Builder',
+        description: 'Architecting resilient full-stack systems with Laravel 11, high-performance APIs, and interactive 3D WebGL interfaces. Focused on software design patterns, database optimization, and high-performance interfaces.',
+        ctaPrimaryText: 'Explore Repositories',
+        ctaPrimaryLink: '#projects',
+        ctaSecondaryText: 'Download ATS CV (PDF)',
+        ctaSecondaryLink: '/api/cv/download',
+        ctaTertiaryText: 'Linktree (@TheHighTee)',
+        ctaTertiaryLink: 'https://linktr.ee/TheHighTee',
+      };
+
+      const techTags = techTagsData || [
+        'Laravel 11', 'Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Three.js', 'MySQL / SQLite', 'Git'
+      ];
+
+      return (
+        <section id="hero" className="relative min-h-screen flex items-center" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-8 md:px-12 pt-28 sm:pt-32 pb-16 w-full">
+            <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-12 items-center lg:items-start">
+              {/* Left Column */}
+              <div className="w-full lg:col-span-7 flex flex-col gap-5 sm:gap-6 text-center lg:text-left items-center lg:items-start">
+                {/* Architecture Badge */}
+                <div className="fade-in-up">
+                  <div className="glass-pill rounded-full px-3.5 sm:px-4 py-1.5 inline-flex items-center gap-2 border border-white/15">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" style={{
+                      boxShadow: '0 0 10px rgba(52,211,153,0.9)'
+                    }} />
+                    <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-white tracking-[0.6px] uppercase">
+                      {h.badgeText || 'FULL-STACK SYSTEMS ARCHITECT'}
+                    </span>
+                    <span className="font-mono text-[10px] sm:text-[11px] text-white/30 tracking-[0.55px]">/</span>
+                    <span className="font-mono text-[10px] sm:text-[11px] text-muted tracking-[0.3px] uppercase">
+                      {h.badgeSubtext || 'LARAVEL 11 & NEXT.JS'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Typography Cluster */}
+                <div className="flex flex-col gap-2 fade-in-up delay-100 w-full">
+                  <span className="font-mono text-xs text-muted/80 tracking-[0.5px] uppercase">
+                    {h.eyebrow || h.greeting || "Hi, I'm Yosia Grace Theo"}
+                  </span>
+                  <h1 className="font-geist text-3xl sm:text-4xl md:text-5xl lg:text-[52px] font-bold text-white leading-[1.18] lg:leading-[1.12] tracking-tight lg:tracking-[-1.5px]">
+                    {h.titleLine1 || 'Full-Stack Developer'} <br />
+                    <span className="bg-gradient-to-r from-white via-subtle to-muted/60 bg-clip-text text-transparent">
+                      {h.titleLine2 || '& Systems Builder'}
+                    </span>
+                  </h1>
+                </div>
+
+                {/* Description */}
+                <div className="fade-in-up delay-200 max-w-[620px]">
+                  <p className="font-geist text-sm sm:text-[15px] text-muted leading-relaxed sm:leading-[26px]">
+                    {h.description}
+                  </p>
+                </div>
+
+                {/* CTA Group - Unified Clean Row */}
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 sm:gap-3 fade-in-up delay-300 pt-1 w-full sm:w-auto">
+                  {/* Primary White Button */}
+                  <a href={h.ctaPrimaryLink || '#projects'} className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-white text-space-black font-geist text-xs sm:text-sm font-semibold hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(255,255,255,0.2)]"
+                    style={{ minHeight: '44px' }}>
+                    {withoutTrailingArrow(h.ctaPrimaryText) || 'Explore Repositories'}
+                    <svg width="10" height="15" viewBox="0 0 10 15" fill="#101014">
+                      <path d="M5 0v12M0 7l5 5 5-5" stroke="#101014" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </a>
+                  {/* Glass Pill - ATS CV PDF Download */}
+                  <a href="/api/cv/download" target="_blank" rel="noopener noreferrer" className="glass-pill inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-geist text-xs sm:text-sm text-cyan-300 hover:text-white hover:bg-cyan-500/20 hover:border-cyan-400/40 border border-cyan-500/25 transition-all"
+                    style={{ minHeight: '44px' }}>
+                    <svg width="13" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                    </svg>
+                    {h.ctaSecondaryText || h.ctaCvText || 'Download ATS CV (PDF)'}
+                  </a>
+                  {/* Glass Pill - Linktree */}
+                  <a href={h.ctaTertiaryLink || h.ctaSecondaryLink || 'https://linktr.ee/TheHighTee'} target="_blank" rel="noopener noreferrer" className="glass-pill inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-geist text-xs sm:text-sm text-muted hover:text-white hover:bg-white/10 hover:border-white/30 transition-all"
+                    style={{ minHeight: '44px' }}>
+                    {h.ctaTertiaryText || 'Linktree (@TheHighTee)'}
+                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.6">
+                      <path d="M1 11L11 1H4M11 1v7" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </a>
+                </div>
+
+                {/* Tech Stack Ribbon */}
+                <div className="fade-in-up delay-400 pt-3 sm:pt-4 w-full">
+                  <span className="font-mono text-[10px] sm:text-[11px] font-medium text-muted uppercase tracking-[0.55px] block mb-2.5">
+                    CORE TECHNICAL SUBSTRATES
+                  </span>
+                  <div className="flex flex-wrap justify-center lg:justify-start gap-1.5 sm:gap-2">
+                    {techTags.map((tag) => (
+                      <span key={tag} className="glass-pill px-3 py-1 rounded-full font-mono text-[11px] text-subtle tracking-[0.2px]">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column — Lanyard Card */}
+              <div className="w-full lg:col-span-5 flex justify-center fade-in-up delay-200 pt-4 lg:pt-0">
+                <LanyardCard lanyard={lanyardData || { avatarUrl: 'https://avatars.githubusercontent.com/u/180420712?v=4', monogram: 'TG', userName: 'Yosia Grace Theo', userTitle: 'Full-Stack Developer & Systems Builder', userAlumnus: 'BINUS University CS Alumnus' }} />
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // SECTION HEADER COMPONENT
+    // ═══════════════════════════════════════════
+    const SectionHeader = ({ label, title, subtitle }) => (
+      <div className="mb-10">
+        <span className="font-mono text-[11px] font-medium text-muted/60 uppercase tracking-[0.55px] block mb-3">{label}</span>
+        <h2 className="font-geist text-3xl font-semibold text-white tracking-[-0.8px]">{title}</h2>
+        {subtitle && <p className="font-geist text-base text-muted mt-2 max-w-2xl">{subtitle}</p>}
+      </div>
+    );
+
+    const DEFAULT_PROJECTS = [
+      {
+        id: 'mbg-smart-logistics-fulldev',
+        type: 'project',
+        title: 'MBG Smart Logistics FullDev',
+        category: 'Go Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Go, Backend, Microservices, 2 ★',
+        description: 'High-performance distributed intelligent logistics architecture built with the Go programming language.',
+        linkUrl: 'https://github.com/Theology26/MBG-Smart-Logistics-FullDev',
+        badge: '★ 2 STARS',
+        featured: true,
+        stats: '2 Stars • 0 Forks',
+        date: '2025'
+      },
+      {
+        id: 'logieat-os',
+        type: 'project',
+        title: 'Logieat OS & OCR Vision',
+        category: 'Python Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Python, EasyOCR, YOLO, Computer Vision',
+        description: 'Computer vision & Korean text recognition automation system based on machine learning and deep learning pipelines.',
+        linkUrl: 'https://github.com/Theology26/Logieat-OS',
+        badge: 'AI / OCR ENGINE',
+        featured: true,
+        stats: 'Python • Computer Vision',
+        date: '2025'
+      },
+      {
+        id: 'webportofoliotheo',
+        type: 'project',
+        title: 'Web Portofolio Theo (Blade / Laravel)',
+        category: 'Blade Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Blade, Laravel 11, Tailwind CSS, 1 ★',
+        description: 'Full-stack interactive portfolio powered by the Laravel 11 ecosystem, Blade templating engine, and dynamic components.',
+        linkUrl: 'https://github.com/Theology26/webportofoliotheo',
+        badge: '★ 1 STAR',
+        featured: true,
+        stats: '1 Star • Laravel 11',
+        date: '2025'
+      },
+      {
+        id: 'webportofolioexpotheo',
+        type: 'project',
+        title: 'Web Portofolio Expo Mobile',
+        category: 'TypeScript Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'TypeScript, React Native, Expo, 1 ★',
+        description: 'Responsive cross-platform native mobile portfolio application built on React Native and the Expo ecosystem.',
+        linkUrl: 'https://github.com/Theology26/webportofolioexpotheo',
+        badge: '★ 1 STAR',
+        featured: true,
+        stats: '1 Star • React Native Expo',
+        date: '2025'
+      },
+      {
+        id: 'mbg-smart-logistics',
+        type: 'project',
+        title: 'MBG Smart Logistics Engine',
+        category: 'Go Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Go, REST API, Logistics, 1 ★',
+        description: 'Core microservice engine for route optimization and real-time logistics dispatch synchronization.',
+        linkUrl: 'https://github.com/Theology26/mbg-smart-logistics',
+        badge: '★ 1 STAR',
+        featured: true,
+        stats: '1 Star • Go Microservices',
+        date: '2025'
+      },
+      {
+        id: 'sparkling-clean-studio',
+        type: 'project',
+        title: 'Sparkling Clean Studio',
+        category: 'TypeScript Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'TypeScript, Next.js, Modern UI, 1 ★',
+        description: 'Commercial and residential cleaning service booking and operational web management platform.',
+        linkUrl: 'https://github.com/Theology26/sparkling-clean-studio',
+        badge: '★ 1 STAR',
+        featured: false,
+        stats: '1 Star • Commercial UMKM',
+        date: '2025'
+      },
+      {
+        id: 'nutrisafe-food-delivery',
+        type: 'project',
+        title: 'NutriSafe Food Delivery Agent',
+        category: 'Vue Application',
+        issuer: 'GitHub Repository // @Theology26',
+        tags: 'Vue, JavaScript, State Management, Agent',
+        description: 'Food delivery and ordering system with integrated intelligent nutritional recommendation engine.',
+        linkUrl: 'https://github.com/Theology26/NutriSafeFoodDeliveryAgent',
+        badge: 'VUE CLIENT',
+        featured: false,
+        stats: 'Vue • Intelligent Agent',
+        date: '2025'
+      },
+      {
+        id: 'portofolio-sparklingcleaners',
+        type: 'project',
+        title: 'Website Sparkling Cleaners Malang',
+        category: 'JavaScript Application',
+        issuer: 'Client Project Malang',
+        tags: 'JavaScript, HTML5, CSS3, Responsive UI',
+        description: 'Promotional and online booking website for local Malang commercial cleaning services with streamlined ordering.',
+        linkUrl: 'https://github.com/Theology26/portofolio-sparklingcleaners',
+        badge: 'CLIENT UMKM',
+        featured: false,
+        stats: 'Malang UMKM Client',
+        date: '2025'
+      }
+    ];
+
+    const DEFAULT_CERTIFICATES = [
+      {
+        id: 'cert-laravel-11',
+        title: 'Laravel 11 Advanced Architecture & TDD Certification',
+        issuer: 'Laravel / PHP Specialist',
+        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80',
+        linkUrl: 'https://github.com/Theology26',
+        aspectRatio: 'aspect-[4/5]',
+        badge: 'OFFICIAL CERTIFICATE',
+        date: '2024'
+      },
+      {
+        id: 'cert-meta-frontend',
+        title: 'Meta Front-End Developer Professional Certificate',
+        issuer: 'Meta (Coursera)',
+        imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80',
+        linkUrl: 'https://github.com/Theology26',
+        aspectRatio: 'aspect-square',
+        badge: 'PROFESSIONAL CERTIFICATE',
+        date: '2024'
+      },
+      {
+        id: 'cert-binus-cs',
+        title: 'Bachelor of Computer Science Degree',
+        issuer: 'BINUS University',
+        imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
+        linkUrl: 'https://github.com/Theology26',
+        aspectRatio: 'aspect-[16/10]',
+        badge: 'ACADEMIC DEGREE',
+        date: '2024'
+      },
+      {
+        id: 'cert-python-ai',
+        title: 'Python Deep Learning & Computer Vision (YOLO & OCR)',
+        issuer: 'Deep Learning Institute',
+        imageUrl: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?auto=format&fit=crop&w=800&q=80',
+        linkUrl: 'https://github.com/Theology26/Logieat-OS',
+        aspectRatio: 'aspect-[3/4]',
+        badge: 'AI SPECIALIST',
+        date: '2025'
+      }
+    ];
+
+    // ═══════════════════════════════════════════
+    // CERTIFICATES & CREDENTIALS (Instagram Feed / Masonry Dynamic Grid)
+    // ═══════════════════════════════════════════
+    const CertificatesSection = ({ certificatesData }) => {
+      const certificates = Array.isArray(certificatesData) && certificatesData.length > 0 
+        ? certificatesData 
+        : DEFAULT_CERTIFICATES;
+
+      return (
+        <section id="certificates" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
+            <SectionHeader
+              label="02 // CREDENTIALS & LICENSES"
+              title="Certificates & Qualifications"
+              subtitle="Verified professional certifications, technical credentials, and academic milestones shown in an dynamic Instagram feed layout."
+            />
+
+            {/* Instagram / Pinterest Masonry Grid */}
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+              {certificates.map((cert, idx) => {
+                const ratioClass = cert.aspectRatio || (
+                  idx % 4 === 0 ? 'aspect-[4/5]' :
+                  idx % 4 === 1 ? 'aspect-square' :
+                  idx % 4 === 2 ? 'aspect-[16/10]' : 'aspect-[3/4]'
+                );
+
+                const cardInner = (
+                  <div className="break-inside-avoid group relative rounded-3xl overflow-hidden glass-card transition-all duration-300 hover:shadow-[0_0_35px_rgba(6,182,212,0.30)] border border-white/15 hover:border-cyan-400/50 flex flex-col justify-end cursor-pointer">
+                    {/* Media Container with Dynamic Aspect Ratio */}
+                    <div className={`w-full ${ratioClass} relative overflow-hidden bg-gradient-to-br from-cyan-950/30 via-slate-900/60 to-black`}>
+                      {cert.imageUrl ? (
+                        <img
+                          src={cert.imageUrl}
+                          alt={cert.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-white/[0.03]">
+                          <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="8" r="6"/>
+                              <path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+                            </svg>
+                          </div>
+                          <span className="font-mono text-xs text-white font-semibold">{cert.issuer || 'Verified Credential'}</span>
+                          <span className="font-mono text-[10px] text-muted mt-1">{cert.date || '2024'}</span>
+                        </div>
+                      )}
+
+                      {/* Top Specular Rim */}
+                      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent pointer-events-none" />
+
+                      {/* Top Badge Overlay */}
+                      <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none z-10">
+                        <span className="px-2.5 py-1 rounded-full text-[9px] font-mono font-medium tracking-wide bg-black/60 backdrop-blur-md text-cyan-300 border border-cyan-500/40 shadow-lg">
+                          {cert.badge || 'VERIFIED'}
+                        </span>
+                        {cert.linkUrl && (
+                          <span className="w-7 h-7 rounded-full bg-black/60 backdrop-blur-md text-white group-hover:text-cyan-300 border border-white/20 group-hover:border-cyan-400/60 flex items-center justify-center text-xs transition-all shadow-lg group-hover:scale-110">
+                            ↗
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Gradient Vignette over photo for readable typography */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-space-black/95 via-space-black/40 to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Card Meta Content (Title + Issuer + Date) */}
+                    <div className="p-4 sm:p-5 relative z-10 -mt-8 pt-6 backdrop-blur-md bg-space-black/60 border-t border-white/10 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between text-[11px] font-mono text-muted">
+                        <span className="text-cyan-400/90 font-medium truncate max-w-[200px]">
+                          {cert.issuer || 'Official Issuer'}
+                        </span>
+                        <span className="text-white/40">{cert.date || '2024'}</span>
+                      </div>
+                      
+                      <h3 className="font-geist text-sm sm:text-base font-semibold text-white group-hover:text-cyan-200 transition-colors leading-snug">
+                        {cert.title}
+                      </h3>
+
+                      {cert.linkUrl && (
+                        <div className="pt-2 mt-1 border-t border-white/[0.08] flex items-center gap-1.5 text-[11px] font-mono text-cyan-300 group-hover:text-cyan-200 transition-colors">
+                          <span>View Credential / Verify</span>
+                          <span className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform text-[10px]">↗</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+
+                return cert.linkUrl ? (
+                  <a
+                    key={cert.id || idx}
+                    href={cert.linkUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block outline-none"
+                  >
+                    {cardInner}
+                  </a>
+                ) : (
+                  <div key={cert.id || idx} className="block">
+                    {cardInner}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // PROJECTS & REPOSITORY MATRIX (Matches Expo App & User Screenshots)
+    // ═══════════════════════════════════════════
+    const ProjectSpotlight = ({ spotlightData, projectsList, githubStats }) => {
+      const p = spotlightData || {
+        badge: 'ENTERPRISE ARCHITECTURE',
+        title: 'Computer Vision & Smart Logistics Integration',
+        projectName: 'Computer Vision & Smart Logistics Integration',
+        description: 'Modern supply chain management system designed to track fleet movement and inventory with high precision. Built on Laravel backend with real-time analytics dashboards and minimized dispatch errors.',
+        linkText: 'View Project Repo ↗',
+        linkUrl: 'https://github.com/Theology26',
+        metrics: [
+          { label: 'FRAMEWORK', value: 'Laravel 11' },
+          { label: 'FRONTEND', value: 'Tailwind + React' },
+          { label: 'DATABASE', value: 'MySQL Relational' },
+          { label: 'DISPATCH', value: 'Real-time Tracking' },
+        ],
+        terminalLines: [
+          '$ php artisan serve --port=8000',
+          'Starting Laravel development server: http://127.0.0.1:8000',
+          '$ python app_ocr_vision.py --mode=inference',
+          '✓ YOLO model weights loaded: 98.4% precision',
+          '✓ EasyOCR recognition active.',
+          '$ git push origin main',
+          'Enumerating objects: 42, done.',
+          '→ Branch main → origin/main',
+          '$ echo "Distribution logistics optimized ✓"',
+        ],
+      };
+
+      const [terminalLines, setTerminalLines] = useState([]);
+      const [showTerminal, setShowTerminal] = useState(false);
+
+      useEffect(() => {
+        const lines = p.terminalLines && p.terminalLines.length > 0 ? p.terminalLines : [
+          '$ php artisan serve --port=8000',
+          'Starting Laravel development server: http://127.0.0.1:8000',
+          '$ python app_ocr_vision.py --mode=inference',
+          '✓ YOLO model weights loaded: 98.4% precision',
+          '✓ EasyOCR recognition active.',
+          '$ git push origin main',
+          'Enumerating objects: 42, done.',
+          '→ Branch main → origin/main',
+          '$ echo "Distribution logistics optimized ✓"',
+        ];
+        let i = 0;
+        const interval = setInterval(() => {
+          if (i < lines.length) {
+            setTerminalLines(prev => [...prev, lines[i]]);
+            i++;
+          } else {
+            i = 0;
+            setTerminalLines([]);
+          }
+        }, 1800);
+        return () => clearInterval(interval);
+      }, [p.terminalLines]);
+
+      const [activeFilter, setActiveFilter] = useState('all');
+
+      const LANG_COLOR_MAP = {
+        JavaScript: '#f1e05a',
+        Python: '#3572A5',
+        Vue: '#41b883',
+        Go: '#00add8',
+        TypeScript: '#3178c6',
+        Blade: '#94a3b8',
+        HTML: '#e34c26',
+        PHP: '#8892be',
+        CSS: '#563d7c',
+        Mermaid: '#ff3670'
+      };
+
+      const allProjects = Array.isArray(projectsList) && projectsList.length > 0 ? projectsList : DEFAULT_PROJECTS;
+
+      const reposCount = githubStats?.reposCount || allProjects.length || 9;
+      const starsCount = githubStats?.starsCount || 7;
+      const languagesCount = githubStats?.languagesCount || 6;
+
+      const filteredProjects = allProjects.filter(item => {
+        if (activeFilter === 'all') return true;
+        
+        // Match specific language
+        const langLower = activeFilter.toLowerCase();
+        const tagsStr = (Array.isArray(item.tags) ? item.tags.join(' ') : (item.tags || '')).toLowerCase();
+        const catStr = (item.category || '').toLowerCase();
+        const titleStr = (item.title || '').toLowerCase();
+        return tagsStr.includes(langLower) || catStr.includes(langLower) || titleStr.includes(langLower);
+      });
+
+      return (
+        <section id="projects" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
+            
+            <SectionHeader
+              label="03 // SELECTED WORKS & REPOSITORIES"
+              title="Projects & Repositories"
+              subtitle="Open-source GitHub repositories, full-stack microservices, and interactive web architectures by @Theology26."
+            />
+
+            {/* Summary Telemetry Bar (Styled in Glass Card matching Experience & Education) */}
+            <div className="glass-card rounded-3xl p-5 sm:p-6 mb-8 flex items-center justify-around hover:bg-white/[0.08] transition-all duration-300">
+              <div className="flex flex-col items-center">
+                <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                  </svg>
+                </div>
+                <span className="font-geist text-2xl sm:text-3xl font-semibold text-white tracking-tight">{reposCount}</span>
+                <span className="font-mono text-[11px] text-muted/70 uppercase tracking-wider mt-0.5">Repos</span>
+              </div>
+              
+              <div className="w-[1px] h-9 bg-white/10" />
+
+              <div className="flex flex-col items-center">
+                <div className="flex items-center gap-1.5 text-yellow-400 mb-1">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </div>
+                <span className="font-geist text-2xl sm:text-3xl font-semibold text-white tracking-tight">{starsCount}</span>
+                <span className="font-mono text-[11px] text-muted/70 uppercase tracking-wider mt-0.5">Stars</span>
+              </div>
+
+              <div className="w-[1px] h-9 bg-white/10" />
+
+              <div className="flex flex-col items-center">
+                <div className="flex items-center gap-1.5 text-purple-400 mb-1">
+                  <span className="font-mono text-base font-bold">&lt;/&gt;</span>
+                </div>
+                <span className="font-geist text-2xl sm:text-3xl font-semibold text-white tracking-tight">{languagesCount}</span>
+                <span className="font-mono text-[11px] text-muted/70 uppercase tracking-wider mt-0.5">Languages</span>
+              </div>
+            </div>
+
+            {/* Filter Pills with Horizontal Scroll on Mobile */}
+            <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap pb-2 sm:pb-0">
+              {['All', 'JavaScript', 'Python', 'Vue', 'Go', 'TypeScript', 'Blade'].map(tab => {
+                const isActive = activeFilter === tab.toLowerCase();
+                const color = LANG_COLOR_MAP[tab];
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveFilter(tab.toLowerCase())}
+                    className={`px-4 py-1.5 rounded-full font-mono text-xs transition-all flex items-center gap-2 border cursor-pointer shrink-0 ${
+                      isActive
+                        ? 'bg-white/15 text-white font-semibold border-white/30 shadow-[0_0_16px_rgba(255,255,255,0.15)]'
+                        : 'glass-pill text-muted hover:text-white hover:bg-white/10 border-white/10'
+                    }`}
+                  >
+                    {color && <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />}
+                    <span>{tab}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Interactive Spotlight Terminal Toggle */}
+            <div className="mb-6 flex justify-end">
+              <button
+                onClick={() => setShowTerminal(!showTerminal)}
+                className="glass-pill font-mono text-xs text-cyan-300 hover:text-white flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <span>{showTerminal ? 'Close Terminal Simulator' : '⚡ Open Logistics & OCR Terminal'}</span>
+                <span className="text-[10px]">{showTerminal ? '▲' : '▼'}</span>
+              </button>
+            </div>
+
+            {showTerminal && (
+              <div className="glass-card-strong rounded-3xl p-5 sm:p-6 relative overflow-hidden mb-10 border border-white/20">
+                <div className="grid grid-cols-12 gap-6">
+                  <div className="col-span-12 lg:col-span-5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="glass-pill px-3 py-1 rounded-full font-mono text-[10px] text-cyan-300 uppercase tracking-wider inline-block border border-cyan-500/30 bg-cyan-500/10">
+                          {p.badge || 'ENTERPRISE ARCHITECTURE'}
+                        </span>
+                        <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          ACTIVE DEPLOY
+                        </span>
+                      </div>
+                      <h3 className="font-geist text-xl sm:text-2xl font-semibold text-white mb-2 tracking-tight">
+                        {p.projectName || p.title || 'Computer Vision & Smart Logistics Integration'}
+                      </h3>
+                      <p className="font-geist text-sm text-muted leading-relaxed mb-4">
+                        {p.description}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <a href={p.githubRepoUrl || p.linkUrl || 'https://github.com/Theology26'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-space-black font-geist text-xs font-semibold hover:bg-zinc-200 transition-all">
+                        <span>View Repository</span>
+                        <span>↗</span>
+                      </a>
+                    </div>
+                  </div>
+                  <div className="col-span-12 lg:col-span-7 rounded-2xl overflow-hidden shadow-2xl" style={{ background: 'rgba(5,7,12,0.9)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.08] bg-white/[0.03]">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                        </div>
+                        <span className="font-mono text-[11px] text-zinc-400 ml-2">~/theology26/smart-logistics-ocr</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-white/30">BASH // LIVE</span>
+                    </div>
+                    <div className="p-4 h-[240px] overflow-hidden flex flex-col justify-end font-mono">
+                      {terminalLines.map((line, i) => (
+                        <div key={i} className="text-[12px] leading-relaxed" style={{ color: line && line.startsWith('$') ? '#4ade80' : '#38bdf8' }}>
+                          {line}
+                        </div>
+                      ))}
+                      <span className="text-[12px] text-green-400 mt-1">$ <span className="cursor-blink">▊</span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Repo Cards Grid (Matching Education & Experience Glass Aesthetics) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {filteredProjects.map((item) => {
+                const isCert = item.type === 'certificate';
+                const tagList = Array.isArray(item.tags) 
+                  ? item.tags 
+                  : (typeof item.tags === 'string' ? item.tags.split(',').map(t => t.trim()) : []);
+                
+                const matchedLang = tagList.find(t => LANG_COLOR_MAP[t]) || item.category || 'Code';
+                const langColor = LANG_COLOR_MAP[matchedLang] || (isCert ? '#10b981' : '#38bdf8');
+                const repoDate = item.date || '2025';
+
+                return (
+                  <div
+                    key={item.id || item.title}
+                    className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300 flex flex-col justify-between group"
+                  >
+                    <div>
+                      {/* Optional Uploaded Image / Document */}
+                      {item.imageUrl && (
+                        <a
+                          href={item.linkUrl || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block relative h-44 rounded-2xl overflow-hidden mb-4 border border-white/10 group/img bg-black/60 shadow"
+                        >
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover object-center group-hover/img:scale-105 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+                          <span className="absolute bottom-2.5 right-2.5 font-mono text-[10px] text-white glass-pill px-2.5 py-0.5 rounded-full">
+                            {isCert ? 'Credential Document ↗' : 'View Screenshot ↗'}
+                          </span>
+                        </a>
+                      )}
+
+                      {/* Header with Title + Badge + External Link */}
+                      <div className="flex items-start justify-between gap-3 mb-2.5">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className={isCert ? 'text-emerald-400 text-lg' : 'text-cyan-400 text-lg'}>
+                            {isCert ? '📜' : '📁'}
+                          </span>
+                          <a
+                            href={item.linkUrl || 'https://github.com/Theology26'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-geist text-base font-semibold text-white group-hover:text-cyan-300 transition-colors truncate"
+                          >
+                            {item.title}
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300 uppercase tracking-wider border border-cyan-500/20">
+                            {isCert ? 'CERTIFICATE' : matchedLang}
+                          </span>
+                          <a
+                            href={item.linkUrl || 'https://github.com/Theology26'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted/70 hover:text-white p-1 transition-colors"
+                            title="Open repository"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                              <polyline points="15 3 21 3 21 9"></polyline>
+                              <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="font-geist text-sm text-muted leading-relaxed mb-4 min-h-[38px]">
+                        {item.description || "No description provided."}
+                      </p>
+
+                      {/* Tags */}
+                      {tagList && tagList.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {tagList.slice(0, 4).map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
+                              style={{ background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.2)' }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Row Telemetry */}
+                    <div className="pt-3.5 border-t border-white/[0.08] flex items-center justify-between font-mono text-xs text-muted/70">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: langColor }} />
+                          <span className="text-zinc-300 font-medium">{matchedLang}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="text-yellow-400">★</span>
+                          <span>{item.stats && item.stats.includes('Stars') ? item.stats.split('•')[0].trim().split(' ')[0] : '0'}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="text-muted/60">⑂</span>
+                          <span>{item.stats && item.stats.includes('Forks') ? item.stats.split('•')[1].trim().split(' ')[0] : '0'}</span>
+                        </span>
+                      </div>
+                      <span className="font-mono text-xs text-muted/60 tracking-wider">
+                        {repoDate}
+                      </span>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
+        </section>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // TECH STACK & GITHUB REPOSITORY ANALYSIS (Matching Education & Experience Glass Aesthetics)
+    // ═══════════════════════════════════════════
+    const TechStack = ({ githubStats: initialStats }) => {
+      const [stats, setStats] = useState(initialStats || null);
+      const [loading, setLoading] = useState(false);
+
+      useEffect(() => {
+        if (initialStats && initialStats.languages && initialStats.languages.length > 0) {
+          setStats(initialStats);
+        } else {
+          fetchStats();
+        }
+      }, [initialStats]);
+
+      const fetchStats = async () => {
+        setLoading(true);
+        try {
+          const res = await fetch('/api/github/stats');
+          const json = await res.json();
+          if (json.success && json.stats) {
+            setStats(json.stats);
+          }
+        } catch (err) {
+          console.error('Failed to fetch github stats', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const handleRefresh = async () => {
+        setLoading(true);
+        try {
+          const res = await fetch('/api/github/sync', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({}) 
+          });
+          const json = await res.json();
+          if (json.success && json.githubStats) {
+            setStats(json.githubStats);
+          } else {
+            await fetchStats();
+          }
+        } catch (err) {
+          await fetchStats();
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const defaultLanguages = [
+        { name: 'TypeScript', percentage: 16.9, color: '#3178c6' },
+        { name: 'PHP', percentage: 14.2, color: '#8892be' },
+        { name: 'JavaScript', percentage: 14.0, color: '#f1e05a' },
+        { name: 'Blade', percentage: 13.0, color: '#94a3b8' },
+        { name: 'Go', percentage: 11.7, color: '#00add8' },
+        { name: 'Python', percentage: 9.0, color: '#3572A5' },
+        { name: 'Vue', percentage: 7.6, color: '#41b883' },
+        { name: 'HTML', percentage: 7.3, color: '#e34c26' },
+        { name: 'CSS', percentage: 4.4, color: '#563d7c' },
+        { name: 'Mermaid', percentage: 0.7, color: '#ff3670' },
+      ];
+
+      const languages = (stats?.languages && stats.languages.length > 0) ? stats.languages : defaultLanguages;
+
+      return (
+        <section id="techstack" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
+            <SectionHeader
+              label="04 // TECHNICAL ARSENAL"
+              title="Stack & Code Telemetry"
+              subtitle="Real-time telemetry analysis of GitHub repositories by @Theology26 and production system architecture."
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              
+              {/* Left Column: Tech Stack Card in Clean Glass Card */}
+              <div className="lg:col-span-6 glass-card rounded-3xl p-5 sm:p-8 hover:bg-white/[0.08] transition-all duration-300 relative overflow-hidden flex flex-col justify-between">
+                
+                {/* Header with Title, Subtitle, and Refresh Icon Button */}
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                      <h3 className="font-geist text-lg font-semibold text-white tracking-tight">
+                        Tech Stack
+                      </h3>
+                    </div>
+                    <p className="font-geist text-xs text-muted">
+                      Based on live GitHub repository analysis
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    className="glass-pill p-2 rounded-xl text-muted hover:text-white hover:bg-white/10 border-white/10 transition-all flex items-center justify-center cursor-pointer group disabled:opacity-50"
+                    title="Refresh telemetry analysis from GitHub API"
+                  >
+                    <svg 
+                      className={`w-4 h-4 transition-transform duration-700 ${loading ? 'animate-spin' : 'group-hover:rotate-180'}`} 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2.2"
+                    >
+                      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Language Bars */}
+                <div className="flex flex-col gap-3.5">
+                  {languages.map((item) => (
+                    <div key={item.name} className="flex flex-col gap-1.5 group/lang">
+                      <div className="flex items-center justify-between text-xs font-mono">
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="w-2 h-2 rounded-full inline-block shrink-0 shadow-sm"
+                            style={{ backgroundColor: item.color }} 
+                          />
+                          <span className="font-medium text-white/90 text-xs font-geist">
+                            {item.name}
+                          </span>
+                        </div>
+                        <span className="font-mono text-xs text-muted font-medium">
+                          {Number(item.percentage).toFixed(1)}%
+                        </span>
+                      </div>
+
+                      {/* Progress Bar Track */}
+                      <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all duration-1000 ease-out"
+                          style={{ 
+                            width: `${item.percentage}%`,
+                            backgroundColor: item.color,
+                            boxShadow: `0 0 8px ${item.color}60`
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footnote */}
+                <div className="pt-5 mt-5 border-t border-white/[0.08] flex items-center justify-between font-mono text-[10px] text-muted/70">
+                  <span className="flex items-center gap-1.5 text-emerald-400">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    LIVE GITHUB API SYNC
+                  </span>
+                  <span>{languages.length} LANGUAGES ANALYZED</span>
+                </div>
+              </div>
+
+              {/* Right Column: Frameworks & Engineering Arsenal (Clean Glass Cards) */}
+              <div className="lg:col-span-6 flex flex-col gap-5">
+                <div className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300 uppercase tracking-wider border border-cyan-500/20">
+                      ENTERPRISE BACKEND ARCHITECTURE
+                    </span>
+                  </div>
+                  <h3 className="font-geist text-lg font-semibold text-white mb-2">
+                    Laravel 11 • PHP 8.3 • Relational Systems
+                  </h3>
+                  <p className="font-geist text-sm text-muted leading-relaxed mb-4">
+                    High-throughput backend architecture featuring Test-Driven Development (TDD), multi-guard authentication pipelines, dynamic ORM relationships, and automated headless PDF generation.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Laravel 11', 'PHP 8.3', 'MySQL / SQLite', 'REST API', 'DomPDF Engine'].map(tag => (
+                      <span key={tag} className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
+                        style={{ background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.2)' }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-purple-300 uppercase tracking-wider border border-purple-500/20">
+                      3D WEBGL & INTERACTIVE VISUAL COMPUTING
+                    </span>
+                  </div>
+                  <h3 className="font-geist text-lg font-semibold text-white mb-2">
+                    Three.js • React 18 • Computer Vision YOLO
+                  </h3>
+                  <p className="font-geist text-sm text-muted leading-relaxed mb-4">
+                    Photorealistic 3D Earth atmosphere and orbital satellite simulations, interactive elastic lanyard physics, EasyOCR deep learning inference, and Resolume Arena projection mapping for live stages.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Three.js WebGL', 'React 18', 'Tailwind CSS', 'EasyOCR & YOLO', 'Resolume Arena'].map(tag => (
+                      <span key={tag} className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
+                        style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // EXPERIENCE & EDUCATION (Authentic PDF Data)
+    // ═══════════════════════════════════════════
+    const Education = ({ experiencesData }) => {
+      const expList = experiencesData && experiencesData.length > 0 ? experiencesData : [
+        {
+          year: '2025 — Present',
+          title: 'Video Editor',
+          company: 'Independent Creative Specialist',
+          desc: 'Post-production specialist transforming raw footage into high-impact visual storytelling and commercial brand narratives.',
+          tags: ['Video Editing', 'Premiere Pro', 'DaVinci Resolve', 'Visual Storytelling'],
+        },
+        {
+          year: '2025 — Present',
+          title: 'Content Strategist',
+          company: 'Digital Media Strategy',
+          desc: 'Analyzing digital trends, structuring content architecture, and orchestrating multi-channel distribution pipelines.',
+          tags: ['Content Strategy', 'Trend Analytics', 'Distribution Architecture'],
+        },
+        {
+          year: '2025',
+          title: 'Commercial Director',
+          company: 'Commercial Advertising',
+          desc: 'Directing visual production and commercial advertising campaigns from pre-production to master release.',
+          tags: ['Creative Direction', 'Commercial Ads', 'Visual Campaign'],
+        },
+        {
+          year: '2024 — Present',
+          title: 'Virtual Jockey (VJ)',
+          company: 'Live Stage Visuals',
+          desc: 'Controlling live stage visual projection mapping, MIDI timing sync, and generative visuals for concerts and events.',
+          tags: ['Virtual Jockey', 'Projection Mapping', 'Resolume Arena', 'Live Staging'],
+        },
+        {
+          year: '2021 — 2025',
+          title: 'BINUS University',
+          company: 'Bachelor of Computer Science',
+          desc: 'Academic focus on software engineering, distributed database systems, modern web architecture, and intelligent systems.',
+          tags: ['Computer Science', 'Laravel 11', 'Database Systems', 'GPA 3.5+'],
+        },
+      ];
+
+      return (
+        <section id="education" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
+            <SectionHeader
+              label="05 // CAREER & EDUCATION"
+              title="Experience & Education"
+              subtitle="Professional career background in software engineering, video editing, creative direction, and academic milestones."
+            />
+
+            <div className="flex flex-col gap-4">
+              {expList.map((item, i) => (
+                <div key={i} className="glass-card rounded-3xl p-5 sm:p-6 hover:bg-white/[0.08] transition-all duration-300">
+                  <div className="flex flex-col sm:flex-row items-start gap-2 sm:gap-6">
+                    <span className="font-mono text-xs text-cyan-400/80 sm:text-muted/60 tracking-wider whitespace-nowrap pt-1 sm:w-36 shrink-0">
+                      {item.year}
+                    </span>
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1.5">
+                        <h3 className="font-geist text-base sm:text-lg font-semibold text-white">{item.title}</h3>
+                        <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300 uppercase tracking-wider border border-cyan-500/20">
+                          {item.company || item.role}
+                        </span>
+                      </div>
+                      <p className="font-geist text-sm text-muted leading-relaxed mb-3">{item.desc || item.description}</p>
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                        {item.tags && item.tags.map((tag) => (
+                          <span key={tag} className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
+                            style={{ background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.2)' }}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // CONTACT SECTION
+    // ═══════════════════════════════════════════
+    const Contact = ({ generalData, cvData }) => {
+      const [formState, setFormState] = useState({ name: '', email: '', subject: '', message: '' });
+      const [sending, setSending] = useState(false);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setSending(true);
+        setTimeout(() => {
+          setSending(false);
+          setFormState({ name: '', email: '', subject: '', message: '' });
+          alert('Message transmitted to system! (Demo notification)');
+        }, 1500);
+      };
+
+      const inputClass = "w-full px-4 py-3 rounded-2xl bg-black/40 border border-white/[0.12] font-geist text-sm text-white placeholder:text-white/25 focus:outline-none focus:border-cyan-400 focus:bg-black/60 transition-all";
+
+      const email = cvData?.email || 'yosiagracetheo0@gmail.com';
+      const address = generalData?.address || cvData?.location || 'Malang, East Java, Indonesia';
+      const instagram = generalData?.instagramUrl || 'https://instagram.com/theoxcyro';
+      const github = generalData?.githubUrl || 'https://github.com/Theology26';
+
+      return (
+        <section id="contact" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
+          <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
+            <SectionHeader
+              label="06 // COMMUNICATION CHANNEL"
+              title="Get in Touch // Direct Channel"
+              subtitle="Digital Solutions for Every Challenge. Available for full-stack web engineering, visual post-production, and live VJ performances."
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+              {/* Direct Contact Cards */}
+              <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
+                <div className="glass-card-strong rounded-3xl p-5 sm:p-6 border border-white/15">
+                  <span className="font-mono text-[10px] text-cyan-300 uppercase tracking-wider block mb-3">CONTACT INFORMATION</span>
+
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                          <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[9px] text-muted block">OFFICIAL EMAIL</span>
+                        <a href={`mailto:${email}`} className="font-geist text-sm text-white hover:text-cyan-300 transition-colors">
+                          {email}
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                          <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[9px] text-muted block">LOCATION / REGION</span>
+                        <span className="font-geist text-sm text-white">{address}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                          <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[9px] text-muted block">INSTAGRAM</span>
+                        <a href={instagram} target="_blank" rel="noopener noreferrer" className="font-geist text-sm text-cyan-300 hover:text-cyan-200 transition-colors">
+                          @theoxcyro
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/70">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="font-mono text-[9px] text-muted block">GITHUB</span>
+                        <a href={github} target="_blank" rel="noopener noreferrer" className="font-geist text-sm text-white hover:text-cyan-300 transition-colors">
+                          github.com/Theology26
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <a
+                      href="/api/cv/download"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="glass-pill px-4 py-2 rounded-full font-mono text-xs text-cyan-300 hover:text-white transition-all flex items-center gap-1.5 border border-cyan-500/30"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
+                      <span>Download ATS CV (PDF)</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Consultation / Message Form */}
+              <div className="col-span-12 lg:col-span-7 glass-card-strong rounded-3xl p-5 sm:p-8 border border-white/15">
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-mono text-xs text-muted uppercase tracking-wider">SEND A MESSAGE / INQUIRY</span>
+                </div>
+
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Full Name"
+                      value={formState.name}
+                      onChange={(e) => setFormState(s => ({ ...s, name: e.target.value }))}
+                      className={inputClass}
+                      required
+                    />
+                    <input
+                      type="email"
+                      placeholder="Email Address"
+                      value={formState.email}
+                      onChange={(e) => setFormState(s => ({ ...s, email: e.target.value }))}
+                      className={inputClass}
+                      required
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Subject / Project Scope (Web, Video Editing, VJ)"
+                    value={formState.subject}
+                    onChange={(e) => setFormState(s => ({ ...s, subject: e.target.value }))}
+                    className={inputClass}
+                    required
+                  />
+                  <textarea
+                    placeholder="Write your message or project requirements here..."
+                    rows={5}
+                    value={formState.message}
+                    onChange={(e) => setFormState(s => ({ ...s, message: e.target.value }))}
+                    className={`${inputClass} resize-none`}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={sending}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white text-space-black font-geist text-sm font-semibold hover:bg-zinc-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-fit shadow-[0_4px_16px_rgba(255,255,255,0.2)]"
+                  >
+                    {sending ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Sending Message...
+                      </>
+                    ) : (
+                      <>
+                        Send Message Now
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // FOOTER (Premium Glassmorphism Aerospace Grid)
+    // ═══════════════════════════════════════════
+    const Footer = ({ generalData }) => {
+      const brandTitle = generalData?.siteTitle || 'Yosia Gracetheo Boimau';
+      const brandDomain = generalData?.brandDomain || 'theo.dev';
+
+      const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      return (
+        <footer 
+          className="relative mt-20 sm:mt-28 mb-10 sm:mb-14 px-3 sm:px-6 select-none flex flex-col items-center"
+          style={{ zIndex: 10 }}
+        >
+          {/* Floating Transparent Glassmorphic Capsule matching Top Navbar */}
+          <div
+            className="w-full max-w-[1180px] rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 relative overflow-hidden transition-all duration-300"
+            style={{
+              background: 'rgba(15, 18, 26, 0.65)',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              boxShadow: '0 20px 40px -15px rgba(0,0,0,0.7), inset 0 1px 1px 0 rgba(255,255,255,0.2)'
+            }}
+          >
+            {/* Top Specular Edge Glow */}
+            <div className="absolute top-0 left-10 right-10 h-[1px] bg-gradient-to-r from-transparent via-cyan-300/40 via-white/30 to-transparent pointer-events-none" />
+            
+            {/* Ambient subtle backlight glow */}
+            <div className="absolute -top-24 -left-24 w-80 h-80 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-sky-500/10 rounded-full blur-[90px] pointer-events-none" />
+
+            {/* Top Multi-Column Grid */}
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-8 border-b border-white/[0.10]">
+              
+              {/* Col 1: Brand & Profile (5 cols) */}
+              <div className="lg:col-span-5 flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/15 border border-cyan-400/40 flex items-center justify-center overflow-hidden shadow-[0_0_12px_rgba(6,182,212,0.35)] shrink-0 backdrop-blur-md">
+                    <img
+                      src={generalData?.logoUrl || '/Assets/avatar_animated.png'}
+                      alt="THEOLOGY26"
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
+                  <div>
+                    <div className="font-mono text-sm font-bold text-white tracking-wider flex items-center gap-2">
+                      <span className="text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">THEOLOGY26</span>
+                      <span className="text-white/30">•</span>
+                      <span className="text-cyan-300 font-semibold drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">{brandDomain}</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-400/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        AVAILABLE
+                      </span>
+                    </div>
+                    <div className="text-xs text-zinc-300 font-mono mt-0.5">
+                      Yosia Gracetheo Boimau
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-xs text-zinc-300 leading-relaxed max-w-md font-sans">
+                  Digital Solutions for Every Challenge. Developing resilient full-stack web architectures, visual computing pipelines, artificial intelligence, and enterprise-grade interactive 3D simulations.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[10px]">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 backdrop-blur-md shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    SQLITE CMS SYNCED
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] text-zinc-200 border border-white/20 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
+                    📍 MALANG, EAST JAVA, ID
+                  </span>
+                </div>
+              </div>
+
+              {/* Col 2: Navigation Index (2 cols) */}
+              <div className="lg:col-span-2 flex flex-col gap-3">
+                <span className="font-mono text-[11px] font-bold text-cyan-300 tracking-wider uppercase drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
+                  // NAVIGATION
+                </span>
+                <div className="flex flex-col gap-2 font-mono text-xs text-zinc-300">
+                  <a href="#hero" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">01</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Overview</span>
+                  </a>
+                  <a href="#certificates" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">02</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Certificates</span>
+                  </a>
+                  <a href="#projects" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">03</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Projects & Repos</span>
+                  </a>
+                  <a href="#techstack" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">04</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Tech Stack</span>
+                  </a>
+                  <a href="#education" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">05</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Experience</span>
+                  </a>
+                  <a href="#contact" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="text-cyan-400/70 group-hover:text-cyan-300 text-[10px]">06</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">Contact</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Col 3: Channels & Socials (2 cols) */}
+              <div className="lg:col-span-2 flex flex-col gap-3">
+                <span className="font-mono text-[11px] font-bold text-cyan-300 tracking-wider uppercase drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
+                  // CHANNELS
+                </span>
+                <div className="flex flex-col gap-2 font-mono text-xs">
+                  <a href="https://instagram.com/theoxcyro" target="_blank" rel="noopener noreferrer" className="text-pink-300 hover:text-pink-200 transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">Instagram</span>
+                    <span className="text-[10px] text-pink-400">↗</span>
+                  </a>
+                  <a href="https://github.com/Theology26" target="_blank" rel="noopener noreferrer" className="text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">GitHub</span>
+                    <span className="text-[10px] text-zinc-400">↗</span>
+                  </a>
+                  <a href="https://linkedin.com/in/yosia-gracetheo-boimau-919340211/" target="_blank" rel="noopener noreferrer" className="text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">LinkedIn</span>
+                    <span className="text-[10px] text-zinc-400">↗</span>
+                  </a>
+                  <a href="https://linktr.ee/TheHighTee" target="_blank" rel="noopener noreferrer" className="text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">Linktree</span>
+                    <span className="text-[10px] text-zinc-400">↗</span>
+                  </a>
+                  <a href="mailto:yosiagracetheo0@gmail.com" className="text-zinc-300 hover:text-cyan-300 transition-colors flex items-center gap-1.5 group">
+                    <span className="group-hover:translate-x-0.5 transition-transform">Email Direct</span>
+                    <span className="text-[10px] text-zinc-400">✉</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Col 4: Deliverables & CMS Access (3 cols) */}
+              <div className="lg:col-span-3 flex flex-col gap-3">
+                <span className="font-mono text-[11px] font-bold text-cyan-300 tracking-wider uppercase drop-shadow-[0_0_6px_rgba(34,211,238,0.3)]">
+                  // DELIVERABLES & ACCESS
+                </span>
+                
+                {/* CV Action Glass Card */}
+                <a
+                  href="/api/cv/download"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3.5 rounded-2xl bg-white/[0.05] hover:bg-cyan-500/15 border border-white/15 hover:border-cyan-400/50 transition-all flex items-center justify-between group backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(6,182,212,0.25)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 flex items-center justify-center font-mono shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-mono text-xs font-semibold text-white group-hover:text-cyan-200 transition-colors">
+                        ATS Resume / CV
+                      </div>
+                      <div className="font-mono text-[10px] text-zinc-300/80">
+                        A4 Portrait • Standard Compliant
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-cyan-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform font-bold">↗</span>
+                </a>
+
+                {/* Admin CMS Access Glass Card */}
+                <a
+                  href="/admin"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.10] border border-white/15 hover:border-white/40 transition-all flex items-center justify-between group backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] hover:shadow-[0_0_20px_rgba(255,255,255,0.15)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center font-mono shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="font-mono text-xs font-semibold text-white group-hover:text-zinc-100 transition-colors">
+                        Admin CMS Portal
+                      </div>
+                      <div className="font-mono text-[10px] text-zinc-300/80">
+                        Secure SQLite Data Console
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-zinc-300 group-hover:translate-x-0.5 transition-transform font-bold">→</span>
+                </a>
+              </div>
+
+            </div>
+
+            {/* Bottom Row: Frosted Glass Capsule (Copyright, Badges & Back to Top) */}
+            <div className="relative z-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[11px] text-zinc-300">
+              <div className="flex items-center gap-2 text-center md:text-left">
+                <span className="text-white font-medium">© 2025 THEOLOGY26</span>
+                <span className="text-white/30">•</span>
+                <span className="text-zinc-300">Yosia Gracetheo Boimau. All rights reserved.</span>
+              </div>
+
+              <div className="hidden lg:flex items-center gap-2 text-[10px]">
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">LARAVEL 11</span>
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">THREE.JS 3D</span>
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">SQLITE CMS</span>
+                <span className="px-2.5 py-1 rounded-full bg-white/[0.06] border border-white/15 backdrop-blur-md text-zinc-200">ATS CV</span>
+              </div>
+
+              <button
+                onClick={scrollToTop}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.08] hover:bg-white/[0.16] text-white border border-white/20 hover:border-cyan-400/50 backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.25)] hover:shadow-[0_0_16px_rgba(6,182,212,0.35)] transition-all text-xs font-mono group cursor-pointer"
+              >
+                <span>BACK TO TOP</span>
+                <svg className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M18 15l-6-6-6 6"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        </footer>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // SCROLL SPY FOR INTERSECTION OBSERVER
+    // ═══════════════════════════════════════════
+    const ScrollReveal = ({ children, className = '' }) => {
+      const ref = useRef(null);
+      const [visible, setVisible] = useState(true);
+
+      useEffect(() => {
+        const obs = new IntersectionObserver(
+          ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+          { threshold: 0.05 }
+        );
+        if (ref.current) obs.observe(ref.current);
+        return () => obs.disconnect();
+      }, []);
+
+      return (
+        <div ref={ref} className={`${className} transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-80 translate-y-4'}`}>
+          {children}
+        </div>
+      );
+    };
+
+    // ═══════════════════════════════════════════
+    // APP ROOT
+    // ═══════════════════════════════════════════
+    const App = () => {
+      const [content, setContent] = useState(null);
+      const [ecoMode, setEcoMode] = useState(() => {
+        const saved = localStorage.getItem('theo_eco_mode');
+        if (saved !== null) return saved === 'true';
+        return window.innerWidth < 768 || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+      });
+
+      const toggleEcoMode = () => {
+        setEcoMode(prev => {
+          const next = !prev;
+          localStorage.setItem('theo_eco_mode', String(next));
+          return next;
+        });
+      };
+
+      useEffect(() => {
+        fetch('/api/content')
+          .then(res => res.json())
+          .then(data => {
+            const payload = data?.data || data?.content;
+            if (data && data.success && payload) {
+              setContent(payload);
+            }
+          })
+          .catch(err => console.log('Dynamic API loading fallback to defaults', err));
+      }, []);
+
+      return (
+        <>
+          <ThreeBackground spaceConfig={content?.spaceConfig} ecoMode={ecoMode} />
+          <GradientOverlays />
+          <Navbar generalData={content?.general} ecoMode={ecoMode} toggleEcoMode={toggleEcoMode} />
+
+          <main className="relative" style={{ zIndex: 2 }}>
+            <HeroSection
+              heroData={content?.hero}
+              techTagsData={content?.techTags}
+              lanyardData={content?.lanyard}
+            />
+
+            <ScrollReveal>
+              <CertificatesSection
+                certificatesData={content?.certificatesList}
+              />
+            </ScrollReveal>
+
+            <ScrollReveal>
+              <ProjectSpotlight
+                spotlightData={content?.projectSpotlight}
+                projectsList={content?.projectsList}
+                githubStats={content?.githubStats}
+              />
+            </ScrollReveal>
+
+            <ScrollReveal>
+              <TechStack githubStats={content?.githubStats} />
+            </ScrollReveal>
+
+            <ScrollReveal>
+              <Education experiencesData={content?.cvData?.experiences} />
+            </ScrollReveal>
+
+            <ScrollReveal>
+              <Contact generalData={content?.general} cvData={content?.cvData} />
+            </ScrollReveal>
+          </main>
+
+          <Footer generalData={content?.general} />
+        </>
+      );
+    };
+
+    // Mount
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  

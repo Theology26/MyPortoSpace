@@ -15,6 +15,11 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+ADMIN_CREDENTIALS.txt
+*_CREDENTIALS.txt
+*CREDENTIALS*.txt
+*.passcode
+passcode.txt
 
 # Local SQLite Database & Cache
 database.sqlite
@@ -36,4 +41,17 @@ Thumbs.db
 # Large Backup 3D Models
 *.original.glb
 *.backup.*
+
+# Local-only asset backups (moved out of the web-served /Assets directory)
+_backup_assets/
+
+# Admin-uploaded images (user content, not source)
+Assets/uploads/
+
+# Build output (regenerate with `npm run build`)
+public/app.js
+public/admin.js
+public/tailwind.css
+public/tailwind.admin.css
+public/build-manifest.json
 

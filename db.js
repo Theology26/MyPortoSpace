@@ -30,11 +30,15 @@ const DEFAULT_CONTENT = {
     githubUrl: 'https://github.com/Theology26',
     instagramUrl: 'https://instagram.com/theoxcyro',
     address: 'Malang, East Java, Indonesia',
-    // [removed: leaked admin passcode]
+    // NOTE: adminPasscode is intentionally absent. Credentials are resolved in
+    // this order: process.env.ADMIN_PASSCODE -> scrypt hash in the `security`
+    // section -> legacy plaintext general.adminPasscode (migrated on first use).
     logoUrl: '/Assets/avatar_animated.png',
     githubUsername: 'Theology26',
     githubToken: '',
   },
+  // Holds { algo, salt, hash } for the admin passcode. Never exposed publicly.
+  security: {},
   hero: {
     badgeText: 'FULLSTACK DEVELOPER // VIDEO & VJ',
     badgeSubtext: 'LARAVEL 11 & CREATIVE TECH',
@@ -537,6 +541,30 @@ function updateAllContent(payload) {
   });
 }
 
+function deleteSection(section) {
+  // Mirror the removal into the JSON store so both engines agree.
+  const store = loadStore();
+  if (Object.prototype.hasOwnProperty.call(store, section)) {
+    delete store[section];
+    try {
+      fs.writeFileSync(JSON_STORE_PATH, JSON.stringify(store, null, 2), 'utf8');
+    } catch (err) {
+      // Read-only filesystem is survivable: SQLite remains authoritative.
+    }
+  }
+  memoryStore = store;
+
+  if (useJsonFallback || !db) {
+    return Promise.resolve({ section, deleted: true });
+  }
+
+  return new Promise((resolve) => {
+    db.run('DELETE FROM settings WHERE section = ?', [section], () =>
+      resolve({ section, deleted: true })
+    );
+  });
+}
+
 function saveGithubRepos(repos) {
   githubReposCache = repos || [];
 
@@ -587,6 +615,7 @@ module.exports = {
   getAllContent,
   updateSection,
   updateAllContent,
+  deleteSection,
   saveGithubRepos,
   getGithubRepos,
   DEFAULT_CONTENT,
