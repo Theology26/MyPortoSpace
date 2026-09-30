@@ -8,6 +8,12 @@
 const ContentRepository = require('./src/repositories/ContentRepository');
 const AuthService = require('./src/security/AuthService');
 
+/**
+ * Deny-list entry only. This value leaked in public git history, so it must
+ * never be re-set as the live credential. It is not a usable passcode.
+ */
+const REJECTED = 'theology26';
+
 (async () => {
   const pass = process.argv[2];
 
@@ -19,7 +25,7 @@ const AuthService = require('./src/security/AuthService');
     console.error('Refusing: minimum 12 characters.');
     process.exit(1);
   }
-  if (pass === 'theology26') {
+  if (pass === REJECTED) {
     console.error('Refusing: this passcode is public in the repository history.');
     process.exit(1);
   }
@@ -35,7 +41,7 @@ const AuthService = require('./src/security/AuthService');
   await auth.setPasscodeHash(pass);
 
   const ok = await auth.verifyPasscode(pass);
-  const oldOk = await auth.verifyPasscode('theology26');
+  const oldOk = await auth.verifyPasscode(REJECTED);
   const record = await auth.getStoredRecord();
   const general = await repository.getSection('general');
 

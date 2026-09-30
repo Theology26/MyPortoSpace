@@ -3,7 +3,6 @@
 const CryptoUtil = require('./CryptoUtil');
 
 const TOKEN_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours
-const DEFAULT_PASSPHRASE = null;;
 
 /**
  * AuthService — owns passcode verification and session token issuance.
@@ -12,6 +11,10 @@ const DEFAULT_PASSPHRASE = null;;
  *   1. process.env.ADMIN_PASSCODE   (authoritative; required on serverless)
  *   2. database `security` section  (scrypt hash, auto-migrated)
  *   3. database `general.adminPasscode` (legacy plaintext, auto-migrated on first use)
+ *
+ * If none of these exist, no passcode is valid and no token can be signed.
+ * There is deliberately NO built-in default: a hardcoded fallback would be an
+ * open backdoor, and a fallback signing key would let anyone forge a session.
  *
  * The raw passcode is never returned to clients. Successful logins yield a
  * short-lived HMAC-signed bearer token instead.
@@ -89,20 +92,27 @@ class AuthService {
   /**
    * Stable HMAC key for signing session tokens. Derived from the passcode so
    * tokens stay valid across cold starts without storing a second secret.
+   *
+   * Returns null when no passcode is configured. That must invalidate every
+   * token rather than fall back to a predictable key, otherwise anyone who
+   * knows the derivation could forge an admin session.
    */
   async getSigningKey() {
     const envPass = this.getEnvPasscode();
-    if (envPass) return crypto_scryptKey(envPass);
+    if (envPass) return deriveKey(envPass);
     const record = await this.getStoredRecord();
     if (record) return Buffer.from(record.hash, 'hex');
     const legacy = await this.getLegacyPasscode();
-    if (legacy) return crypto_scryptKey(legacy);
-    return crypto_scryptKey(DEFAULT_PASSPHRASE);
+    if (legacy) return deriveKey(legacy);
+    return null;
   }
 
   /** Issue a signed, expiring bearer token. */
   async issueToken() {
     const key = await this.getSigningKey();
+    if (!key) {
+      throw new Error('Cannot issue a token: no admin passcode is configured');
+    }
     const payload = {
       role: 'admin',
       exp: Date.now() + TOKEN_TTL_MS,
@@ -118,6 +128,8 @@ class AuthService {
     const [body, sig] = token.split('.');
     if (!body || !sig) return false;
     const key = await this.getSigningKey();
+    // No configured passcode means no key, therefore no valid token.
+    if (!key) return false;
     if (!CryptoUtil.timingSafeEqual(sig, CryptoUtil.sign(body, key))) return false;
     try {
       const payload = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
@@ -135,7 +147,7 @@ class AuthService {
   }
 }
 
-function crypto_scryptKey(passphrase) {
+function deriveKey(passphrase) {
   return require('crypto').scryptSync(String(passphrase), 'portfolio-token-key', 32);
 }
 
