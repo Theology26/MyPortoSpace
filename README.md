@@ -1,12 +1,11 @@
 # 🌌 MyPortoSpace — Full-Stack 3D Interactive Portfolio & CMS
 
 > **Live Portfolio of Yosia Gracetheo Boimau (@Theology26)**  
-> *Full-Stack Systems Builder • Video Editor • Virtual Jockey (VJ)*
+> *Fullstack Developer | Backend & AI*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-3D%20WebGL-black.svg)](https://threejs.org/)
-[![Vercel Ready](https://img.shields.io/badge/Vercel-Serverless%20Ready-black.svg)](https://vercel.com/)
 
 ---
 
@@ -24,8 +23,6 @@
   - Single-click A4 Portrait ATS-compliant CV generator (`/api/cv/download`) that automatically aggregates GitHub repositories, career experiences, and verified credentials.
 - **🛠️ Secured SQLite Admin Dashboard (`/admin`)**:
   - Full CRUD control over hero headings, tech tags, lanyard pass telemetry, credentials, gallery, and space environment parameters.
-- **🚀 Vercel Serverless Ready**:
-  - Pre-configured `vercel.json` and serverless Express handler with `/tmp` database resiliency.
 
 ---
 
@@ -34,7 +31,7 @@
 - **Frontend**: React 18 (precompiled JSX), Three.js WebGL, Tailwind CSS (static build), Canvas API
 - **Backend**: Node.js, Express 5, SQLite3 / JSON-store resilient fallback
 - **Architecture**: Layered — `repositories` → `services` → routes, with security concerns isolated in `src/security/`
-- **Deployment**: Vercel Serverless Function & Standalone Node.js
+- **Deployment**: Standalone Node.js server (`npm start`)
 
 ---
 
@@ -60,7 +57,7 @@ What made this fast:
 - **Immutable caching** on `/Assets` (30d) and `public/` bundles (7d).
 - **Editor backups removed** from the public asset directory: 75.8 MB → 9.5 MB.
   A 66 MB `earth_globe.original.glb` backup was being served publicly at
-  `/Assets/earth_globe.original.glb`; it now lives in `_backup_assets/`.
+  `/Assets/earth_globe.original.glb`; it has since been deleted from the repo.
 - **3D models are idle-deferred.** The ~4.2 MB Earth GLB and ~4.5 MB of
   satellites only download once the browser is idle, and are skipped entirely
   on low-spec devices. A procedural Earth already renders underneath, so the
@@ -87,9 +84,8 @@ npm install
 ```bash
 cp .env.example .env
 ```
-Set `ADMIN_PASSCODE` to a long random string. **Required on Vercel** — serverless
-`/tmp` storage is not shared between instances, so without it each instance would
-authenticate against different credentials.
+Set `ADMIN_PASSCODE` to a long random string. If it is omitted, the passcode
+falls back to the scrypt hash stored in the `security` database section.
 
 Generate one:
 ```bash
@@ -127,17 +123,26 @@ Open [http://localhost:3000](http://localhost:3000) to view the portfolio.
 
 ### Tests
 ```bash
-npm test                 # 41 unit + 28 live security assertions
-npm run test:upload      # 12 image-upload assertions
-npm run test:certs       #  6 certificate integrity assertions
-npm run test:cta         #  4 CTA rendering assertions
-npm run test:render      # 13 headless-Chrome render checks (mobile + desktop)
-npm run audit:secrets    # 31 public-exposure probes
-npm run test:leak        # 29 canary leak probes
+npm test                    # 41 unit + 28 live security assertions
+npm run test:upload         # 12 image-upload assertions
+npm run test:certs          #  6 certificate integrity assertions
+npm run test:cert-render    # certificate render check on the public page
+npm run test:cta            #  4 CTA rendering assertions
+npm run test:render         # 13 headless-Chrome render checks (mobile + desktop)
+npm run test:failclosed     # 15 auth fail-closed assertions
+npm run audit:secrets       # 37 public-exposure probes
+npm run test:leak           # 29 canary leak probes
 ```
 
 > `npm test` deliberately does **not** trip the login lockout. To verify brute-force
-> protection, run `TEST_LOCKOUT=1 node test_live.js` — it will lock your IP for 15 min.
+> protection, run `TEST_LOCKOUT=1 node test/test_live.js` — it will lock your IP for 15 min.
+
+### Maintenance scripts
+```bash
+npm run passcode              # rotate the admin passcode (scripted)
+npm run passcode:interactive  # rotate it with a hidden prompt
+npm run certs:restore         # re-seed built-in certificates into stored content
+```
 
 ---
 
@@ -182,12 +187,34 @@ would have added tens of megabytes to every visitor's page load.
 
 ---
 
-## ☁️ Deploying to Vercel
+## 📁 Project Layout
 
-1. Push this repository to GitHub (`Theology26/MyPortoSpace`).
-2. Log in to [Vercel](https://vercel.com/) and click **"New Project"**.
-3. Import the `MyPortoSpace` repository.
-4. Click **Deploy**! No extra configuration required — `vercel.json` and `api/index.js` handle everything out of the box.
+```
+├── server.js              # Express 5 app: routes, security headers, static serving
+├── db.js                  # SQLite + JSON-store resilient adapter, DEFAULT_CONTENT
+├── build.js               # Compiles src/client/*.jsx -> public/*.js
+├── index.html             # Public portfolio shell (loads public/app.js)
+├── admin.html             # Admin panel shell (loads public/admin.js)
+├── api/                   # Serverless entrypoints -> server.js (unused; see note)
+├── src/
+│   ├── client/            # React (JSX) sources for app + admin
+│   ├── services/          # Content, CV, GitHub sync, upload
+│   ├── security/          # Auth, crypto, rate limiting, sanitizer, headers
+│   ├── repositories/      # Persistence boundary
+│   └── middleware/        # Admin route guard
+├── test/                  # Test suites + test/helpers
+├── scripts/               # Ops/maintenance scripts (passcode, certs, audits)
+├── public/                # Build output (gitignored — regenerate with npm run build)
+├── Assets/                # 3D models, avatar, uploads/ (gitignored)
+└── vercel.json            # Cache + noindex headers
+```
+
+`server.js`, `db.js`, `index.html`, `admin.html` and `Assets/` must stay at the
+repository root — the build and the static server resolve them by fixed path.
+
+The site is served by the standalone Node server (`npm start`). `api/` and
+`vercel.json` are leftovers from an unused serverless deployment and can be
+deleted if you do not plan to host on Vercel.
 
 ---
 

@@ -14,7 +14,7 @@ const path = require('path');
 const http = require('http');
 const { spawn } = require('child_process');
 const WebSocket = require('ws');
-const { resolvePasscode } = require('./test/helpers/passcode');
+const { resolvePasscode } = require('../test/helpers/passcode');
 
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const BASE = process.env.BASE || 'http://localhost:3111';

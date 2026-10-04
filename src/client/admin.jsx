@@ -1061,6 +1061,93 @@
                   />
                 </div>
 
+                {/* Terminal Toggle & Window Chrome */}
+                <div className="pt-4 border-t border-white/10">
+                  <label className="font-mono text-xs text-muted uppercase block mb-3">Terminal Toggle &amp; Window Chrome</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-mono text-xs text-muted block mb-1">Toggle Text (Closed)</label>
+                      <input
+                        type="text"
+                        value={content.projectSpotlight.toggleOpenLabel || ''}
+                        onChange={(e) => updateField('projectSpotlight', 'toggleOpenLabel', e.target.value)}
+                        placeholder="⚡ Open Logistics &amp; OCR Terminal"
+                        className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-xs text-muted block mb-1">Toggle Text (Open)</label>
+                      <input
+                        type="text"
+                        value={content.projectSpotlight.toggleCloseLabel || ''}
+                        onChange={(e) => updateField('projectSpotlight', 'toggleCloseLabel', e.target.value)}
+                        placeholder="Close Terminal Simulator"
+                        className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-xs text-muted block mb-1">Deploy Status Label</label>
+                      <input
+                        type="text"
+                        value={content.projectSpotlight.statusLabel || ''}
+                        onChange={(e) => updateField('projectSpotlight', 'statusLabel', e.target.value)}
+                        placeholder="ACTIVE DEPLOY"
+                        className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-xs text-muted block mb-1">Terminal Window Path</label>
+                      <input
+                        type="text"
+                        value={content.projectSpotlight.terminalPath || ''}
+                        onChange={(e) => updateField('projectSpotlight', 'terminalPath', e.target.value)}
+                        placeholder="~/theology26/smart-logistics-ocr"
+                        className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="font-mono text-xs text-muted block mb-1">Terminal Window Badge (top-right)</label>
+                      <input
+                        type="text"
+                        value={content.projectSpotlight.terminalBadge || ''}
+                        onChange={(e) => updateField('projectSpotlight', 'terminalBadge', e.target.value)}
+                        placeholder="BASH // LIVE"
+                        className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <div className="pt-4 border-t border-white/10">
+                  <label className="font-mono text-xs text-muted uppercase block mb-3">Call-to-Action Button</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="font-mono text-xs text-muted block mb-1">Button Text</label>
+                      <input
+                        type="text"
+                        value={content.projectSpotlight.ctaLabel || ''}
+                        onChange={(e) => updateField('projectSpotlight', 'ctaLabel', e.target.value)}
+                        placeholder="View Repository"
+                        className="glass-input w-full px-3 py-2 rounded-lg font-geist text-xs font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-xs text-muted block mb-1">Button Link (URL)</label>
+                      <input
+                        type="url"
+                        value={content.projectSpotlight.ctaUrl || ''}
+                        onChange={(e) => updateField('projectSpotlight', 'ctaUrl', e.target.value)}
+                        placeholder="https://github.com/Theology26"
+                        className="glass-input w-full px-3 py-2 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                  <p className="font-mono text-[10px] text-muted/60 mt-2">
+                    Only http://, https:// or / paths are accepted — anything else falls back to the GitHub profile.
+                  </p>
+                </div>
+
                 {/* Metrics Table */}
                 <div>
                   <label className="font-mono text-xs text-muted block mb-2">Metrics Grid</label>

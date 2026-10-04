@@ -5,8 +5,8 @@
  * Usage: node add_certificate.js <uploadedUrl> "<title>" "<issuer>" "<year>" [aspectRatio]
  */
 
-const ContentRepository = require('./src/repositories/ContentRepository');
-const ContentService = require('./src/services/ContentService');
+const ContentRepository = require('../src/repositories/ContentRepository');
+const ContentService = require('../src/services/ContentService');
 
 (async () => {
   const [url, title, issuer, year, aspectRatio] = process.argv.slice(2);

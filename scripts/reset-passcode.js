@@ -10,9 +10,9 @@
  */
 
 const readline = require('readline');
-const ContentRepository = require('./src/repositories/ContentRepository');
-const AuthService = require('./src/security/AuthService');
-const CryptoUtil = require('./src/security/CryptoUtil');
+const ContentRepository = require('../src/repositories/ContentRepository');
+const AuthService = require('../src/security/AuthService');
+const CryptoUtil = require('../src/security/CryptoUtil');
 
 const MIN_LENGTH = 12;
 

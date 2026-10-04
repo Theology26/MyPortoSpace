@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const { resolvePasscode } = require('./test/helpers/passcode');
+const { resolvePasscode } = require('./helpers/passcode');
 const BASE = process.env.BASE || 'http://localhost:3111';
 const PASSCODE = resolvePasscode();
 
@@ -90,7 +90,7 @@ function multipart(fieldName, filename, contentType, buffer) {
   // Remove files this run created so repeated runs don't litter the upload dir.
   const fs = require('fs');
   const path = require('path');
-  const uploadDir = path.join(__dirname, 'Assets', 'uploads');
+  const uploadDir = path.join(__dirname, '..', 'Assets', 'uploads');
   for (const url of [upJson.url, up2Json.url]) {
     if (!url) continue;
     try { fs.unlinkSync(path.join(uploadDir, path.basename(url))); } catch {}

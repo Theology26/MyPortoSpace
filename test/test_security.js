@@ -1,8 +1,8 @@
 'use strict';
 
-const S = require('./src/security/Sanitizer');
-const CryptoUtil = require('./src/security/CryptoUtil');
-const RateLimiter = require('./src/security/RateLimiter');
+const S = require('../src/security/Sanitizer');
+const CryptoUtil = require('../src/security/CryptoUtil');
+const RateLimiter = require('../src/security/RateLimiter');
 
 let pass = 0;
 let fail = 0;

@@ -23,7 +23,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const local = certs.filter((c) => /\/Assets\/uploads\//.test(c.imageUrl || ''));
 
   // Every referenced upload must still exist on disk.
-  const uploadDir = path.join(__dirname, 'Assets', 'uploads');
+  const uploadDir = path.join(__dirname, '..', 'Assets', 'uploads');
   const onDisk = new Set(fs.readdirSync(uploadDir));
   const missing = local.filter((c) => !onDisk.has(path.basename(c.imageUrl)));
 

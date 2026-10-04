@@ -1710,6 +1710,14 @@
     // ═══════════════════════════════════════════
     // SECTION HEADER COMPONENT
     // ═══════════════════════════════════════════
+    const safeExternalUrl = (value, fallback = 'https://github.com/Theology26') => {
+      const raw = typeof value === 'string' ? value.trim() : '';
+      if (!raw) return fallback;
+      if (/^https?:\/\//i.test(raw)) return raw;
+      if (/^\/(?!\/)/.test(raw)) return raw;
+      return fallback;
+    };
+
     const SectionHeader = ({ label, title, subtitle }) => (
       <div className="mb-10">
         <span className="font-mono text-[11px] font-medium text-muted/60 uppercase tracking-[0.55px] block mb-3">{label}</span>
@@ -2001,6 +2009,13 @@
         description: 'Modern supply chain management system designed to track fleet movement and inventory with high precision. Built on Laravel backend with real-time analytics dashboards and minimized dispatch errors.',
         linkText: 'View Project Repo ↗',
         linkUrl: 'https://github.com/Theology26',
+        ctaLabel: 'View Repository',
+        ctaUrl: 'https://github.com/Theology26',
+        toggleOpenLabel: '⚡ Open Logistics & OCR Terminal',
+        toggleCloseLabel: 'Close Terminal Simulator',
+        statusLabel: 'ACTIVE DEPLOY',
+        terminalPath: '~/theology26/smart-logistics-ocr',
+        terminalBadge: 'BASH // LIVE',
         metrics: [
           { label: 'FRAMEWORK', value: 'Laravel 11' },
           { label: 'FRONTEND', value: 'Tailwind + React' },
@@ -2022,6 +2037,14 @@
 
       const [terminalLines, setTerminalLines] = useState([]);
       const [showTerminal, setShowTerminal] = useState(false);
+
+      const ctaLabel = p.ctaLabel || p.linkText || 'View Repository';
+      const ctaHref = safeExternalUrl(p.ctaUrl || p.linkUrl || p.githubRepoUrl);
+      const toggleOpenLabel = p.toggleOpenLabel || '⚡ Open Logistics & OCR Terminal';
+      const toggleCloseLabel = p.toggleCloseLabel || 'Close Terminal Simulator';
+      const statusLabel = p.statusLabel || 'ACTIVE DEPLOY';
+      const terminalPath = p.terminalPath || '~/theology26/smart-logistics-ocr';
+      const terminalBadge = p.terminalBadge || 'BASH // LIVE';
 
       useEffect(() => {
         const lines = p.terminalLines && p.terminalLines.length > 0 ? p.terminalLines : [
@@ -2153,7 +2176,7 @@
                 onClick={() => setShowTerminal(!showTerminal)}
                 className="glass-pill font-mono text-xs text-cyan-300 hover:text-white flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition-colors cursor-pointer"
               >
-                <span>{showTerminal ? 'Close Terminal Simulator' : '⚡ Open Logistics & OCR Terminal'}</span>
+                <span>{showTerminal ? toggleCloseLabel : toggleOpenLabel}</span>
                 <span className="text-[10px]">{showTerminal ? '▲' : '▼'}</span>
               </button>
             </div>
@@ -2169,7 +2192,7 @@
                         </span>
                         <span className="font-mono text-[10px] text-emerald-400 flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                          ACTIVE DEPLOY
+{statusLabel}
                         </span>
                       </div>
                       <h3 className="font-geist text-xl sm:text-2xl font-semibold text-white mb-2 tracking-tight">
@@ -2180,8 +2203,8 @@
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <a href={p.githubRepoUrl || p.linkUrl || 'https://github.com/Theology26'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-space-black font-geist text-xs font-semibold hover:bg-zinc-200 transition-all">
-                        <span>View Repository</span>
+                      <a href={ctaHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-space-black font-geist text-xs font-semibold hover:bg-zinc-200 transition-all">
+                        <span>{ctaLabel}</span>
                         <span>↗</span>
                       </a>
                     </div>
@@ -2194,9 +2217,9 @@
                           <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
                           <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
                         </div>
-                        <span className="font-mono text-[11px] text-zinc-400 ml-2">~/theology26/smart-logistics-ocr</span>
+                        <span className="font-mono text-[11px] text-zinc-400 ml-2">{terminalPath}</span>
                       </div>
-                      <span className="font-mono text-[10px] text-white/30">BASH // LIVE</span>
+                      <span className="font-mono text-[10px] text-white/30">{terminalBadge}</span>
                     </div>
                     <div className="p-4 h-[240px] overflow-hidden flex flex-col justify-end font-mono">
                       {terminalLines.map((line, i) => (

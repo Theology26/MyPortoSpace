@@ -16,10 +16,10 @@
 
 const fs = require('fs');
 const path = require('path');
-const { resolvePasscode } = require('./test/helpers/passcode');
+const { resolvePasscode } = require('./helpers/passcode');
 
 const BASE = process.env.BASE || 'http://localhost:3111';
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..');
 
 const CANARY = {
   // Underscores, not a real PAT prefix — see the note above.
@@ -121,7 +121,7 @@ async function login() {
   chk('original content restored', restore.ok, `HTTP ${restore.status}`);
 
   // Remove the canary section through the repository so both engines agree.
-  const ContentRepository = require('./src/repositories/ContentRepository');
+  const ContentRepository = require('../src/repositories/ContentRepository');
   const repo = new ContentRepository();
   await repo.init();
   await repo.removeSection(CANARY.section);

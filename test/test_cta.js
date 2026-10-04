@@ -43,11 +43,15 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     expression: `(() => {
       const arrowRe = /[\\u2190-\\u21FF\\u25B2-\\u25BF\\u27F2-\\u27FF\\u2B00-\\u2B1F]/u;
       const out = [];
+      // The primary hero CTA is the only in-page anchor that carries its own
+      // inline SVG arrow; the CV / Linktree pills open in a new tab. Matching on
+      // structure instead of label text keeps this valid for any admin-set CTA.
       for (const a of document.querySelectorAll('a')) {
-        const label = (a.innerText || '').trim();
-        if (!/explore/i.test(label)) continue;
-        const arrowsInText = (label.match(new RegExp(arrowRe.source, 'gu')) || []).length;
+        if (a.hasAttribute('target')) continue;
         const svgs = a.querySelectorAll('svg').length;
+        if (svgs === 0) continue;
+        const label = (a.innerText || '').trim();
+        const arrowsInText = (label.match(new RegExp(arrowRe.source, 'gu')) || []).length;
         out.push({ label, arrowsInText, svgs, totalArrows: arrowsInText + svgs });
       }
       return out;
@@ -58,12 +62,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   let pass = 0, fail = 0;
   const chk = (n, c, x) => { if (c) { pass++; console.log(`PASS  ${n}`); } else { fail++; console.log(`FAIL  ${n}  ${x}`); } };
 
-  console.log('=== Explore CTA arrow check ===');
+  // The label is admin-editable, so assert against what is actually stored.
+  const hero = (await (await fetch(`${BASE}/api/content`)).json()).content.hero || {};
+  const TRAILING_ARROW = /[\u2190-\u21FF\u25B2-\u25BF\u27F2-\u27FF\u2B00-\u2B1F]+\s*$/u;
+  const expectedLabel = String(hero.ctaPrimaryText || 'Explore Repositories').replace(TRAILING_ARROW, '').trim();
+
+  console.log('=== Primary CTA arrow check ===');
   rows.forEach((r) => console.log(`      label="${r.label}" textArrows=${r.arrowsInText} svgArrows=${r.svgs}`));
-  chk('found the Explore CTA', rows.length > 0, 'none found');
+  chk('found the primary CTA', rows.length > 0, 'none found');
   chk('no arrow glyph left in the text', rows.every((r) => r.arrowsInText === 0), JSON.stringify(rows.map((r) => r.arrowsInText)));
   chk('exactly one arrow renders (the SVG)', rows.every((r) => r.totalArrows === 1), JSON.stringify(rows.map((r) => r.totalArrows)));
-  chk('label text intact', rows.some((r) => /Explore Portfolio/i.test(r.label)), JSON.stringify(rows.map((r) => r.label)));
+  chk('label matches admin-configured CTA text', rows.some((r) => r.label === expectedLabel), `expected "${expectedLabel}", got ${JSON.stringify(rows.map((r) => r.label))}`);
 
   console.log(`\n===== ${pass} passed, ${fail} failed =====`);
   ws.close(); chrome.kill();

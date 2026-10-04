@@ -7,9 +7,9 @@
  * Usage: node restore_certificates.js
  */
 
-const ContentRepository = require('./src/repositories/ContentRepository');
-const ContentService = require('./src/services/ContentService');
-const { DEFAULT_CONTENT } = require('./db');
+const ContentRepository = require('../src/repositories/ContentRepository');
+const ContentService = require('../src/services/ContentService');
+const { DEFAULT_CONTENT } = require('../db');
 
 (async () => {
   const repository = new ContentRepository();

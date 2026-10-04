@@ -5,8 +5,8 @@
  * Usage: node set-passcode.js <newPasscode>
  */
 
-const ContentRepository = require('./src/repositories/ContentRepository');
-const AuthService = require('./src/security/AuthService');
+const ContentRepository = require('../src/repositories/ContentRepository');
+const AuthService = require('../src/security/AuthService');
 
 /**
  * Deny-list entry only. This value leaked in public git history, so it must

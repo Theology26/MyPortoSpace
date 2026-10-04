@@ -1,6 +1,6 @@
 'use strict';
 
-const { resolvePasscode } = require('./test/helpers/passcode');
+const { resolvePasscode } = require('./helpers/passcode');
 const BASE = process.env.BASE || 'http://localhost:3111';
 const PASSCODE = resolvePasscode();
 let pass = 0;
@@ -125,7 +125,7 @@ const throttleIf = (status) => { if (status === 429) writesThrottled = true; };
 
   console.log('\n=== 11. Passcode storage ===');
   const fs = require('fs');
-  const raw = fs.readFileSync(`${__dirname}/portfolio_store.json`, 'utf8');
+  const raw = fs.readFileSync(`${__dirname}/../portfolio_store.json`, 'utf8');
   chk('plaintext passcode scrubbed', !/"adminPasscode"\s*:\s*"theology26"/.test(raw));
   chk('scrypt hash stored', /"algo"\s*:\s*"scrypt"/.test(raw));
 

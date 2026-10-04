@@ -15,8 +15,8 @@ const chk = (n, c, x) => { if (c) { pass++; console.log(`PASS  ${n}`); } else { 
 
 /** Build an AuthService over a repository that has no passcode at all. */
 function makeBareAuthService() {
-  const ContentRepository = require('./src/repositories/ContentRepository');
-  const AuthService = require('./src/security/AuthService');
+  const ContentRepository = require('../src/repositories/ContentRepository');
+  const AuthService = require('../src/security/AuthService');
   const repository = new ContentRepository();
   // Empty content: no `security` section, no legacy adminPasscode.
   const bare = {
@@ -55,7 +55,7 @@ function makeBareAuthService() {
   chk('issueToken throws instead of signing with a default', threw);
 
   console.log('\n=== No literal default passcode remains in source ===');
-  const src = fs.readFileSync(path.join(__dirname, 'src', 'security', 'AuthService.js'), 'utf8');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'src', 'security', 'AuthService.js'), 'utf8');
   chk('no DEFAULT_PASSPHRASE constant', !/DEFAULT_PASSPHRASE/.test(src));
   chk('no crypto_scryptKey(null) style fallback', !/scryptSync\(String\(\s*(null|undefined)\s*\)/.test(src));
   chk('fail-closed documented', /no passcode is valid/i.test(src));

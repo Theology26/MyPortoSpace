@@ -42,6 +42,10 @@ Thumbs.db
 *.original.glb
 *.backup.*
 
+# Design-tool exports (Figma exports embed expiring presigned-URL credentials)
+figma_data*.json
+*.figma.json
+
 # Local-only asset backups (moved out of the web-served /Assets directory)
 _backup_assets/
 

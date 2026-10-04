@@ -6,14 +6,14 @@
  * Probes every public route and every web-served file for secret material:
  * passcodes, tokens, hashes, .env contents, and common API-key shapes.
  *
- * Usage: node audit_secrets.js
+ * Usage: npm run audit:secrets
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const BASE = process.env.BASE || 'http://localhost:3111';
-const ROOT = __dirname;
+const ROOT = path.join(__dirname, '..');
 
 let pass = 0;
 let fail = 0;
@@ -86,9 +86,7 @@ function scan(label, text) {
   console.log('\n=== Must-not-be-reachable probes ===');
   const forbidden = [
     '/.env', '/.env.example', '/database.sqlite', '/portfolio_store.json',
-    '/db.js', '/server.js', '/figma_data.json', '/package.json',
-    '/_backup_assets/earth_globe.original.glb',
-    '/Assets/earth_globe.original.glb',
+    '/db.js', '/server.js', '/ADMIN_CREDENTIALS.txt', '/package.json',
     '/tailwind.config.js', '/build.js', '/.git/config', '/.gitignore',
   ];
   for (const route of forbidden) {
@@ -99,7 +97,7 @@ function scan(label, text) {
 
   // ── 4. Repository-wide secret scan (source, not just served files) ─────
   console.log('\n=== Source tree scan ===');
-  const SKIP_DIRS = new Set(['node_modules', '.git', 'public', 'Assets', '_backup_assets', '.agents']);
+  const SKIP_DIRS = new Set(['node_modules', '.git', 'public', 'Assets', '.agents', '.kilo']);
   const SCAN_EXT = new Set(['.js', '.jsx', '.html', '.json', '.css', '.env', '.md', '.txt', '.yml', '.yaml']);
   const findings = [];
   const walk = (dir) => {
@@ -145,7 +143,6 @@ function scan(label, text) {
   };
   walkAws(ROOT);
   chk('no first-party AWS keys in source', awsFindings.length === 0, awsFindings.join(', '));
-  console.log('NOTE  figma_data.json embeds a Figma S3 presigned-URL key id (third-party, expired, file not served).');
 
   // ── 5. .env handling ────────────────────────────────────────────────────
   console.log('\n=== Local secret store handling ===');

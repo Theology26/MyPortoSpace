@@ -264,7 +264,14 @@ const DEFAULT_CONTENT = {
       '$ echo "Distribution logistics optimized ✓"',
     ],
     githubRepoUrl: 'https://github.com/Theology26',
-    liveDemoUrl: '#'
+    liveDemoUrl: '#',
+    ctaLabel: 'View Repository',
+    ctaUrl: 'https://github.com/Theology26',
+    toggleOpenLabel: '⚡ Open Logistics & OCR Terminal',
+    toggleCloseLabel: 'Close Terminal Simulator',
+    statusLabel: 'ACTIVE DEPLOY',
+    terminalPath: '~/theology26/smart-logistics-ocr',
+    terminalBadge: 'BASH // LIVE',
   },
   spaceConfig: {
     starsCount: 3200,
@@ -383,6 +390,39 @@ function persistStore(updates) {
 }
 
 // ═══════════════════════════════════════════════════════
+// SPOTLIGHT BACKFILL
+// Adds newer projectSpotlight keys to already-stored content. Existing values
+// are never overwritten; only missing/blank ones are seeded.
+// ═══════════════════════════════════════════════════════
+const SPOTLIGHT_BACKFILL_FIELDS = [
+  ['ctaLabel', () => DEFAULT_CONTENT.projectSpotlight.ctaLabel],
+  ['ctaUrl', (s) => s.githubRepoUrl || s.linkUrl || DEFAULT_CONTENT.projectSpotlight.ctaUrl],
+  ['toggleOpenLabel', () => DEFAULT_CONTENT.projectSpotlight.toggleOpenLabel],
+  ['toggleCloseLabel', () => DEFAULT_CONTENT.projectSpotlight.toggleCloseLabel],
+  ['statusLabel', () => DEFAULT_CONTENT.projectSpotlight.statusLabel],
+  ['terminalPath', () => DEFAULT_CONTENT.projectSpotlight.terminalPath],
+  ['terminalBadge', () => DEFAULT_CONTENT.projectSpotlight.terminalBadge],
+];
+
+function withSpotlightDefaults(sectionData) {
+  const source = sectionData && typeof sectionData === 'object' && !Array.isArray(sectionData)
+    ? sectionData
+    : {};
+  const next = { ...source };
+  let changed = false;
+
+  for (const [key, resolveValue] of SPOTLIGHT_BACKFILL_FIELDS) {
+    if (typeof next[key] === 'string' && next[key].trim() !== '') continue;
+    const value = resolveValue(source);
+    if (typeof value !== 'string' || value === '') continue;
+    next[key] = value;
+    changed = true;
+  }
+
+  return changed ? next : null;
+}
+
+// ═══════════════════════════════════════════════════════
 // SQLITE CONNECTION SETUP
 // ═══════════════════════════════════════════════════════
 let db = null;
@@ -414,7 +454,9 @@ if (sqlite3) {
 
 function initDb() {
   if (useJsonFallback || !db) {
-    loadStore();
+    const store = loadStore();
+    const nextSpotlight = withSpotlightDefaults(store.projectSpotlight);
+    if (nextSpotlight) persistStore({ projectSpotlight: nextSpotlight });
     return Promise.resolve();
   }
 
@@ -461,6 +503,23 @@ function initDb() {
           });
           // Remove obsolete gallery section
           db.run("DELETE FROM settings WHERE section = 'gallery'");
+
+          // Backfill newer projectSpotlight keys without clobbering stored values
+          db.get("SELECT data FROM settings WHERE section = 'projectSpotlight'", (sErr, sRow) => {
+            if (!sRow) {
+              db.run("INSERT OR REPLACE INTO settings (section, data) VALUES (?, ?)", [
+                'projectSpotlight',
+                JSON.stringify(DEFAULT_CONTENT.projectSpotlight)
+              ]);
+              return;
+            }
+            try {
+              const merged = withSpotlightDefaults(JSON.parse(sRow.data));
+              if (merged) {
+                db.run("UPDATE settings SET data = ? WHERE section = 'projectSpotlight'", [JSON.stringify(merged)]);
+              }
+            } catch (e) {}
+          });
 
           // Filter projectsList to remove legacy certificates
           db.get("SELECT data FROM settings WHERE section = 'projectsList'", (pErr, pRow) => {
