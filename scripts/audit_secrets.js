@@ -61,7 +61,7 @@ function scan(label, text) {
 (async () => {
   // ── 1. Public API responses ─────────────────────────────────────────────
   console.log('=== Public API responses ===');
-  const routes = ['/', '/admin', '/robots.txt', '/sitemap.xml', '/api/content', '/api/github/stats', '/api/cv/download'];
+  const routes = ['/', '/admin', '/robots.txt', '/sitemap.xml', '/api/content', '/api/github/stats', '/api/cv/download', '/api/portfolio/pdf'];
   for (const route of routes) {
     const res = await fetch(`${BASE}${route}`, { redirect: 'manual' });
     const text = await res.text();

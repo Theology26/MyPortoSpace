@@ -95,7 +95,7 @@ function build() {
     const compiled = compileJsx(jsx, `${name}.jsx`);
 
     let out = source;
-    const tagRe = new RegExp(`<script[^>]*src="/${outName}"[^>]*></script>\\s*`, 'g');
+    const tagRe = new RegExp(`<script[^>]*src="/${outName}[^"]*"[^>]*></script>\\s*`, 'g');
     if (tagRe.test(out)) {
       out = out.replace(tagRe, `<script src="/${outName}" defer></script>\n  `);
       fs.writeFileSync(htmlPath, out, 'utf8');
@@ -113,6 +113,8 @@ function build() {
   }
 
   // Persist a small manifest so the server can set correct cache headers.
+  // Script tags are left unversioned here; scripts/version-assets.js appends the
+  // content hash once the CSS has been generated too (build:css runs after).
   fs.writeFileSync(
     path.join(PUBLIC_DIR, 'build-manifest.json'),
     JSON.stringify({ builtAt: new Date().toISOString(), assets: manifest }, null, 2),

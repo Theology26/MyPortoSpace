@@ -132,6 +132,8 @@ class GitHubSyncService {
         const existing = list[index];
         list[index] = {
           ...existing,
+          showInPortfolio: existing.showInPortfolio !== undefined ? existing.showInPortfolio : true,
+          includeInCv: existing.includeInCv === true,
           stats: `${stars} Stars • ${forks} Forks`,
           date: existing.date || year,
           linkUrl: repo.html_url,
@@ -155,6 +157,8 @@ class GitHubSyncService {
           imageUrl: '',
           badge: stars > 0 ? `★ ${stars} STARS` : 'GITHUB REPOSITORY',
           featured: stars >= 2,
+          showInPortfolio: true,
+          includeInCv: false,
           stats: `${stars} Stars • ${forks} Forks`,
           date: year,
         });
@@ -165,30 +169,17 @@ class GitHubSyncService {
     return { list, addedCount, updatedCount };
   }
 
-  /** Ensure the CV project list covers every portfolio project. */
-  syncCvProjects(cv, projectsList) {
-    const selected = Array.isArray(cv.selectedProjects) ? cv.selectedProjects : [];
-    const seen = new Set(selected.map((p) => String(p.title || '').toLowerCase().trim()));
-    const merged = [...selected];
-
-    for (const p of projectsList.filter((x) => x && x.type === 'project')) {
-      const key = String(p.title || '').toLowerCase().trim();
-      if (!key || seen.has(key)) continue;
-      merged.push({
-        title: p.title,
-        tags: Array.isArray(p.tags) ? p.tags.join(', ') : p.tags || '',
-        description: p.description || '',
-        linkUrl: p.linkUrl || '',
-        date: p.date || '',
-      });
-      seen.add(key);
-    }
-
-    return { ...cv, selectedProjects: merged };
+  /**
+   * The CV project list is hand-curated in the admin panel and is never touched
+   * by a sync. Kept as an explicit pass-through so the intent is documented at
+   * the call site rather than implied by an absent line.
+   */
+  syncCvProjects(cv) {
+    return cv;
   }
 
   /**
-   * Full sync: fetch repos, refresh stats, merge projects, sync the CV.
+   * Full sync: fetch repos, refresh stats, merge projects.
    * @param {string} [username] Override stored username.
    * @param {string} [token]    Override stored token (authenticated callers only).
    */
@@ -209,7 +200,8 @@ class GitHubSyncService {
     const { list, addedCount, updatedCount } = this.mergeProjects(content.projectsList, repos, user);
     await this.repository.setSection('projectsList', list);
 
-    await this.repository.setSection('cvData', this.syncCvProjects(content.cvData || {}, list));
+    // The CV list is left exactly as the admin panel has it.
+    await this.repository.setSection('cvData', this.syncCvProjects(content.cvData || {}));
 
     return { repos, projectsList: list, githubStats, addedCount, updatedCount, totalCount: repos.length, username: user };
   }

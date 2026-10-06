@@ -1,0 +1,37 @@
+# ==============================================================
+# Systemd Service Unit: theoverse.service
+# Lokasi file di Kubuntu: /etc/systemd/system/theoverse.service
+# Perintah aktivasi:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable theoverse
+#   sudo systemctl start theoverse
+#   sudo systemctl status theoverse
+# ==============================================================
+
+[Unit]
+Description=Theology26 Portfolio & Systems CMS (theoverse.my.id)
+After=network.target
+
+[Service]
+Type=simple
+# Sesuaikan 'your_username' dengan username akun Kubuntu Anda (cek pakai: whoami)
+User=USER_PLACEHOLDER
+# Sesuaikan path direktori tempat repositori disimpan di laptop Kubuntu Anda
+WorkingDirectory=/home/USER_PLACEHOLDER/Portofolio
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=theoverse
+
+# Environment Variables
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=TRUST_PROXY=1
+
+# Resource & security limits
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

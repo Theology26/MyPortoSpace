@@ -36,6 +36,7 @@ const chk = (n, c, x) => { if (c) { pass++; console.log(`PASS  ${n}`); } else { 
 const PUBLIC_ROUTES = [
   '/', '/index.html', '/admin', '/admin.html', '/robots.txt', '/sitemap.xml',
   '/api/content', '/api/github/stats', '/api/cv/download', '/api/cv/download?format=html',
+  '/api/portfolio/pdf', '/api/portfolio/pdf?format=pdf',
   '/app.js', '/admin.js', '/tailwind.css', '/tailwind.admin.css', '/build-manifest.json',
   '/Assets/avatar_animated.png', '/nonexistent-path-404',
 ];

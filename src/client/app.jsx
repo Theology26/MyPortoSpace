@@ -2086,7 +2086,8 @@
         Mermaid: '#ff3670'
       };
 
-      const allProjects = Array.isArray(projectsList) && projectsList.length > 0 ? projectsList : DEFAULT_PROJECTS;
+      const rawProjects = Array.isArray(projectsList) && projectsList.length > 0 ? projectsList : DEFAULT_PROJECTS;
+      const allProjects = rawProjects.filter(item => item && item.showInPortfolio !== false);
 
       const reposCount = githubStats?.reposCount || allProjects.length || 9;
       const starsCount = githubStats?.starsCount || 7;
@@ -2236,7 +2237,12 @@
 
             {/* Repo Cards Grid (Matching Education & Experience Glass Aesthetics) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {filteredProjects.map((item) => {
+              {filteredProjects.length === 0 ? (
+                <div className="col-span-1 md:col-span-2 text-center py-12 glass-card rounded-3xl border border-white/10">
+                  <p className="font-mono text-sm text-muted">Belum ada project yang dipilih untuk ditampilkan pada kategori ini.</p>
+                </div>
+              ) : (
+                filteredProjects.map((item) => {
                 const isCert = item.type === 'certificate';
                 const tagList = Array.isArray(item.tags) 
                   ? item.tags 
@@ -2351,7 +2357,7 @@
 
                   </div>
                 );
-              })}
+              }))}
             </div>
 
           </div>
@@ -2362,7 +2368,29 @@
     // ═══════════════════════════════════════════
     // TECH STACK & GITHUB REPOSITORY ANALYSIS (Matching Education & Experience Glass Aesthetics)
     // ═══════════════════════════════════════════
-    const TechStack = ({ githubStats: initialStats }) => {
+    const TechStack = ({ githubStats: initialStats, arsenal }) => {
+      // Right-hand architecture cards are hand-edited in the admin panel and come
+      // straight from stored content — there are no hardcoded copies here. The
+      // left-hand language bars stay driven by the GitHub API.
+      const ARSENAL_ACCENTS = {
+        cyan: {
+          badgeText: 'text-cyan-300',
+          badgeBorder: 'border-cyan-500/20',
+          tagBg: 'rgba(56,189,248,0.08)',
+          tagBorder: 'rgba(56,189,248,0.2)',
+        },
+        purple: {
+          badgeText: 'text-purple-300',
+          badgeBorder: 'border-purple-500/20',
+          tagBg: 'rgba(168,85,247,0.08)',
+          tagBorder: 'rgba(168,85,247,0.2)',
+        },
+      };
+      const ar = arsenal || {};
+      const cards = (Array.isArray(ar.cards) ? ar.cards : []).map((c) => ({
+        ...c,
+        ...(ARSENAL_ACCENTS[c.accent] || ARSENAL_ACCENTS.cyan),
+      }));
       const [stats, setStats] = useState(initialStats || null);
       const [loading, setLoading] = useState(false);
 
@@ -2429,9 +2457,9 @@
         <section id="techstack" className="relative py-16 sm:py-24" style={{ zIndex: 2 }}>
           <div className="max-w-[1280px] mx-auto px-5 sm:px-12">
             <SectionHeader
-              label="04 // TECHNICAL ARSENAL"
-              title="Stack & Code Telemetry"
-              subtitle="Real-time telemetry analysis of GitHub repositories by @Theology26 and production system architecture."
+              label={ar.label}
+              title={ar.title}
+              subtitle={ar.subtitle}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -2445,11 +2473,11 @@
                     <div className="flex items-center gap-2 mb-1">
                       <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                       <h3 className="font-geist text-lg font-semibold text-white tracking-tight">
-                        Tech Stack
+                        {ar.stackTitle}
                       </h3>
                     </div>
                     <p className="font-geist text-xs text-muted">
-                      Based on live GitHub repository analysis
+                      {ar.stackSubtitle}
                     </p>
                   </div>
                   <button
@@ -2508,7 +2536,7 @@
                 <div className="pt-5 mt-5 border-t border-white/[0.08] flex items-center justify-between font-mono text-[10px] text-muted/70">
                   <span className="flex items-center gap-1.5 text-emerald-400">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    LIVE GITHUB API SYNC
+                    {ar.stackFooterLabel}
                   </span>
                   <span>{languages.length} LANGUAGES ANALYZED</span>
                 </div>
@@ -2516,49 +2544,29 @@
 
               {/* Right Column: Frameworks & Engineering Arsenal (Clean Glass Cards) */}
               <div className="lg:col-span-6 flex flex-col gap-5">
-                <div className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300 uppercase tracking-wider border border-cyan-500/20">
-                      ENTERPRISE BACKEND ARCHITECTURE
-                    </span>
-                  </div>
-                  <h3 className="font-geist text-lg font-semibold text-white mb-2">
-                    Laravel 11 • PHP 8.3 • Relational Systems
-                  </h3>
-                  <p className="font-geist text-sm text-muted leading-relaxed mb-4">
-                    High-throughput backend architecture featuring Test-Driven Development (TDD), multi-guard authentication pipelines, dynamic ORM relationships, and automated headless PDF generation.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {['Laravel 11', 'PHP 8.3', 'MySQL / SQLite', 'REST API', 'DomPDF Engine'].map(tag => (
-                      <span key={tag} className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
-                        style={{ background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.2)' }}>
-                        {tag}
+                {cards.map((card, i) => (
+                  <div key={i} className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className={`glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase tracking-wider border ${card.badgeText} ${card.badgeBorder}`}>
+                        {card.badge}
                       </span>
-                    ))}
+                    </div>
+                    <h3 className="font-geist text-lg font-semibold text-white mb-2">
+                      {card.title}
+                    </h3>
+                    <p className="font-geist text-sm text-muted leading-relaxed mb-4">
+                      {card.description}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {(Array.isArray(card.tags) ? card.tags : []).map((tag, ti) => (
+                        <span key={ti} className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
+                          style={{ background: card.tagBg, border: `1px solid ${card.tagBorder}` }}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                <div className="glass-card rounded-3xl p-5 sm:p-7 hover:bg-white/[0.08] transition-all duration-300">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-purple-300 uppercase tracking-wider border border-purple-500/20">
-                      3D WEBGL & INTERACTIVE VISUAL COMPUTING
-                    </span>
-                  </div>
-                  <h3 className="font-geist text-lg font-semibold text-white mb-2">
-                    Three.js • React 18 • Computer Vision YOLO
-                  </h3>
-                  <p className="font-geist text-sm text-muted leading-relaxed mb-4">
-                    Photorealistic 3D Earth atmosphere and orbital satellite simulations, interactive elastic lanyard physics, EasyOCR deep learning inference, and Resolume Arena projection mapping for live stages.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {['Three.js WebGL', 'React 18', 'Tailwind CSS', 'EasyOCR & YOLO', 'Resolume Arena'].map(tag => (
-                      <span key={tag} className="px-2.5 py-1 rounded-full font-mono text-[10px] text-subtle/80 tracking-wider"
-                        style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.2)' }}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                ))}
               </div>
 
             </div>
@@ -3151,7 +3159,7 @@
             </ScrollReveal>
 
             <ScrollReveal>
-              <TechStack githubStats={content?.githubStats} />
+              <TechStack githubStats={content?.githubStats} arsenal={content?.techArsenal} />
             </ScrollReveal>
 
             <ScrollReveal>

@@ -7,31 +7,30 @@ const Sanitizer = require('../security/Sanitizer');
  * Every interpolated value passes through Sanitizer.
  */
 class CvService {
-  /** Union of CV-selected and portfolio projects, de-duplicated by title. */
+  /**
+   * Projects shown on the CV, in portfolio order.
+   *
+   * Selection is explicit and manual: a project appears only while its
+   * "Selected for CV" box is ticked in the admin Projects tab. Nothing is ever
+   * merged in automatically, so a GitHub sync cannot change the CV.
+   */
   static collectProjects(content) {
-    const cv = content.cvData || {};
-    const map = new Map();
+    const out = [];
 
-    const add = (p) => {
-      if (!p || !p.title) return;
-      const key = String(p.title).toLowerCase().trim();
-      if (!map.has(key)) {
-        map.set(key, {
-          title: p.title,
-          tags: Array.isArray(p.tags) ? p.tags.join(', ') : p.tags || '',
-          description: p.description || '',
-          linkUrl: p.linkUrl || '',
-          date: p.date || '',
-        });
-      }
-    };
+    for (const p of Array.isArray(content.projectsList) ? content.projectsList : []) {
+      if (!p || p.type !== 'project' || p.includeInCv !== true) continue;
+      const title = String(p.title || '').trim();
+      if (!title) continue;
+      out.push({
+        title: String(p.cvTitle || '').trim() || title,
+        tags: p.cvTags || (Array.isArray(p.tags) ? p.tags.join(', ') : p.tags) || '',
+        description: p.cvDescription || p.description || '',
+        linkUrl: p.cvLinkUrl || p.linkUrl || '',
+        date: p.cvDate || p.date || '',
+      });
+    }
 
-    (Array.isArray(cv.selectedProjects) ? cv.selectedProjects : []).forEach(add);
-    (Array.isArray(content.projectsList) ? content.projectsList : [])
-      .filter((p) => p && p.type === 'project')
-      .forEach(add);
-
-    return Array.from(map.values());
+    return out;
   }
 
   /** Contact line, fully escaped. */

@@ -130,6 +130,8 @@ npm run test:cert-render    # certificate render check on the public page
 npm run test:cta            #  4 CTA rendering assertions
 npm run test:render         # 13 headless-Chrome render checks (mobile + desktop)
 npm run test:failclosed     # 15 auth fail-closed assertions
+npm run test:admin          # unlocks the admin in Chrome, asserts the CV checkbox renders
+npm run test:pdf            # renders the portfolio PDF and writes screenshots to test/shots/
 npm run audit:secrets       # 37 public-exposure probes
 npm run test:leak           # 29 canary leak probes
 ```
@@ -162,6 +164,25 @@ Verified two ways:
 - `npm run test:leak` — plants uniquely-identifiable canaries into the database,
   proves none appear in any public response (including error responses), then
   restores the original content and re-scans.
+
+---
+
+## 📄 Documents
+
+Two server-rendered A4 documents, both reachable from the admin panel and both
+print-to-PDF from the browser (no PDF dependency, text stays selectable):
+
+| Endpoint | Document | Contents |
+|----------|----------|----------|
+| `/api/cv/download` | ATS CV | One page. Name, contact, summary, experience, **only** projects ticked *Selected for CV*, skills. |
+| `/api/portfolio/pdf` | Portfolio | Three pages. Profile + language telemetry + stack + experience, then every project with its GitHub link, then credentials. |
+
+Project selection for the CV is a per-project `includeInCv` checkbox in the
+admin Projects tab. GitHub sync only refreshes stars, tags and language stats —
+it never adds or removes CV projects.
+
+Both endpoints are covered by `npm run audit:secrets` and `npm run test:leak`, so
+stored content can never leak through them.
 
 ---
 

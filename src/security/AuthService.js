@@ -53,14 +53,14 @@ class AuthService {
   async verifyPasscode(candidate) {
     if (typeof candidate !== 'string' || candidate === '') return false;
 
-    const envPass = this.getEnvPasscode();
-    if (envPass) {
-      return CryptoUtil.timingSafeEqual(candidate, envPass);
-    }
-
     const record = await this.getStoredRecord();
     if (record) {
       return CryptoUtil.verifySecret(candidate, record);
+    }
+
+    const envPass = this.getEnvPasscode();
+    if (envPass) {
+      return CryptoUtil.timingSafeEqual(candidate, envPass);
     }
 
     const legacy = await this.getLegacyPasscode();
@@ -98,10 +98,10 @@ class AuthService {
    * knows the derivation could forge an admin session.
    */
   async getSigningKey() {
-    const envPass = this.getEnvPasscode();
-    if (envPass) return deriveKey(envPass);
     const record = await this.getStoredRecord();
     if (record) return Buffer.from(record.hash, 'hex');
+    const envPass = this.getEnvPasscode();
+    if (envPass) return deriveKey(envPass);
     const legacy = await this.getLegacyPasscode();
     if (legacy) return deriveKey(legacy);
     return null;

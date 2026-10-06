@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node build.js && npm run build:css",
-    "build:css": "tailwindcss -c tailwind.config.js -i ./src/client/tailwind.css -o ./public/tailwind.css --minify && tailwindcss -c tailwind.admin.config.js -i ./src/client/tailwind.css -o ./public/tailwind.admin.css --minify",
+    "build:css": "tailwindcss -c tailwind.config.js -i ./src/client/tailwind.css -o ./public/tailwind.css --minify && tailwindcss -c tailwind.admin.config.js -i ./src/client/tailwind.css -o ./public/tailwind.admin.css --minify && node scripts/version-assets.js",
     "start": "node server.js",
     "dev": "node build.js && node server.js",
     "test": "node test/test_security.js && node test/test_live.js",
@@ -14,6 +14,8 @@
     "test:certs": "node test/test_certificates.js",
     "test:cert-render": "node test/test_certificate.js",
     "test:cta": "node test/test_cta.js",
+    "test:admin": "node test/test_admin_smoke.js",
+    "test:pdf": "node test/test_portfolio_pdf.js",
     "test:failclosed": "node test/test_failclosed.js",
     "audit:secrets": "node scripts/audit_secrets.js",
     "test:leak": "node test/test_canary_leak.js",

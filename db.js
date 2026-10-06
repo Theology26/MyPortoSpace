@@ -338,6 +338,30 @@ const DEFAULT_CONTENT = {
     ],
     technicalSkills: 'Python, Rest API, Easy OCR, YOLO, IO Paint, HTML, js, CSS, Tailwind CSS, JavaScript, Custom CMS, Laravel 11, PHP 8.3, MySQL, React, Three.js, Git'
   },
+  techArsenal: {
+    label: '04 // TECHNICAL ARSENAL',
+    title: 'Stack & Code Telemetry',
+    subtitle: 'Real-time telemetry analysis of GitHub repositories by @Theology26 and production system architecture.',
+    stackTitle: 'Tech Stack',
+    stackSubtitle: 'Based on live GitHub repository analysis',
+    stackFooterLabel: 'LIVE GITHUB API SYNC',
+    cards: [
+      {
+        badge: 'ENTERPRISE BACKEND ARCHITECTURE',
+        title: 'Laravel 11 • PHP 8.3 • Relational Systems',
+        description: 'High-throughput backend architecture featuring Test-Driven Development (TDD), multi-guard authentication pipelines, dynamic ORM relationships, and automated headless PDF generation.',
+        tags: ['Laravel 11', 'PHP 8.3', 'MySQL / SQLite', 'REST API', 'DomPDF Engine'],
+        accent: 'cyan',
+      },
+      {
+        badge: '3D WEBGL & INTERACTIVE VISUAL COMPUTING',
+        title: 'Three.js • React 18 • Computer Vision YOLO',
+        description: 'Photorealistic 3D Earth atmosphere and orbital satellite simulations, interactive elastic lanyard physics, EasyOCR deep learning inference, and Resolume Arena projection mapping for live stages.',
+        tags: ['Three.js WebGL', 'React 18', 'Tailwind CSS', 'EasyOCR & YOLO', 'Resolume Arena'],
+        accent: 'purple',
+      },
+    ],
+  },
   githubStats: {
     reposCount: 9,
     starsCount: 7,

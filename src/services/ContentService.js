@@ -17,6 +17,7 @@ const PUBLIC_SECTIONS = [
   'projectsList',
   'certificatesList',
   'projectSpotlight',
+  'techArsenal',
   'spaceConfig',
   'cvData',
   'githubStats',

@@ -15,6 +15,7 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+!deploy/.env.production.example
 ADMIN_CREDENTIALS.txt
 *_CREDENTIALS.txt
 *CREDENTIALS*.txt
@@ -59,3 +60,6 @@ public/tailwind.css
 public/tailwind.admin.css
 public/build-manifest.json
 
+
+# Screenshot artifacts from visual regression runs
+test/shots/

@@ -7,6 +7,7 @@ const compression = require('compression');
 const ContentRepository = require('./src/repositories/ContentRepository');
 const ContentService = require('./src/services/ContentService');
 const CvService = require('./src/services/CvService');
+const PortfolioPdfService = require('./src/services/PortfolioPdfService');
 const { UploadService } = require('./src/services/UploadService');
 const GitHubSyncService = require('./src/services/GitHubSyncService');
 const AuthService = require('./src/security/AuthService');
@@ -230,6 +231,68 @@ app.post('/api/auth/login', loginRateLimiter.middleware(), async (req, res) => {
   }
 });
 
+// 3a. Change admin passcode — admin only with old password verification.
+app.post(
+  '/api/auth/change-passcode',
+  authMiddleware.requireAdmin(),
+  contentUpdateRateLimiter.middleware(),
+  async (req, res) => {
+    try {
+      const { currentPasscode, newPasscode } = req.body || {};
+
+      if (!currentPasscode || typeof currentPasscode !== 'string') {
+        return res.status(400).json({ success: false, error: 'Password saat ini harus diisi.' });
+      }
+
+      if (!newPasscode || typeof newPasscode !== 'string' || newPasscode.trim().length < 6) {
+        return res.status(400).json({ success: false, error: 'Password baru minimal 6 karakter.' });
+      }
+
+      if (newPasscode.trim() === 'theology26') {
+        return res.status(400).json({ success: false, error: 'Password ini tidak diizinkan demi keamanan sistem.' });
+      }
+
+      const isValid = await authService.verifyPasscode(currentPasscode.trim());
+      if (!isValid) {
+        return res.status(401).json({ success: false, error: 'Password saat ini tidak valid.' });
+      }
+
+      const trimmedNew = newPasscode.trim();
+      await authService.setPasscodeHash(trimmedNew);
+
+      if (process.env.ADMIN_PASSCODE) {
+        process.env.ADMIN_PASSCODE = trimmedNew;
+      }
+
+      // Sync .env if exists
+      const envPath = path.join(__dirname, '.env');
+      if (require('fs').existsSync(envPath)) {
+        try {
+          let envContent = require('fs').readFileSync(envPath, 'utf8');
+          if (envContent.includes('ADMIN_PASSCODE=')) {
+            envContent = envContent.replace(/^ADMIN_PASSCODE=.*$/m, `ADMIN_PASSCODE=${trimmedNew}`);
+          } else {
+            envContent += `\nADMIN_PASSCODE=${trimmedNew}\n`;
+          }
+          require('fs').writeFileSync(envPath, envContent, 'utf8');
+        } catch (e) {
+          console.warn('[ChangePasscode] Note on .env sync:', e.message);
+        }
+      }
+
+      const newToken = await authService.issueToken();
+      res.json({
+        success: true,
+        token: newToken,
+        message: 'Password admin berhasil diperbarui!',
+      });
+    } catch (err) {
+      console.error('Change passcode error:', err);
+      res.status(500).json({ success: false, error: 'Gagal memperbarui password.' });
+    }
+  }
+);
+
 // 3b. Image upload — admin only. Files are written to /Assets/uploads, which is
 // served statically with immutable caching, so /api/content stays small.
 app.post(
@@ -330,7 +393,23 @@ app.get('/api/cv/download', async (req, res) => {
   }
 });
 
-// 7. Static text files.
+// 7. Portfolio PDF generator (multi-page A4).
+app.get('/api/portfolio/pdf', async (req, res) => {
+  try {
+    const content = await contentService.getAll();
+    const { html, filename } = PortfolioPdfService.render(content);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'public, max-age=600');
+    return res.send(html);
+  } catch (err) {
+    console.error('Portfolio PDF generation error:', err);
+    res.status(500).send('Error generating portfolio');
+  }
+});
+
+// 8. Static text files.
 app.get('/robots.txt', (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=86400');
   res.type('text/plain');
@@ -395,6 +474,7 @@ async function startServer() {
       console.log(`- Portfolio:  http://localhost:${PORT}/`);
       console.log(`- Admin:      http://localhost:${PORT}/admin`);
       console.log(`- ATS CV:     http://localhost:${PORT}/api/cv/download`);
+      console.log(`- Portfolio:  http://localhost:${PORT}/api/portfolio/pdf`);
 
       // Surface weak/absent credential configuration instead of failing silently.
       const hasEnvPass = Boolean(authService.getEnvPasscode());

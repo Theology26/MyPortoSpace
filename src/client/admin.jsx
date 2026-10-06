@@ -11,6 +11,13 @@
       const [saving, setSaving] = useState(false);
       const [toast, setToast] = useState(null);
       const [githubSyncing, setGithubSyncing] = useState(false);
+      const [oldPass, setOldPass] = useState('');
+      const [newPass, setNewPass] = useState('');
+      const [confirmPass, setConfirmPass] = useState('');
+      const [passError, setPassError] = useState('');
+      const [passChanging, setPassChanging] = useState(false);
+      const [showOldPass, setShowOldPass] = useState(false);
+      const [showNewPass, setShowNewPass] = useState(false);
 
       const showToast = (msg, type = 'success') => {
         setToast({ msg, type });
@@ -129,6 +136,60 @@
       };
 
       // Helper for deep mutations
+      const handleChangePasscode = async (e) => {
+        e.preventDefault();
+        setPassError('');
+
+        if (!oldPass) {
+          setPassError('Password lama harus diisi.');
+          return;
+        }
+        if (!newPass) {
+          setPassError('Password baru harus diisi.');
+          return;
+        }
+        if (newPass.length < 6) {
+          setPassError('Password baru minimal 6 karakter.');
+          return;
+        }
+        if (newPass !== confirmPass) {
+          setPassError('Konfirmasi password baru tidak cocok.');
+          return;
+        }
+
+        setPassChanging(true);
+        const token = sessionStorage.getItem('theo_admin_token');
+        try {
+          const res = await fetch('/api/auth/change-passcode', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              currentPasscode: oldPass,
+              newPasscode: newPass
+            })
+          });
+          const json = await res.json();
+          if (json.success) {
+            if (json.token) {
+              sessionStorage.setItem('theo_admin_token', json.token);
+            }
+            setOldPass('');
+            setNewPass('');
+            setConfirmPass('');
+            showToast('✓ Password admin berhasil diperbarui!');
+          } else {
+            setPassError(json.error || 'Gagal mengubah password');
+          }
+        } catch (err) {
+          setPassError('Terjadi kesalahan koneksi server');
+        } finally {
+          setPassChanging(false);
+        }
+      };
+
       const updateField = (section, field, value) => {
         setContent(prev => ({
           ...prev,
@@ -138,6 +199,12 @@
           },
         }));
       };
+
+      // Section 04 (Technical Arsenal) — the server seeds defaults for this
+      // section. Optional chaining matters: this runs on every render, including
+      // the first one while `content` is still null.
+      const arsenal = content?.techArsenal || {};
+      const arsenalCards = Array.isArray(arsenal.cards) ? arsenal.cards : [];
 
       // Image File Upload to DataURL
       // ═══════════════════════════════════════════
@@ -302,6 +369,7 @@
         { id: 'cv', label: '06 // ATS CV Generator' },
         { id: 'github', label: '07 // GitHub Engine' },
         { id: 'space', label: '08 // Space 3D Settings' },
+        { id: 'security', label: '09 // Security & Passcode' },
       ];
 
       return (
@@ -793,6 +861,215 @@
                     + Add Tag
                   </button>
                 </div>
+
+                {/* 04 // TECHNICAL ARSENAL — everything except the language bars */}
+                <div className="pt-5 mt-2 border-t border-white/10 flex flex-col gap-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="font-geist text-base font-semibold text-white">
+                        Section 04 — Technical Arsenal
+                      </h2>
+                      <p className="font-geist text-xs text-muted mt-0.5">
+                        Headings, the Tech Stack card, and the architecture cards on the right. The language
+                        percentages stay automatic from the GitHub API.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    <div>
+                      <label className="font-mono text-[10px] text-muted block mb-1">Section Label</label>
+                      <input
+                        type="text"
+                        value={arsenal.label || ''}
+                        onChange={(e) => updateField('techArsenal', 'label', e.target.value)}
+                        className="glass-input w-full px-3 py-1.5 rounded-lg font-mono text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-[10px] text-muted block mb-1">Section Title</label>
+                      <input
+                        type="text"
+                        value={arsenal.title || ''}
+                        onChange={(e) => updateField('techArsenal', 'title', e.target.value)}
+                        className="glass-input w-full px-3 py-1.5 rounded-lg font-semibold text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-mono text-[10px] text-muted block mb-1">Section Subtitle</label>
+                      <textarea
+                        rows="2"
+                        value={arsenal.subtitle || ''}
+                        onChange={(e) => updateField('techArsenal', 'subtitle', e.target.value)}
+                        className="glass-input w-full px-3 py-1.5 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="font-mono text-[10px] text-muted block mb-1">Tech Stack Card Title</label>
+                        <input
+                          type="text"
+                          value={arsenal.stackTitle || ''}
+                          onChange={(e) => updateField('techArsenal', 'stackTitle', e.target.value)}
+                          className="glass-input w-full px-3 py-1.5 rounded-lg font-semibold text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="font-mono text-[10px] text-muted block mb-1">Tech Stack Card Subtitle</label>
+                        <input
+                          type="text"
+                          value={arsenal.stackSubtitle || ''}
+                          onChange={(e) => updateField('techArsenal', 'stackSubtitle', e.target.value)}
+                          className="glass-input w-full px-3 py-1.5 rounded-lg text-xs"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="font-mono text-[10px] text-muted block mb-1">Tech Stack Footer Label</label>
+                      <input
+                        type="text"
+                        value={arsenal.stackFooterLabel || ''}
+                        onChange={(e) => updateField('techArsenal', 'stackFooterLabel', e.target.value)}
+                        className="glass-input w-full px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Architecture cards */}
+                  <div className="pt-4 border-t border-white/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="font-mono text-xs text-muted uppercase">Architecture Cards</label>
+                      <button
+                        onClick={() => updateField('techArsenal', 'cards', [
+                          ...arsenalCards,
+                          { badge: 'NEW CARD', title: 'Card Title', description: 'Card description.', tags: [], accent: 'cyan' },
+                        ])}
+                        className="font-mono text-xs text-cyan-400 hover:text-cyan-300"
+                      >
+                        + Add Card
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-4">
+                      {arsenalCards.map((card, cIdx) => (
+                        <div key={cIdx} className="glass-pill p-4 rounded-xl flex flex-col gap-2.5 relative">
+                          <div className="flex items-center justify-between pr-6">
+                            <span className="font-mono text-[10px] text-muted">Card {cIdx + 1}</span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => {
+                                  if (cIdx === 0) return;
+                                  const copy = [...arsenalCards];
+                                  [copy[cIdx - 1], copy[cIdx]] = [copy[cIdx], copy[cIdx - 1]];
+                                  updateField('techArsenal', 'cards', copy);
+                                }}
+                                disabled={cIdx === 0}
+                                className="font-mono text-xs text-muted hover:text-white disabled:opacity-30 px-1.5"
+                                title="Move up"
+                              >
+                                ↑
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (cIdx === arsenalCards.length - 1) return;
+                                  const copy = [...arsenalCards];
+                                  [copy[cIdx + 1], copy[cIdx]] = [copy[cIdx], copy[cIdx + 1]];
+                                  updateField('techArsenal', 'cards', copy);
+                                }}
+                                disabled={cIdx === arsenalCards.length - 1}
+                                className="font-mono text-xs text-muted hover:text-white disabled:opacity-30 px-1.5"
+                                title="Move down"
+                              >
+                                ↓
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (arsenalCards.length <= 1) return;
+                                  updateField('techArsenal', 'cards', arsenalCards.filter((_, i) => i !== cIdx));
+                                }}
+                                disabled={arsenalCards.length <= 1}
+                                className="text-rose-400 hover:text-rose-300 text-xs px-2 disabled:opacity-30"
+                                title="Remove card"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            <input
+                              type="text"
+                              placeholder="Badge label"
+                              value={card.badge || ''}
+                              onChange={(e) => {
+                                const copy = [...arsenalCards];
+                                copy[cIdx] = { ...copy[cIdx], badge: e.target.value };
+                                updateField('techArsenal', 'cards', copy);
+                              }}
+                              className="glass-input px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase col-span-2"
+                            />
+                            <select
+                              value={card.accent || 'cyan'}
+                              onChange={(e) => {
+                                const copy = [...arsenalCards];
+                                copy[cIdx] = { ...copy[cIdx], accent: e.target.value };
+                                updateField('techArsenal', 'cards', copy);
+                              }}
+                              className="glass-input px-2.5 py-1.5 rounded-lg font-mono text-[10px] bg-black/60 border-white/20"
+                            >
+                              <option value="cyan" className="bg-slate-900 text-cyan-300">CYAN ACCENT</option>
+                              <option value="purple" className="bg-slate-900 text-purple-300">PURPLE ACCENT</option>
+                            </select>
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Card title"
+                            value={card.title || ''}
+                            onChange={(e) => {
+                              const copy = [...arsenalCards];
+                              copy[cIdx] = { ...copy[cIdx], title: e.target.value };
+                              updateField('techArsenal', 'cards', copy);
+                            }}
+                            className="glass-input px-3 py-1.5 rounded-lg font-semibold text-sm"
+                          />
+
+                          <textarea
+                            rows="3"
+                            placeholder="Card description..."
+                            value={card.description || ''}
+                            onChange={(e) => {
+                              const copy = [...arsenalCards];
+                              copy[cIdx] = { ...copy[cIdx], description: e.target.value };
+                              updateField('techArsenal', 'cards', copy);
+                            }}
+                            className="glass-input w-full px-3 py-1.5 rounded-lg text-xs"
+                          />
+
+                          <div>
+                            <label className="font-mono text-[10px] text-muted block mb-1">
+                              Tags (comma separated) — renders as pills
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Laravel 11, PHP 8.3, MySQL"
+                              value={(Array.isArray(card.tags) ? card.tags : []).join(', ')}
+                              onChange={(e) => {
+                                const copy = [...arsenalCards];
+                                copy[cIdx] = {
+                                  ...copy[cIdx],
+                                  tags: e.target.value.split(',').map((t) => t.trim()).filter(Boolean),
+                                };
+                                updateField('techArsenal', 'cards', copy);
+                              }}
+                              className="glass-input w-full px-3 py-1.5 rounded-lg font-mono text-xs"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -1228,7 +1505,13 @@
                       <h3 className="font-geist text-base font-semibold text-white flex items-center gap-2">
                         <span>Projects & Repositories Collection</span>
                         <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300">
-                          {(content.projectsList || []).length} Repositories
+                          {(content.projectsList || []).filter(p => p && p.showInPortfolio !== false).length} Aktif di Web
+                        </span>
+                        <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-indigo-300">
+                          {(content.projectsList || []).filter(p => p && p.type === 'project' && p.includeInCv === true).length} di CV
+                        </span>
+                        <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-zinc-400">
+                          {(content.projectsList || []).length} Total
                         </span>
                       </h3>
                       <p className="font-geist text-xs text-muted">
@@ -1258,7 +1541,10 @@
                             linkUrl: 'https://github.com/Theology26',
                             imageUrl: '',
                             stats: 'Active',
-                            date: '2025'
+                            date: '2025',
+                            showInPortfolio: true,
+                            includeInCv: false,
+                            featured: false
                           };
                           const updated = [...(content.projectsList || []), newProj];
                           setContent(prev => ({ ...prev, projectsList: updated }));
@@ -1274,9 +1560,14 @@
                   <div className="flex flex-col gap-5">
                     {(content.projectsList || []).map((proj, pIdx) => {
                       const isCert = proj.type === 'certificate';
+                      const isHidden = proj.showInPortfolio === false;
                       return (
                         <div key={proj.id || pIdx} className={`glass-pill p-5 rounded-2xl flex flex-col gap-4 border ${
-                          isCert ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-cyan-500/30 bg-cyan-950/10'
+                          isHidden
+                            ? 'border-zinc-700/60 bg-black/50 opacity-80'
+                            : isCert
+                            ? 'border-emerald-500/30 bg-emerald-950/10'
+                            : 'border-cyan-500/30 bg-cyan-950/10'
                         }`}>
                           {/* Card Header: Item Number, Type Selector, Title, and Delete */}
                           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/10">
@@ -1299,6 +1590,25 @@
                               }`}>
                                 {isCert ? 'CERTIFICATE' : 'PROJECT'}
                               </span>
+                              {isHidden ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40" title="Project ini disembunyikan dari web & PDF">
+                                  🙈 HIDDEN DARI WEB
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30">
+                                  🌐 WEB ACTIVE
+                                </span>
+                              )}
+                              {!isCert && proj.includeInCv === true && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                                  📄 CV ACTIVE
+                                </span>
+                              )}
+                              {proj.featured === true && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold bg-yellow-500/20 text-yellow-300 border border-yellow-500/40">
+                                  ★ FEATURED
+                                </span>
+                              )}
                             </div>
 
                             <button
@@ -1519,6 +1829,126 @@
                             </div>
                           </div>
 
+                          {/* Visibility & Placement Controls (Web Portfolio, CV ATS, Featured) */}
+                          <div className="p-3.5 rounded-xl bg-black/40 border border-white/[0.08] flex flex-col gap-3">
+                            <div className="font-mono text-[10px] text-muted uppercase tracking-wider">
+                              Visibility &amp; Placement Controls
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              {/* 1. Show in Portfolio / Dashboard */}
+                              <label className="flex items-start gap-2.5 cursor-pointer select-none p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={proj.showInPortfolio !== false}
+                                  onChange={(e) => {
+                                    const copy = [...content.projectsList];
+                                    copy[pIdx].showInPortfolio = e.target.checked;
+                                    setContent(prev => ({ ...prev, projectsList: copy }));
+                                  }}
+                                  className="w-4 h-4 mt-0.5 accent-cyan-400 rounded"
+                                />
+                                <div>
+                                  <span className="font-geist text-xs text-white font-medium block">Web Portfolio</span>
+                                  <span className="font-mono text-[10px] text-muted block leading-tight">
+                                    {proj.showInPortfolio !== false ? '✓ Tampil di landing page & PDF' : '✕ Disembunyikan (backup/arsip)'}
+                                  </span>
+                                </div>
+                              </label>
+
+                              {/* 2. Show in CV (Only for projects, not certs) */}
+                              {!isCert ? (
+                                <label className="flex items-start gap-2.5 cursor-pointer select-none p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={proj.includeInCv === true}
+                                    onChange={(e) => {
+                                      const copy = [...content.projectsList];
+                                      copy[pIdx].includeInCv = e.target.checked;
+                                      setContent(prev => ({ ...prev, projectsList: copy }));
+                                    }}
+                                    className="w-4 h-4 mt-0.5 accent-cyan-400 rounded"
+                                  />
+                                  <div>
+                                    <span className="font-geist text-xs text-white font-medium block">Selected for CV</span>
+                                    <span className="font-mono text-[10px] text-muted block leading-tight">
+                                      {proj.includeInCv === true ? '✓ Dicetak di lembar ATS CV' : '✕ Tidak masuk ATS CV'}
+                                    </span>
+                                  </div>
+                                </label>
+                              ) : (
+                                <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] opacity-50">
+                                  <span className="font-geist text-xs text-muted block">CV Document</span>
+                                  <span className="font-mono text-[10px] text-muted block">Sertifikat diatur di tab CV</span>
+                                </div>
+                              )}
+
+                              {/* 3. Featured Spotlight */}
+                              <label className="flex items-start gap-2.5 cursor-pointer select-none p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] transition-colors">
+                                <input
+                                  type="checkbox"
+                                  checked={proj.featured === true}
+                                  onChange={(e) => {
+                                    const copy = [...content.projectsList];
+                                    copy[pIdx].featured = e.target.checked;
+                                    setContent(prev => ({ ...prev, projectsList: copy }));
+                                  }}
+                                  className="w-4 h-4 mt-0.5 accent-yellow-400 rounded"
+                                />
+                                <div>
+                                  <span className="font-geist text-xs text-white font-medium block">Featured Star</span>
+                                  <span className="font-mono text-[10px] text-muted block leading-tight">
+                                    {proj.featured === true ? '★ Sorotan utama / prioritas' : 'Standar'}
+                                  </span>
+                                </div>
+                              </label>
+                            </div>
+
+                            {/* CV-only overrides */}
+                            {!isCert && proj.includeInCv === true && (
+                              <div className="flex flex-col gap-2 pt-2.5 border-t border-white/[0.08]">
+                                <span className="font-mono text-[10px] text-amber-300/80 uppercase">
+                                  CV-only overrides — kosongkan jika ingin menggunakan judul &amp; deskripsi di atas
+                                </span>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                  <input
+                                    type="text"
+                                    value={proj.cvTitle || ''}
+                                    placeholder={`CV title (default: ${proj.title || '—'})`}
+                                    onChange={(e) => {
+                                      const copy = [...content.projectsList];
+                                      copy[pIdx].cvTitle = e.target.value;
+                                      setContent(prev => ({ ...prev, projectsList: copy }));
+                                    }}
+                                    className="glass-input w-full px-2.5 py-1.5 rounded-lg text-xs"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={proj.cvDate || ''}
+                                    placeholder={`CV date (default: ${proj.date || '—'})`}
+                                    onChange={(e) => {
+                                      const copy = [...content.projectsList];
+                                      copy[pIdx].cvDate = e.target.value;
+                                      setContent(prev => ({ ...prev, projectsList: copy }));
+                                    }}
+                                    className="glass-input w-full px-2.5 py-1.5 rounded-lg text-xs font-mono"
+                                  />
+                                </div>
+                                <textarea
+                                  rows="2"
+                                  value={proj.cvDescription || ''}
+                                  placeholder="CV-only description (kosongkan untuk menggunakan deskripsi di atas)"
+                                  onChange={(e) => {
+                                    const copy = [...content.projectsList];
+                                    copy[pIdx].cvDescription = e.target.value;
+                                    setContent(prev => ({ ...prev, projectsList: copy }));
+                                  }}
+                                  className="glass-input w-full px-2.5 py-1.5 rounded-lg text-xs"
+                                />
+                              </div>
+                            )}
+                          </div>
+
                           {/* Description */}
                           <div>
                             <label className="font-mono text-[10px] text-muted block mb-1">Detailed Description</label>
@@ -1554,13 +1984,23 @@
                       Exact A4 Portrait (210 × 297 mm) architecture template. Supports photo display and instant browser print/download.
                     </p>
                   </div>
-                  <a
-                    href="/api/cv/download?format=html"
-                    target="_blank"
-                    className="px-4 py-2 rounded-xl bg-cyan-500 text-space-black font-geist text-xs font-bold hover:bg-cyan-400 transition-all shadow-md flex items-center gap-1.5"
-                  >
-                    Preview & Print A4 CV ↗
-                  </a>
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href="/api/portfolio/pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl bg-white text-space-black font-geist text-xs font-bold hover:bg-zinc-200 transition-all shadow-md flex items-center justify-center gap-1.5"
+                    >
+                      Portfolio PDF (A4, 3 pages) ↗
+                    </a>
+                    <a
+                      href="/api/cv/download?format=html"
+                      target="_blank"
+                      className="px-4 py-2 rounded-xl bg-cyan-500 text-space-black font-geist text-xs font-bold hover:bg-cyan-400 transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      Preview & Print A4 CV ↗
+                    </a>
+                  </div>
                 </div>
 
                 {/* Profile Photo Display Toggle on CV */}
@@ -1733,6 +2173,45 @@
                       </div>
                     ))}
                   </div>
+                </div>
+
+                {/* Read-only summary — selection itself lives in the Projects tab */}
+                <div className="pt-4 border-t border-white/10">
+                  {(() => {
+                    const onCv = (content.projectsList || []).filter((p) => p && p.type === 'project' && p.includeInCv);
+                    return (
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                          <label className="font-mono text-xs text-muted uppercase">Projects on this CV</label>
+                          <span className="glass-pill px-2.5 py-0.5 rounded-full font-mono text-[10px] text-cyan-300">
+                            {onCv.length} selected
+                          </span>
+                        </div>
+                        {onCv.length === 0 ? (
+                          <p className="font-mono text-[11px] text-muted/70 text-center py-4 border border-dashed border-white/10 rounded-xl">
+                            No projects on the CV. Tick &quot;Selected for CV&quot; on a project in the Projects tab.
+                          </p>
+                        ) : (
+                          <ol className="flex flex-col gap-1.5">
+                            {onCv.map((p, i) => (
+                              <li key={p.id || `${p.title}-${i}`} className="glass-pill px-3 py-2 rounded-lg flex items-baseline gap-2">
+                                <span className="font-mono text-[10px] text-cyan-400">{i + 1}.</span>
+                                <span className="font-geist text-xs text-white truncate">{p.title}</span>
+                                {p.cvTitle && (
+                                  <span className="font-mono text-[10px] text-amber-300/80 shrink-0" title="CV-only title override">
+                                    prints as: {p.cvTitle}
+                                  </span>
+                                )}
+                              </li>
+                            ))}
+                          </ol>
+                        )}
+                        <p className="font-mono text-[10px] text-muted/60 mt-2">
+                          GitHub sync never adds or removes CV projects — it only refreshes stars, tags and language stats.
+                        </p>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div>
